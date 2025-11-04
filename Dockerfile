@@ -1,23 +1,15 @@
-# Stage 1: Build the Angular application
-FROM node:20-alpine AS build
+FROM node:20-alpine AS dev
+
+ENV NODE_ENV=development
 
 WORKDIR /app
 
 COPY package.json package-lock.json ./
 
-RUN npm ci
+RUN --mount=type=cache,target=/root/.npm npm install
 
 COPY . .
 
-RUN npm run build
+EXPOSE 80
 
-# Stage 2: Serve with Nginx
-FROM nginx:alpine
-
-COPY nginx.conf /etc/nginx/nginx.conf
-
-COPY --from=build /app/dist/CodeClique/browser /usr/share/nginx/html
-
-EXPOSE 5000
-
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["npm", "start", "--", "--host=0.0.0.0"]

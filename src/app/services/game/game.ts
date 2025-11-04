@@ -1,14 +1,8 @@
 import { Injectable, signal, computed, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { firstValueFrom } from 'rxjs';
 
-declare global {
-  interface Window {
-    storage: {
-      get: (key: string, global?: boolean) => Promise<{ value: string } | null>;
-      set: (key: string, value: string, global?: boolean) => Promise<void>;
-    };
-  }
-}
+const API_BASE_URL = '/api/game';
 
 export interface GameState {
   sessionId: string;
@@ -37,11 +31,11 @@ export interface UpgradeResponse {
   message?: string;
 }
 
-interface BackendAPI {
-  validateClick: (sessionId: string) => Promise<ClickResponse>;
-  validateUpgrade: (sessionId: string, cost: number, multiplier: number) => Promise<UpgradeResponse>;
-  getLeaderboard: () => Promise<LeaderboardEntry[]>;
-  submitScore: (name: string, score: number) => Promise<boolean>;
+export interface InitResponse {
+  sessionId: string;
+  gameState: GameState;
+  leaderboard: LeaderboardEntry[];
+  playerName: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -73,184 +67,117 @@ export class GameService {
     return (cost: number) => state.bananas >= cost;
   });
 
-  // Backend simulation (in real app, replace with actual API calls)
-  private createBackendAPI(): BackendAPI {
-    // In production, this would be actual HTTP calls to your backend
-    // For now, we'll use window.storage to simulate backend validation
-    return {
-      validateClick: async (sessionId: string): Promise<ClickResponse> => {
-        try {
-          const state = await window.storage.get(`session:${sessionId}`);
-          if (!state) {
-            return { success: false, newBananas: 0, message: 'Invalid session' };
-          }
-
-          const gameData: GameState = JSON.parse(state.value);
-          const now = Date.now();
-          
-          // Anti-cheat: max 20 clicks per second
-          if (now - gameData.lastClickTime < 50) {
-            return { success: false, newBananas: gameData.bananas, message: 'Too fast!' };
-          }
-
-          const newBananas = gameData.bananas + gameData.bananasPerClick;
-          const newState: GameState = {
-            ...gameData,
-            bananas: newBananas,
-            totalClicks: gameData.totalClicks + 1,
-            lastClickTime: now
-          };
-
-          await window.storage.set(`session:${sessionId}`, JSON.stringify(newState));
-          return { success: true, newBananas };
-        } catch (error) {
-          console.error('Click validation error:', error);
-          return { success: false, newBananas: 0, message: 'Server error' };
-        }
-      },
-
-      validateUpgrade: async (sessionId: string, cost: number, multiplier: number): Promise<UpgradeResponse> => {
-        try {
-          const state = await window.storage.get(`session:${sessionId}`);
-          if (!state) {
-            return { success: false, newBananas: 0, newBananasPerClick: 1, message: 'Invalid session' };
-          }
-
-          const gameData: GameState = JSON.parse(state.value);
-          
-          if (gameData.bananas < cost) {
-            return { 
-              success: false, 
-              newBananas: gameData.bananas, 
-              newBananasPerClick: gameData.bananasPerClick,
-              message: 'Not enough bananas' 
-            };
-          }
-
-          const newState: GameState = {
-            ...gameData,
-            bananas: gameData.bananas - cost,
-            bananasPerClick: gameData.bananasPerClick + multiplier
-          };
-
-          await window.storage.set(`session:${sessionId}`, JSON.stringify(newState));
-          return { 
-            success: true, 
-            newBananas: newState.bananas, 
-            newBananasPerClick: newState.bananasPerClick 
-          };
-        } catch (error) {
-          console.error('Upgrade validation error:', error);
-          return { success: false, newBananas: 0, newBananasPerClick: 1, message: 'Server error' };
-        }
-      },
-
-      getLeaderboard: async (): Promise<LeaderboardEntry[]> => {
-        try {
-          const result = await window.storage.get('leaderboard', true);
-          return result ? JSON.parse(result.value) : [];
-        } catch (error) {
-          console.error('Leaderboard fetch error:', error);
-          return [];
-        }
-      },
-
-      submitScore: async (name: string, score: number): Promise<boolean> => {
-        try {
-          const leaderboard = await this.leaderboard();
-          const newEntry: LeaderboardEntry = {
-            name,
-            score,
-            date: new Date().toISOString()
-          };
-
-          const updated = [...leaderboard, newEntry]
-            .sort((a, b) => b.score - a.score)
-            .slice(0, 10);
-
-          await window.storage.set('leaderboard', JSON.stringify(updated), true);
-          return true;
-        } catch (error) {
-          console.error('Score submission error:', error);
-          return false;
-        }
-      }
-    };
-  }
-
   async initGame(): Promise<void> {
     this.loadingSignal.set(true);
     
     try {
-      // Generate or retrieve session ID
-      const sessionId = await this.getOrCreateSessionId();
-      await window.storage.set('current-session', sessionId);
+      // Get or create session from backend
+      const sessionId = this.getSessionIdFromStorage();
+      
+      const response = await firstValueFrom(
+        this.http.post<InitResponse>(`${API_BASE_URL}/init`, { sessionId })
+      );
 
-      // Load game state from backend
-      const gameState = await this.loadGameState(sessionId);
-      this.gameStateSignal.set(gameState);
+      // Store session ID in localStorage
+      if (response.sessionId) {
+        localStorage.setItem('banana-session-id', response.sessionId);
+      }
 
-      // Load leaderboard
-      const backend = this.createBackendAPI();
-      const leaderboard = await backend.getLeaderboard();
-      this.leaderboardSignal.set(leaderboard);
+      // Update all signals with backend data
+      this.gameStateSignal.set(response.gameState);
+      this.leaderboardSignal.set(response.leaderboard);
+      this.playerNameSignal.set(response.playerName);
 
-      // Load player name
-      await this.loadPlayerName();
     } catch (error) {
       console.error('Game initialization error:', error);
+      // Initialize with default state if backend fails
+      this.gameStateSignal.set({
+        sessionId: this.generateSessionId(),
+        bananas: 0,
+        bananasPerClick: 1,
+        totalClicks: 0,
+        lastClickTime: 0
+      });
     } finally {
       this.loadingSignal.set(false);
     }
   }
 
   async handleClick(): Promise<void> {
-    const backend = this.createBackendAPI();
-    const response = await backend.validateClick(this.gameStateSignal().sessionId);
-    
-    if (response.success) {
-      this.gameStateSignal.update(state => ({
-        ...state,
-        bananas: response.newBananas,
-        totalClicks: state.totalClicks + 1,
-        lastClickTime: Date.now()
-      }));
-    } else if (response.message) {
-      console.warn(response.message);
+    try {
+      const response = await firstValueFrom(
+        this.http.post<ClickResponse>(`${API_BASE_URL}/click`, {
+          sessionId: this.gameStateSignal().sessionId
+        })
+      );
+      
+      if (response.success) {
+        this.gameStateSignal.update(state => ({
+          ...state,
+          bananas: response.newBananas,
+          totalClicks: state.totalClicks + 1,
+          lastClickTime: Date.now()
+        }));
+      } else if (response.message) {
+        console.warn(response.message);
+      }
+    } catch (error) {
+      console.error('Click error:', error);
     }
   }
 
   async buyUpgrade(cost: number, multiplier: number): Promise<boolean> {
-    const backend = this.createBackendAPI();
-    const response = await backend.validateUpgrade(this.gameStateSignal().sessionId, cost, multiplier);
-    
-    if (response.success) {
-      this.gameStateSignal.update(state => ({
-        ...state,
-        bananas: response.newBananas,
-        bananasPerClick: response.newBananasPerClick
-      }));
-      return true;
+    try {
+      const response = await firstValueFrom(
+        this.http.post<UpgradeResponse>(`${API_BASE_URL}/upgrade`, {
+          sessionId: this.gameStateSignal().sessionId,
+          cost,
+          multiplier
+        })
+      );
+      
+      if (response.success) {
+        this.gameStateSignal.update(state => ({
+          ...state,
+          bananas: response.newBananas,
+          bananasPerClick: response.newBananasPerClick
+        }));
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Upgrade error:', error);
+      return false;
     }
-    return false;
   }
 
   async submitScore(name: string): Promise<boolean> {
     const trimmedName = name.trim();
     if (!trimmedName) return false;
 
-    const backend = this.createBackendAPI();
-    const success = await backend.submitScore(trimmedName, this.gameStateSignal().bananas);
-    
-    if (success) {
-      await window.storage.set('player-name', trimmedName);
-      this.playerNameSignal.set(trimmedName);
+    try {
+      const response = await firstValueFrom(
+        this.http.post<{ success: boolean; leaderboard: LeaderboardEntry[] }>(
+          `${API_BASE_URL}/submit-score`,
+          {
+            sessionId: this.gameStateSignal().sessionId,
+            name: trimmedName,
+            score: this.gameStateSignal().bananas
+          }
+        )
+      );
       
-      const leaderboard = await backend.getLeaderboard();
-      this.leaderboardSignal.set(leaderboard);
+      if (response.success) {
+        localStorage.setItem('banana-player-name', trimmedName);
+        this.playerNameSignal.set(trimmedName);
+        this.leaderboardSignal.set(response.leaderboard);
+      }
+      
+      return response.success;
+    } catch (error) {
+      console.error('Score submission error:', error);
+      return false;
     }
-    
-    return success;
   }
 
   updatePlayerName(name: string): void {
@@ -258,57 +185,28 @@ export class GameService {
   }
 
   async resetGame(): Promise<void> {
-    const sessionId = this.gameStateSignal().sessionId;
-    const initialState = this.createInitialState(sessionId);
-    
-    await window.storage.set(`session:${sessionId}`, JSON.stringify(initialState));
-    this.gameStateSignal.set(initialState);
-  }
-
-  private async getOrCreateSessionId(): Promise<string> {
     try {
-      const sessionResult = await window.storage.get('current-session');
-      return sessionResult ? sessionResult.value : this.generateSessionId();
-    } catch {
-      return this.generateSessionId();
-    }
-  }
-
-  private async loadGameState(sessionId: string): Promise<GameState> {
-    try {
-      const state = await window.storage.get(`session:${sessionId}`);
-      if (state) {
-        return JSON.parse(state.value);
+      const response = await firstValueFrom(
+        this.http.post<{ success: boolean; gameState: GameState }>(
+          `${API_BASE_URL}/reset`,
+          { sessionId: this.gameStateSignal().sessionId }
+        )
+      );
+      
+      if (response.success) {
+        this.gameStateSignal.set(response.gameState);
       }
-    } catch {
-      // Fall through to create new state
+    } catch (error) {
+      console.error('Reset error:', error);
     }
-
-    // Initialize new session
-    const initialState = this.createInitialState(sessionId);
-    await window.storage.set(`session:${sessionId}`, JSON.stringify(initialState));
-    return initialState;
   }
 
-  private async loadPlayerName(): Promise<void> {
+  private getSessionIdFromStorage(): string | null {
     try {
-      const nameResult = await window.storage.get('player-name');
-      if (nameResult) {
-        this.playerNameSignal.set(nameResult.value);
-      }
+      return localStorage.getItem('banana-session-id');
     } catch {
-      // No saved name, ignore error
+      return null;
     }
-  }
-
-  private createInitialState(sessionId: string): GameState {
-    return {
-      sessionId,
-      bananas: 0,
-      bananasPerClick: 1,
-      totalClicks: 0,
-      lastClickTime: 0
-    };
   }
 
   private generateSessionId(): string {

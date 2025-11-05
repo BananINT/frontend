@@ -1,73 +1,146 @@
-import { Component, ChangeDetectionStrategy, inject, signal, effect } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Component, OnInit, OnDestroy, signal, computed, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { GameService } from '../../services/game/game';
+import { RouterLink } from '@angular/router';
+import { GameService, UpgradeType } from '../../services/game/game';
 
 @Component({
   selector: 'app-clicker',
-  imports: [RouterLink, FormsModule],
+  standalone: true,
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './clicker.html',
-  styleUrl: './clicker.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush,
+  styleUrl: './clicker.scss'
 })
-export class Clicker {
+export class Clicker implements OnInit, OnDestroy {
   gameService = inject(GameService);
+  
+  playerName = '';
   clickAnimation = signal(false);
-  playerNameInput = '';
-
-  constructor() {
-    this.gameService.initGame();
+  isBuying = signal(false);
+  isSubmitting = signal(false);
+  isSyncing = signal(false);
+  showResetConfirm = signal(false);
+  showWelcomeBack = signal(false);
+  offlineEarnings = signal(0);
+  upgradeFilter = signal<'all' | 'click' | 'auto'>('all');
+  
+  private lastSyncTime = Date.now();
+  timeSinceSync = signal(0);
+  
+  filteredUpgrades = computed(() => {
+    const upgrades = Array.from(this.gameService.upgrades().values());
+    const filter = this.upgradeFilter();
     
-    // Sync input with service
-    effect(() => {
-      this.playerNameInput = this.gameService.playerName();
+    if (filter === 'all') {
+      return upgrades;
+    }
+    
+    return upgrades.filter(u => u.type === filter);
+  });
+
+  ngOnInit() {
+    this.gameService.initGame().then(() => {
+      this.checkOfflineEarnings();
     });
+    
+    // Update sync timer display
+    setInterval(() => {
+      this.timeSinceSync.set(Math.floor((Date.now() - this.lastSyncTime) / 1000));
+    }, 1000);
   }
 
-  async handleClick(): Promise<void> {
-    await this.gameService.handleClick();
+  ngOnDestroy() {
+    // Cleanup handled by service
+  }
+
+  onBananaClick() {
+    if (this.gameService.clickCooldown()) {
+      return;
+    }
+    
+    this.gameService.handleClick();
+    
+    // Show click animation
     this.clickAnimation.set(true);
-    setTimeout(() => this.clickAnimation.set(false), 200);
+    setTimeout(() => this.clickAnimation.set(false), 800);
   }
 
-  async buyUpgrade(cost: number, multiplier: number): Promise<void> {
-    await this.gameService.buyUpgrade(cost, multiplier);
-  }
-
-  async submitScore(): Promise<void> {
-    const success = await this.gameService.submitScore(this.playerNameInput);
-    if (success) {
-      alert('Score soumis avec succès ! 🍌');
-    } else {
-      alert('Entre ton nom pour soumettre ton score !');
+  async buyUpgrade(upgrade: UpgradeType) {
+    if (this.isBuying() || !this.canAfford(upgrade)) {
+      return;
+    }
+    
+    this.isBuying.set(true);
+    
+    try {
+      const success = await this.gameService.buyUpgrade(upgrade.id);
+      if (!success) {
+        // Could show error message
+      }
+    } finally {
+      this.isBuying.set(false);
     }
   }
 
-  onNameChange(name: string): void {
-    this.gameService.updatePlayerName(name);
+  async submitScore() {
+    if (!this.playerName.trim() || this.isSubmitting()) {
+      return;
+    }
+    
+    this.isSubmitting.set(true);
+    
+    try {
+      const success = await this.gameService.submitScore(this.playerName);
+      if (success) {
+        // Success feedback
+        this.playerName = '';
+      }
+    } finally {
+      this.isSubmitting.set(false);
+    }
   }
 
-  async resetGame(): Promise<void> {
-    if (confirm('Veux-tu vraiment recommencer à zéro ? 🍌')) {
-      await this.gameService.resetGame();
-    }
+  confirmReset() {
+    this.showResetConfirm.set(true);
+  }
+
+  async resetGame() {
+    this.showResetConfirm.set(false);
+    await this.gameService.resetGame();
+  }
+
+  canAfford(upgrade: UpgradeType): boolean {
+    return this.gameService.canAffordUpgrade()(this.getCost(upgrade));
+  }
+
+  getCost(upgrade: UpgradeType): number {
+    return this.gameService.calculateUpgradeCost(upgrade);
   }
 
   formatNumber(num: number): string {
-    return num.toLocaleString();
+    if (num >= 1000000000) {
+      return (num / 1000000000).toFixed(2) + 'Md';
+    } else if (num >= 1000000) {
+      return (num / 1000000).toFixed(2) + 'M';
+    } else if (num >= 1000) {
+      return (num / 1000).toFixed(1) + 'K';
+    }
+    return Math.floor(num).toString();
   }
 
-  getMedal(index: number): string {
-    if (index === 0) return '🥇';
-    if (index === 1) return '🥈';
-    if (index === 2) return '🥉';
-    return `${index + 1}.`;
-  }
-
-  getLeaderboardClass(index: number): string {
-    if (index === 0) return 'bg-gradient-to-r from-yellow-400 to-yellow-300';
-    if (index === 1) return 'bg-gradient-to-r from-gray-300 to-gray-200';
-    if (index === 2) return 'bg-gradient-to-r from-orange-300 to-orange-200';
-    return 'bg-gray-100';
+  private checkOfflineEarnings() {
+    const state = this.gameService.gameState();
+    const timeDiff = (Date.now() - state.lastSyncTime) / 1000;
+    
+    if (timeDiff > 60 && state.bananasPerSecond > 0) {
+      const maxOfflineTime = 8 * 60 * 60;
+      const offlineTime = Math.min(timeDiff, maxOfflineTime);
+      const earnings = Math.floor(offlineTime * state.bananasPerSecond);
+      
+      if (earnings > 0) {
+        this.offlineEarnings.set(earnings);
+        this.showWelcomeBack.set(true);
+      }
+    }
   }
 }

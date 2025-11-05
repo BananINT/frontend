@@ -1,0 +1,33 @@
+@keyframes float-up {
+    from {
+    opacity: 1;
+    transform: translateY(0);
+    }
+    to {
+    opacity: 0;
+    transform: translateY(-60px);
+    }
+}
+
+.animate-float-up {
+    animation: float-up 0.8s ease-out forwards;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #fef3c7;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #f59e0b;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #d97706;
+}

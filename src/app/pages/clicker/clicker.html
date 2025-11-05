@@ -1,150 +1,309 @@
-<div class="min-h-screen bg-gradient-to-br from-yellow-400 via-orange-300 to-yellow-500">
-@if (gameService.loading()) {
-<div class="min-h-screen flex items-center justify-center">
-    <div class="text-4xl">🍌 Chargement...</div>
-</div>
-} @else {
-<!-- Header -->
-<header class="bg-yellow-900 shadow-lg">
-    <div class="container mx-auto px-4 py-4">
-    <div class="flex items-center justify-between">
-        <a
-        routerLink="/"
-        class="text-yellow-100 hover:text-white transition-colors flex items-center gap-2"
-        >
-        <span class="text-xl">←</span>
-        Retour
-        </a>
-        <h1 class="text-3xl font-bold text-yellow-100">🍌 Banana Clicker</h1>
-        <button
-        (click)="resetGame()"
-        class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors text-sm"
-        >
-        Reset
-        </button>
-    </div>
-    </div>
-</header>
-
-<div class="container mx-auto px-4 py-8">
-    <div class="grid lg:grid-cols-2 gap-8">
-    <!-- Game Section -->
-    <div class="bg-white rounded-3xl shadow-2xl p-8">
-        <div class="text-center mb-8">
-        <div class="text-6xl font-bold text-yellow-900 mb-2">
-            {{ formatNumber(gameService.gameState().bananas) }} 🍌
-        </div>
-        <div class="text-gray-600">
-            {{ gameService.gameState().bananasPerClick }} banane(s) par clic
-        </div>
-        <div class="text-sm text-gray-500 mt-1">
-            Total: {{ formatNumber(gameService.gameState().totalClicks) }} clics
-        </div>
-        </div>
-
-        <div class="flex justify-center mb-8">
-        <button
-            (click)="handleClick()"
-            [class.scale-125]="clickAnimation()"
-            class="text-9xl hover:scale-110 active:scale-95 transition-transform cursor-pointer"
-            [attr.aria-label]="'Cliquer sur la banane'"
-        >
-            🍌
-        </button>
-        </div>
-
-        <div class="space-y-4">
-        <h3 class="text-2xl font-bold text-yellow-900 mb-4">Améliorations</h3>
-        
-        <button
-            (click)="buyUpgrade(10, 1)"
-            [disabled]="gameService.gameState().bananas < 10"
-            class="w-full bg-yellow-500 text-yellow-900 p-4 rounded-xl font-bold hover:bg-yellow-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-        >
-            <div class="flex justify-between items-center">
-            <span>+1 par clic</span>
-            <span>10 🍌</span>
-            </div>
-        </button>
-
-        <button
-            (click)="buyUpgrade(50, 5)"
-            [disabled]="gameService.gameState().bananas < 50"
-            class="w-full bg-orange-500 text-white p-4 rounded-xl font-bold hover:bg-orange-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-        >
-            <div class="flex justify-between items-center">
-            <span>+5 par clic</span>
-            <span>50 🍌</span>
-            </div>
-        </button>
-
-        <button
-            (click)="buyUpgrade(200, 25)"
-            [disabled]="gameService.gameState().bananas < 200"
-            class="w-full bg-red-500 text-white p-4 rounded-xl font-bold hover:bg-red-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-        >
-            <div class="flex justify-between items-center">
-            <span>+25 par clic</span>
-            <span>200 🍌</span>
-            </div>
-        </button>
-        </div>
-    </div>
-
-    <!-- Leaderboard Section -->
-    <div class="bg-white rounded-3xl shadow-2xl p-8">
-        <h3 class="text-3xl font-bold text-yellow-900 mb-6 flex items-center gap-2">
-        <span class="text-4xl">🏆</span>
-        Classement
-        </h3>
-
-        <div class="mb-6 space-y-3">
-        <input
-            type="text"
-            [(ngModel)]="playerNameInput"
-            (ngModelChange)="onNameChange($event)"
-            placeholder="Ton pseudo"
-            class="w-full px-4 py-3 border-2 border-yellow-300 rounded-xl focus:outline-none focus:border-yellow-500"
-            maxlength="20"
-        />
-        <button
-            (click)="submitScore()"
-            class="w-full bg-gradient-to-r from-yellow-500 to-orange-500 text-white py-3 rounded-xl font-bold hover:from-yellow-600 hover:to-orange-600 transition-all transform hover:scale-105"
-        >
-            Soumettre mon score
-        </button>
-        </div>
-
-        <div class="space-y-3">
-        @if (gameService.leaderboard().length === 0) {
-            <p class="text-center text-gray-500 py-8">
-            Pas encore de scores. Sois le premier ! 🍌
-            </p>
-        } @else {
-            @for (entry of gameService.leaderboard(); track $index) {
-            <div
-                [class]="getLeaderboardClass($index)"
-                class="p-4 rounded-xl flex items-center justify-between"
+<div class="min-h-screen bg-gradient-to-br from-yellow-400 via-yellow-300 to-orange-400">
+    <!-- Header -->
+    <header class="bg-yellow-900 shadow-lg">
+        <div class="container mx-auto px-4 py-4">
+        <div class="flex items-center justify-between">
+            <a 
+                routerLink="/"
+                class="bg-yellow-900 text-yellow-100 px-6 py-3 rounded-full font-bold hover:bg-yellow-800 transition-all transform hover:scale-105 flex items-center gap-2"
             >
-                <div class="flex items-center gap-3">
-                <span class="text-2xl font-bold">
-                    {{ getMedal($index) }}
-                </span>
-                <span class="font-semibold">{{ entry.name }}</span>
+                🚪 Retour
+            </a>
+            <h1 class="text-3xl font-bold text-yellow-100">🍌 Banana Clicker</h1>
+            @if (!gameService.loading()) {
+                <div class="flex items-center gap-4">
+                <div [class]="isSyncing() ? 'bg-yellow-300' : 'bg-white/90'" 
+                        class="px-4 py-2 rounded-full backdrop-blur text-sm font-medium text-yellow-900 transition-colors">
+                    @if (isSyncing()) {
+                    <span>⏳ Syncing...</span>
+                    } @else {
+                    <span>✓ Synced {{ timeSinceSync() }}s ago</span>
+                    }
                 </div>
-                <span class="text-xl font-bold">
-                {{ formatNumber(entry.score) }} 🍌
-                </span>
-            </div>
+                </div>
             }
-        }
+        </div>
+        </div>
+    </header>
+
+    @if (gameService.loading()) {
+    <div class="container mx-auto px-4 py-16">
+        <div class="bg-white/90 backdrop-blur rounded-3xl shadow-2xl p-12 max-w-2xl mx-auto text-center">
+        <div class="text-6xl animate-bounce mb-6">🍌</div>
+        <p class="text-2xl font-bold text-yellow-900">Loading your banana empire...</p>
+        </div>
+    </div>
+    } @else {
+    <!-- Main Content -->
+    <div class="container mx-auto px-4 py-8">
+        <div class="grid lg:grid-cols-3 gap-8">
+        
+        <!-- Left Column - Stats & Clicker -->
+        <div class="lg:col-span-2 space-y-6">
+            
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="bg-white/90 backdrop-blur rounded-2xl shadow-xl p-6 text-center transform hover:scale-105 transition-all">
+                <div class="text-3xl font-bold text-yellow-600">{{ formatNumber(gameService.gameState().bananas) }}</div>
+                <div class="text-sm text-yellow-900 mt-1">🍌 Bananas</div>
+            </div>
+            
+            <div class="bg-white/90 backdrop-blur rounded-2xl shadow-xl p-6 text-center transform hover:scale-105 transition-all">
+                <div class="text-3xl font-bold text-yellow-600">{{ gameService.gameState().bananasPerClick }}</div>
+                <div class="text-sm text-yellow-900 mt-1">👆 Per Click</div>
+            </div>
+            
+            @if (gameService.totalBananasPerSecond() > 0) {
+                <div class="bg-gradient-to-br from-yellow-400 to-orange-400 rounded-2xl shadow-xl p-6 text-center transform hover:scale-105 transition-all">
+                <div class="text-3xl font-bold text-white">{{ formatNumber(gameService.totalBananasPerSecond()) }}</div>
+                <div class="text-sm text-white mt-1">⚙️ Per Second</div>
+                </div>
+            }
+            
+            <div class="bg-white/90 backdrop-blur rounded-2xl shadow-xl p-6 text-center transform hover:scale-105 transition-all">
+                <div class="text-3xl font-bold text-yellow-600">{{ formatNumber(gameService.gameState().totalClicks) }}</div>
+                <div class="text-sm text-yellow-900 mt-1">🎯 Total Clicks</div>
+            </div>
+            </div>
+
+            <!-- Clicker Area -->
+            <div class="bg-white/90 backdrop-blur rounded-3xl shadow-2xl p-12">
+            <div class="flex flex-col items-center justify-center">
+                <div class="relative">
+                <button
+                    (click)="onBananaClick()"
+                    [disabled]="gameService.clickCooldown()"
+                    [class.opacity-60]="gameService.clickCooldown()"
+                    [class.cursor-not-allowed]="gameService.clickCooldown()"
+                    class="relative w-64 h-64 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-500 shadow-2xl hover:shadow-3xl transition-all transform hover:scale-105 active:scale-95 flex items-center justify-center text-9xl disabled:hover:scale-100">
+                    🍌
+                    
+                    @if (clickAnimation()) {
+                    <div class="absolute -top-12 left-1/2 transform -translate-x-1/2 text-3xl font-bold text-yellow-600 animate-float-up pointer-events-none">
+                        +{{ gameService.gameState().bananasPerClick }}
+                    </div>
+                    }
+                    
+                    @if (gameService.clickCooldown()) {
+                    <div class="absolute inset-0 flex items-center justify-center bg-black/20 rounded-full">
+                        <span class="text-6xl">⏱️</span>
+                    </div>
+                    }
+                </button>
+                </div>
+                
+                <p class="mt-6 text-xl text-yellow-900 font-semibold">
+                Clique sur la banane !
+                </p>
+            </div>
+            </div>
+
+            <!-- Upgrades Section -->
+            <div class="bg-white/90 backdrop-blur rounded-3xl shadow-2xl p-8">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-3xl font-bold text-yellow-900">🏪 Shop d'Upgrades</h2>
+            </div>
+            
+            <!-- Upgrade Tabs -->
+            <div class="flex gap-2 mb-6">
+                <button 
+                (click)="upgradeFilter.set('all')"
+                [class]="upgradeFilter() === 'all' ? 'bg-yellow-500 text-white' : 'bg-yellow-100 text-yellow-900'"
+                class="flex-1 px-4 py-3 rounded-xl font-bold transition-all hover:bg-yellow-400">
+                Tous
+                </button>
+                <button 
+                (click)="upgradeFilter.set('click')"
+                [class]="upgradeFilter() === 'click' ? 'bg-yellow-500 text-white' : 'bg-yellow-100 text-yellow-900'"
+                class="flex-1 px-4 py-3 rounded-xl font-bold transition-all hover:bg-yellow-400">
+                👆 Click
+                </button>
+                <button 
+                (click)="upgradeFilter.set('auto')"
+                [class]="upgradeFilter() === 'auto' ? 'bg-yellow-500 text-white' : 'bg-yellow-100 text-yellow-900'"
+                class="flex-1 px-4 py-3 rounded-xl font-bold transition-all hover:bg-yellow-400">
+                ⚙️ Auto
+                </button>
+            </div>
+
+            <!-- Upgrades Grid -->
+            <div class="grid md:grid-cols-2 gap-4 max-h-[600px] overflow-y-auto pr-2">
+                @for (upgrade of filteredUpgrades(); track upgrade.id) {
+                <div 
+                    [class]="canAfford(upgrade) ? 'border-green-500 bg-green-50' : 'border-yellow-200 bg-white'"
+                    class="border-2 rounded-2xl p-5 transition-all hover:shadow-lg">
+                    
+                    <div class="flex items-start justify-between mb-3">
+                    <div>
+                        <h3 class="text-lg font-bold text-yellow-900">{{ upgrade.name }}</h3>
+                        @if (upgrade.type === 'click') {
+                        <p class="text-sm text-yellow-700">👆 +{{ upgrade.multiplier }} par clic</p>
+                        } @else {
+                        <p class="text-sm text-yellow-700">⚙️ +{{ upgrade.multiplier }}/sec</p>
+                        }
+                    </div>
+                    
+                    @if (upgrade.owned > 0) {
+                        <span class="bg-yellow-500 text-white px-3 py-1 rounded-full text-sm font-bold">
+                        ×{{ upgrade.owned }}
+                        </span>
+                    }
+                    </div>
+                    
+                    <div class="flex items-center justify-between">
+                    <div class="text-lg font-bold text-yellow-900">
+                        {{ formatNumber(getCost(upgrade)) }} 🍌
+                    </div>
+                    
+                    <button
+                        (click)="buyUpgrade(upgrade)"
+                        [disabled]="!canAfford(upgrade) || isBuying()"
+                        class="bg-yellow-500 hover:bg-yellow-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-6 py-2 rounded-full font-bold transition-all transform hover:scale-105 active:scale-95">
+                        @if (isBuying()) {
+                        <span>...</span>
+                        } @else {
+                        <span>Acheter</span>
+                        }
+                    </button>
+                    </div>
+                </div>
+                }
+            </div>
+            </div>
         </div>
 
-        <p class="text-sm text-gray-500 mt-6 text-center">
-        Le classement est partagé avec tous les joueurs ! 🌍
+        <!-- Right Column - Leaderboard -->
+        <div class="space-y-6">
+            
+            <!-- Leaderboard -->
+            <div class="bg-white/90 backdrop-blur rounded-3xl shadow-2xl p-8">
+            <h2 class="text-3xl font-bold text-yellow-900 mb-6 text-center">🏆 Leaderboard</h2>
+            
+            @if (gameService.leaderboard().length === 0) {
+                <div class="text-center py-12">
+                <div class="text-6xl mb-4">🍌</div>
+                <p class="text-yellow-700">Aucun score pour le moment</p>
+                <p class="text-sm text-yellow-600 mt-2">Sois le premier !</p>
+                </div>
+            } @else {
+                <div class="space-y-3 mb-6">
+                @for (entry of gameService.leaderboard(); track $index) {
+                    <div 
+                    [class]="$index === 0 ? 'bg-gradient-to-r from-yellow-400 to-orange-400' : 'bg-yellow-50'"
+                    class="rounded-xl p-4 flex items-center gap-3 transition-all hover:shadow-md">
+                    <div class="text-2xl font-bold w-8">
+                        @if ($index === 0) {
+                        🥇
+                        } @else if ($index === 1) {
+                        🥈
+                        } @else if ($index === 2) {
+                        🥉
+                        } @else {
+                        <span class="text-yellow-700">{{ $index + 1 }}</span>
+                        }
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div [class]="$index === 0 ? 'text-white' : 'text-yellow-900'" 
+                            class="font-bold truncate">
+                        {{ entry.name }}
+                        </div>
+                    </div>
+                    <div [class]="$index === 0 ? 'text-white' : 'text-yellow-600'" 
+                            class="font-bold text-lg">
+                        {{ formatNumber(entry.score) }}
+                    </div>
+                    </div>
+                }
+                </div>
+            }
+            
+            <!-- Submit Score Form -->
+            <div class="border-t-2 border-yellow-200 pt-6 space-y-3">
+                <input
+                type="text"
+                [(ngModel)]="playerName"
+                placeholder="Ton nom"
+                maxlength="20"
+                class="w-full px-4 py-3 rounded-xl border-2 border-yellow-200 focus:border-yellow-500 focus:outline-none font-medium">
+                
+                <button
+                (click)="submitScore()"
+                [disabled]="!playerName.trim() || isSubmitting()"
+                class="w-full bg-green-500 hover:bg-green-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-6 py-3 rounded-xl font-bold transition-all transform hover:scale-105 active:scale-95">
+                @if (isSubmitting()) {
+                    <span>Envoi en cours...</span>
+                } @else {
+                    <span>📤 Soumettre mon score</span>
+                }
+                </button>
+            </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="bg-white/90 backdrop-blur rounded-3xl shadow-2xl p-6">
+            <button
+                (click)="confirmReset()"
+                class="w-full bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-xl font-bold transition-all transform hover:scale-105 active:scale-95">
+                🔄 Reset Game
+            </button>
+            </div>
+        </div>
+        </div>
+    </div>
+    }
+
+    <!-- Reset Confirmation Modal -->
+    @if (showResetConfirm()) {
+    <div class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" (click)="showResetConfirm.set(false)">
+        <div class="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full" (click)="$event.stopPropagation()">
+        <h3 class="text-2xl font-bold text-yellow-900 mb-4">⚠️ Confirmer le Reset</h3>
+        <p class="text-gray-700 mb-6">
+            Tu vas perdre toute ta progression ! Es-tu sûr de vouloir recommencer ?
         </p>
+        <div class="flex gap-3">
+            <button
+            (click)="showResetConfirm.set(false)"
+            class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-3 rounded-xl font-bold transition-all">
+            Annuler
+            </button>
+            <button
+            (click)="resetGame()"
+            class="flex-1 bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-xl font-bold transition-all">
+            Reset
+            </button>
+        </div>
+        </div>
     </div>
+    }
+
+    <!-- Welcome Back Modal -->
+    @if (showWelcomeBack()) {
+    <div class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" (click)="showWelcomeBack.set(false)">
+        <div class="bg-gradient-to-br from-yellow-400 to-orange-400 rounded-3xl shadow-2xl p-8 max-w-md w-full" (click)="$event.stopPropagation()">
+        <div class="text-center">
+            <div class="text-7xl mb-4 animate-bounce">🎉</div>
+            <h2 class="text-3xl font-bold text-white mb-4">Bon retour !</h2>
+            <p class="text-white text-lg mb-2">
+            Tu as gagné pendant ton absence :
+            </p>
+            <p class="text-5xl font-bold text-white mb-6">
+            {{ formatNumber(offlineEarnings()) }} 🍌
+            </p>
+            <button
+            (click)="showWelcomeBack.set(false)"
+            class="bg-white text-yellow-900 px-8 py-3 rounded-full font-bold text-lg hover:bg-yellow-50 transition-all transform hover:scale-105">
+            Génial ! 🚀
+            </button>
+        </div>
+        </div>
     </div>
-</div>
-}
+    }
+
+    <!-- Footer -->
+    <footer class="bg-yellow-900 text-yellow-100 py-6 mt-12">
+    <div class="container mx-auto px-4 text-center">
+        <p class="text-lg">Rejoins-nous sur <a class="text-yellow-200 underline" href="https://www.instagram.com/bananint/">Instagram</a> !</p>
+        <p class="mt-2">🍌 Bananint - L'asso qui a la banane 🍌</p>
+    </div>
+    </footer>
 </div>

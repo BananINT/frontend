@@ -5,7 +5,7 @@ import { RouterLink } from '@angular/router';
 import { GameService, UpgradeType } from '../../services/game/game';
 
 @Component({
-  selector: 'app-clicker',
+  selector: 'app-banana-clicker',
   standalone: true,
   imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './clicker.html',
@@ -90,10 +90,14 @@ export class Clicker implements OnInit, OnDestroy {
     this.isSubmitting.set(true);
     
     try {
-      const success = await this.gameService.submitScore(this.playerName);
-      if (success) {
+      const result = await this.gameService.submitScore(this.playerName);
+      if (result.success) {
         // Success feedback
         this.playerName = '';
+        alert('🎉 Score soumis avec succès !');
+      } else {
+        // Show error message from server
+        alert(`❌ ${result.message || 'Échec de la soumission du score'}`);
       }
     } finally {
       this.isSubmitting.set(false);

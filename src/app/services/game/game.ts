@@ -4,7 +4,7 @@ import { firstValueFrom } from 'rxjs';
 
 // Determine API URL based on environment
 const API_BASE_URL = isDevMode() 
-  ? 'http://localhost/api/game'
+  ? 'http://localhost:5000/api/game'
   : 'https://bananint.fr/api/game';
 
 export interface GameState {
@@ -79,7 +79,7 @@ export class GameService {
   // Auto-save interval and sync settings
   private autoSyncInterval: any;
   private readonly SYNC_INTERVAL_MS = 30000; // Sync every 30 seconds
-  private readonly CLICK_COOLDOWN_MS = 200; // 200ms between clicks ( clicks/sec max)
+  private readonly CLICK_COOLDOWN_MS = 100; // 100ms between clicks (10 clicks/sec max)
   private pendingClicks = 0;
 
   constructor() {
@@ -226,21 +226,25 @@ export class GameService {
     }
   }
 
-  async submitScore(name: string): Promise<boolean> {
+  async submitScore(name: string): Promise<{ success: boolean; message?: string }> {
     const trimmedName = name.trim();
-    if (!trimmedName) return false;
+    if (!trimmedName) return { success: false, message: 'Le nom ne peut pas être vide' };
 
     try {
       // Sync before submitting to ensure accurate score
       await this.syncWithServer();
 
       const response = await firstValueFrom(
-        this.http.post<{ success: boolean; leaderboard: LeaderboardEntry[] }>(
+        this.http.post<{ 
+          success: boolean; 
+          leaderboard: LeaderboardEntry[];
+          message?: string;
+        }>(
           `${API_BASE_URL}/submit-score`,
           {
             sessionId: this.gameStateSignal().sessionId,
             name: trimmedName,
-            score: this.gameStateSignal().bananas
+            score: Math.floor(this.gameStateSignal().bananas)
           }
         )
       );
@@ -251,10 +255,16 @@ export class GameService {
         this.leaderboardSignal.set(response.leaderboard);
       }
       
-      return response.success;
+      return { 
+        success: response.success, 
+        message: response.message 
+      };
     } catch (error) {
       console.error('Score submission error:', error);
-      return false;
+      return { 
+        success: false, 
+        message: 'Erreur de connexion au serveur' 
+      };
     }
   }
 

@@ -5,7 +5,7 @@ import { RouterLink } from '@angular/router';
 import { GameService, UpgradeType } from '../../services/game/game';
 
 @Component({
-  selector: 'app-banana-clicker',
+  selector: 'app-clicker',
   standalone: true,
   imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './clicker.html',

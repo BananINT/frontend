@@ -1,33 +1,29 @@
 <div class="min-h-screen bg-gradient-to-br from-yellow-400 via-yellow-300 to-orange-400">
     <!-- Header -->
-    <header class="bg-yellow-500 shadow-lg">
-    <div class="container mx-auto px-4 py-4">
+    <header class="bg-yellow-900 shadow-lg">
+        <div class="container mx-auto px-4 py-4">
         <div class="flex items-center justify-between">
-        <a routerLink="/" class="flex items-center gap-3 hover:opacity-80 transition-opacity">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" class="w-10 h-10 text-yellow-900" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M4 13c3.5-2 8-2 10 2a5.5 5.5 0 0 1 8 5"></path>
-            <path d="M5.15 17.89c5.52-1.52 8.65-6.89 7-12C11.55 4 11.5 2 13 2c3.22 0 5 5.5 5 8 0 6.5-4.2 12-10.49 12C5.11 22 2 22 2 20c0-1.5 1.14-1.55 3.15-2.11Z"></path>
-            </svg>
-            <div>
-            <h1 class="text-3xl font-bold text-yellow-900">BANANINT CLICKER</h1>
-            <p class="text-xs text-yellow-800">Le jeu le plus banane de l'INT</p>
-            </div>
-        </a>
-        
-        @if (!gameService.loading()) {
-            <div class="flex items-center gap-4">
-            <div [class]="isSyncing() ? 'bg-yellow-300' : 'bg-white/90'" 
-                    class="px-4 py-2 rounded-full backdrop-blur text-sm font-medium text-yellow-900 transition-colors">
-                @if (isSyncing()) {
-                <span>⏳ Syncing...</span>
-                } @else {
-                <span>✓ Synced {{ timeSinceSync() }}s ago</span>
-                }
-            </div>
-            </div>
-        }
+            <a 
+                routerLink="/"
+                class="bg-yellow-900 text-yellow-100 px-6 py-3 rounded-full font-bold hover:bg-yellow-800 transition-all transform hover:scale-105 flex items-center gap-2"
+            >
+                🚪 Retour
+            </a>
+            <h1 class="text-3xl font-bold text-yellow-100">🍌 Banana Clicker</h1>
+            @if (!gameService.loading()) {
+                <div class="flex items-center gap-4">
+                <div [class]="isSyncing() ? 'bg-yellow-300' : 'bg-white/90'" 
+                        class="px-4 py-2 rounded-full backdrop-blur text-sm font-medium text-yellow-900 transition-colors">
+                    @if (isSyncing()) {
+                    <span>⏳ Syncing...</span>
+                    } @else {
+                    <span>✓ Synced {{ timeSinceSync() }}s ago</span>
+                    }
+                </div>
+                </div>
+            }
         </div>
-    </div>
+        </div>
     </header>
 
     @if (gameService.loading()) {

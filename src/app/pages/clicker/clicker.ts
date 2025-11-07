@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy, signal, computed, inject } from '@angular
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { GameService, UpgradeType } from '../../services/game/game';
+import { Game, UpgradeType } from '../../services/game/game';
 
 @Component({
   selector: 'app-clicker',
@@ -12,7 +12,7 @@ import { GameService, UpgradeType } from '../../services/game/game';
   styleUrl: './clicker.scss'
 })
 export class Clicker implements OnInit, OnDestroy {
-  gameService = inject(GameService);
+  gameService = inject(Game);
   
   playerName = '';
   clickAnimation = signal(false);

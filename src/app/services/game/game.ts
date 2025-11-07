@@ -38,7 +38,7 @@ export interface UpgradeType {
 }
 
 @Injectable({ providedIn: 'root' })
-export class GameService {
+export class Game {
   private readonly http = inject(HttpClient);
   
   // Signals for state management
@@ -243,8 +243,7 @@ export class GameService {
           `${API_BASE_URL}/submit-score`,
           {
             sessionId: this.gameStateSignal().sessionId,
-            name: trimmedName,
-            score: Math.floor(this.gameStateSignal().bananas)
+            name: trimmedName
           }
         )
       );

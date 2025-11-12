@@ -1,0 +1,600 @@
+<div class="min-h-screen bg-gradient-to-br from-yellow-400 via-yellow-300 to-orange-400">
+    <!-- Achievement Notifications -->
+    @for (achievement of gameService.newAchievements(); track achievement.id) {
+        <div class="fixed top-4 right-4 z-50 bg-gradient-to-r from-purple-500 to-pink-500 text-white p-6 rounded-2xl shadow-2xl animate-slide-in max-w-md">
+            <div class="flex items-start justify-between">
+                <div class="flex-1">
+                    <div class="text-3xl mb-2">🏆</div>
+                    <h3 class="font-bold text-lg">{{ achievement.name }}</h3>
+                    <p class="text-sm opacity-90 mt-1">{{ achievement.description }}</p>
+                </div>
+                <button 
+                    (click)="dismissAchievement(achievement.id)"
+                    class="text-white/80 hover:text-white ml-4">
+                    ✕
+                </button>
+            </div>
+        </div>
+    }
+
+    <!-- Active Event Notifications -->
+    @if (activeRainEvent()) {
+        <div class="fixed top-20 left-1/2 transform -translate-x-1/2 z-40 bg-blue-500 text-white px-6 py-3 rounded-full shadow-xl animate-bounce">
+            🌧️ Banana Rain! ×2 Production Active!
+        </div>
+    }
+
+    @if (activeFestivalEvent()) {
+        <div class="fixed top-20 left-1/2 transform -translate-x-1/2 z-40 bg-green-500 text-white px-6 py-3 rounded-full shadow-xl">
+            🎉 Festival! Upgrade costs reduced!
+        </div>
+    }
+
+    <!-- Golden Banana Event -->
+    @if (activeGoldenEvent(); as goldenEvent) {
+        <div class="fixed inset-0 z-30 flex items-center justify-center pointer-events-none">
+            <button
+                (click)="clickGoldenBanana(goldenEvent.id)"
+                class="text-9xl animate-spin-slow pointer-events-auto transform hover:scale-110 transition-transform cursor-pointer">
+                ⭐
+            </button>
+        </div>
+    }
+
+    <!-- Header -->
+    <header class="bg-yellow-900 shadow-lg">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex items-center justify-between flex-wrap gap-4">
+                <a 
+                    routerLink="/"
+                    class="bg-yellow-900 text-yellow-100 px-6 py-3 rounded-full font-bold hover:bg-yellow-800 transition-all transform hover:scale-105 flex items-center gap-2">
+                    🚪 Retour
+                </a>
+                <h1 class="text-3xl font-bold text-yellow-100 flex items-center gap-2">
+                    {{ currentSkin().emoji }} BananINT Clicker {{ currentSkin().emoji }}
+                </h1>
+                @if (!gameService.loading()) {
+                    <div class="flex items-center gap-4">
+                        @if (gameService.gameState().prestigeCount > 0) {
+                            <div class="bg-purple-500 text-white px-4 py-2 rounded-full font-bold">
+                                🧬 {{ gameService.gameState().bananaDNA }} DNA
+                            </div>
+                        }
+                        <div class="bg-white/90 px-4 py-2 rounded-full backdrop-blur text-sm font-medium text-yellow-900">
+                            ✓ Synced {{ timeSinceSync() }}s ago
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </header>
+
+    @if (gameService.loading()) {
+        <div class="container mx-auto px-4 py-16">
+            <div class="bg-white/90 backdrop-blur rounded-3xl shadow-2xl p-12 max-w-2xl mx-auto text-center">
+                <div class="text-6xl animate-bounce mb-6">🍌</div>
+                <p class="text-2xl font-bold text-yellow-900">Loading your banana empire...</p>
+            </div>
+        </div>
+    } @else {
+        <!-- Main Content -->
+        <div class="container mx-auto px-4 py-8">
+            <div class="grid lg:grid-cols-3 gap-8">
+                
+                <!-- Left Column - Stats & Clicker -->
+                <div class="lg:col-span-2 space-y-6">
+                    
+                    <!-- Stats Cards -->
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div class="bg-white/90 backdrop-blur rounded-2xl shadow-xl p-6 text-center transform hover:scale-105 transition-all">
+                            <div class="text-3xl font-bold text-yellow-600">{{ formatNumber(gameService.gameState().bananas) }}</div>
+                            <div class="text-sm text-yellow-900 mt-1">🍌 Bananas</div>
+                        </div>
+                        
+                        <div class="bg-white/90 backdrop-blur rounded-2xl shadow-xl p-6 text-center transform hover:scale-105 transition-all">
+                            <div class="text-3xl font-bold text-yellow-600">{{ gameService.gameState().bananasPerClick }}</div>
+                            <div class="text-sm text-yellow-900 mt-1">🖱️ Per Click</div>
+                        </div>
+                        
+                        @if (gameService.totalBananasPerSecond() > 0) {
+                            <div class="bg-gradient-to-br from-yellow-400 to-orange-400 rounded-2xl shadow-xl p-6 text-center transform hover:scale-105 transition-all">
+                                <div class="text-3xl font-bold text-white">{{ formatNumber(gameService.totalBananasPerSecond()) }}</div>
+                                <div class="text-sm text-white mt-1">⚙️ Per Second</div>
+                            </div>
+                        }
+                        
+                        <div class="bg-white/90 backdrop-blur rounded-2xl shadow-xl p-6 text-center transform hover:scale-105 transition-all">
+                            <div class="text-3xl font-bold text-yellow-600">{{ formatNumber(gameService.gameState().totalClicks) }}</div>
+                            <div class="text-sm text-yellow-900 mt-1">🎯 Total Clicks</div>
+                        </div>
+                    </div>
+
+                    <!-- Clicker Area -->
+                    <div class="bg-white/90 backdrop-blur rounded-3xl shadow-2xl p-12">
+                        <div class="flex flex-col items-center justify-center">
+                            <div class="relative">
+                                <button
+                                    (click)="onBananaClick()"
+                                    [disabled]="gameService.clickCooldown()"
+                                    [class.opacity-60]="gameService.clickCooldown()"
+                                    [class.cursor-not-allowed]="gameService.clickCooldown()"
+                                    class="relative w-64 h-64 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-500 shadow-2xl hover:shadow-3xl transition-all transform hover:scale-105 active:scale-95 flex items-center justify-center text-9xl disabled:hover:scale-100">
+                                    {{ currentSkin().emoji }}
+                                    
+                                    @if (clickAnimation()) {
+                                        <div class="absolute -top-12 left-1/2 transform -translate-x-1/2 text-3xl font-bold text-yellow-600 animate-float-up pointer-events-none">
+                                            +{{ gameService.gameState().bananasPerClick }}
+                                        </div>
+                                    }
+                                </button>
+                            </div>
+                            
+                            <p class="mt-6 text-xl text-yellow-900 font-semibold">
+                                Clique sur la banane !
+                            </p>
+
+                            <div class="mt-4 flex gap-3">
+                                <button
+                                    (click)="openSkinsModal()"
+                                    class="bg-purple-500 hover:bg-purple-600 text-white px-6 py-3 rounded-xl font-bold transition-all transform hover:scale-105">
+                                    ✨ Skins
+                                </button>
+                                <button
+                                    (click)="openAchievementsModal()"
+                                    class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-xl font-bold transition-all transform hover:scale-105">
+                                    🏆 Achievements
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Prestige Section -->
+                    @if (gameService.gameState().totalBananasEarned >= 100_000_000) {
+                        <div class="bg-gradient-to-br from-purple-500 to-pink-500 rounded-3xl shadow-2xl p-8 text-white">
+                            <h2 class="text-3xl font-bold mb-4 flex items-center gap-3">
+                                🌟 Banana Ascension (Prestige)
+                            </h2>
+                            <p class="mb-4 text-lg">
+                                Reset your progress to gain permanent Banana DNA bonuses!
+                            </p>
+                            <div class="grid md:grid-cols-2 gap-4 mb-6">
+                                <div class="bg-white/20 backdrop-blur rounded-xl p-4">
+                                    <div class="text-sm opacity-90">Lifetime Bananas</div>
+                                    <div class="text-2xl font-bold">{{ formatNumber(gameService.gameState().totalBananasEarned) }}</div>
+                                </div>
+                                <div class="bg-white/20 backdrop-blur rounded-xl p-4">
+                                    <div class="text-sm opacity-90">DNA on Prestige</div>
+                                    <div class="text-2xl font-bold">{{ gameService.prestigeDNAReward() }} 🧬</div>
+                                </div>
+                            </div>
+                            
+                            @if (gameService.canPrestige()) {
+                                <button
+                                    (click)="openPrestigeModal()"
+                                    class="w-full bg-white text-purple-600 px-8 py-4 rounded-xl font-bold text-xl transition-all transform hover:scale-105 hover:shadow-xl">
+                                    🌟 Prestige Now!
+                                </button>
+                            } @else {
+                                <div class="text-center text-lg opacity-90">
+                                    Need 1 billion lifetime bananas to prestige
+                                </div>
+                            }
+
+                            <!-- Prestige Upgrades -->
+                            @if (gameService.gameState().prestigeCount > 0 && prestigeUpgrades().length > 0) {
+                                <div class="mt-6 pt-6 border-t border-white/30">
+                                    <h3 class="text-xl font-bold mb-4">🧬 DNA Upgrades</h3>
+                                    <div class="grid md:grid-cols-2 gap-4">
+                                        @for (upgrade of prestigeUpgrades(); track upgrade.id) {
+                                            <div class="bg-white/20 backdrop-blur rounded-xl p-4">
+                                                <div class="flex items-start justify-between mb-2">
+                                                    <div class="flex-1">
+                                                        <h4 class="font-bold">{{ upgrade.name }}</h4>
+                                                        <p class="text-sm opacity-90">{{ upgrade.description }}</p>
+                                                    </div>
+                                                    @if (upgrade.owned > 0) {
+                                                        <span class="bg-white text-purple-600 px-2 py-1 rounded-full text-xs font-bold">
+                                                            ×{{ upgrade.owned }}
+                                                        </span>
+                                                    }
+                                                </div>
+                                                <button
+                                                    (click)="buyUpgrade(upgrade)"
+                                                    [disabled]="!canAfford(upgrade)"
+                                                    class="w-full bg-white/30 hover:bg-white/40 disabled:bg-white/10 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg font-bold transition-all">
+                                                    {{ getCost(upgrade) }} 🧬
+                                                </button>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+
+                    <!-- Upgrades Section -->
+                    <div class="bg-white/90 backdrop-blur rounded-3xl shadow-2xl p-8">
+                        <div class="flex items-center justify-between mb-6">
+                            <h2 class="text-3xl font-bold text-yellow-900">🪙 Shop d'Upgrades</h2>
+                        </div>
+                        
+                        <!-- Upgrade Tabs -->
+                        <div class="flex gap-2 mb-6 flex-wrap">
+                            <button 
+                                (click)="upgradeFilter.set('all')"
+                                [class]="upgradeFilter() === 'all' ? 'bg-yellow-500 text-white' : 'bg-yellow-100 text-yellow-900'"
+                                class="px-4 py-3 rounded-xl font-bold transition-all hover:bg-yellow-400">
+                                Tous
+                            </button>
+                            <button 
+                                (click)="upgradeFilter.set('click')"
+                                [class]="upgradeFilter() === 'click' ? 'bg-yellow-500 text-white' : 'bg-yellow-100 text-yellow-900'"
+                                class="px-4 py-3 rounded-xl font-bold transition-all hover:bg-yellow-400">
+                                👆 Click
+                            </button>
+                            <button 
+                                (click)="upgradeFilter.set('auto')"
+                                [class]="upgradeFilter() === 'auto' ? 'bg-yellow-500 text-white' : 'bg-yellow-100 text-yellow-900'"
+                                class="px-4 py-3 rounded-xl font-bold transition-all hover:bg-yellow-400">
+                                ⚙️ Auto
+                            </button>
+                            <button 
+                                (click)="upgradeFilter.set('synergy')"
+                                [class]="upgradeFilter() === 'synergy' ? 'bg-yellow-500 text-white' : 'bg-yellow-100 text-yellow-900'"
+                                class="px-4 py-3 rounded-xl font-bold transition-all hover:bg-yellow-400">
+                                ⚡ Synergy
+                            </button>
+                        </div>
+
+                        <!-- Upgrades Grid -->
+                        <div class="grid md:grid-cols-2 gap-4 max-h-[600px] overflow-y-auto pr-2">
+                            @for (upgrade of filteredUpgrades(); track upgrade.id) {
+                                <div 
+                                    [class]="canAfford(upgrade) ? 'border-green-500 bg-green-50' : 'border-yellow-200 bg-white'"
+                                    class="border-2 rounded-2xl p-5 transition-all hover:shadow-lg">
+                                    
+                                    <div class="flex items-start justify-between mb-3">
+                                        <div class="flex-1">
+                                            <h3 class="text-lg font-bold text-yellow-900">{{ upgrade.name }}</h3>
+                                            <p class="text-sm text-yellow-700">{{ upgrade.description }}</p>
+                                        </div>
+                                        
+                                        @if (upgrade.owned > 0) {
+                                            <span class="bg-yellow-500 text-white px-3 py-1 rounded-full text-sm font-bold">
+                                                ×{{ upgrade.owned }}
+                                            </span>
+                                        }
+                                    </div>
+                                    
+                                    <div class="flex items-center justify-between">
+                                        <div class="text-lg font-bold text-yellow-900">
+                                            {{ formatNumber(getCost(upgrade)) }} 🍌
+                                        </div>
+                                        
+                                        <button
+                                            (click)="buyUpgrade(upgrade)"
+                                            [disabled]="!canAfford(upgrade) || isBuying()"
+                                            class="bg-yellow-500 hover:bg-yellow-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-6 py-2 rounded-full font-bold transition-all transform hover:scale-105 active:scale-95">
+                                            @if (isBuying()) {
+                                                <span>...</span>
+                                            } @else {
+                                                <span>Acheter</span>
+                                            }
+                                        </button>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column - Leaderboard -->
+                <div class="space-y-6">
+                    
+                    <!-- Leaderboard -->
+                    <div class="bg-white/90 backdrop-blur rounded-3xl shadow-2xl p-8">
+                        <h2 class="text-3xl font-bold text-yellow-900 mb-6 text-center">🏆 Leaderboard</h2>
+                        
+                        @if (gameService.leaderboard().length === 0) {
+                            <div class="text-center py-12">
+                                <div class="text-6xl mb-4">🍌</div>
+                                <p class="text-yellow-700">Aucun score pour le moment</p>
+                                <p class="text-sm text-yellow-600 mt-2">Sois le premier !</p>
+                            </div>
+                        } @else {
+                            <div class="space-y-3 mb-6">
+                                @for (entry of gameService.leaderboard(); track $index) {
+                                    <div 
+                                        [class]="$index === 0 ? 'bg-gradient-to-r from-yellow-400 to-orange-400' : 'bg-yellow-50'"
+                                        class="rounded-xl p-4 flex items-center gap-3 transition-all hover:shadow-md">
+                                        <div class="text-2xl font-bold w-8">
+                                            @if ($index === 0) {
+                                                🥇
+                                            } @else if ($index === 1) {
+                                                🥈
+                                            } @else if ($index === 2) {
+                                                🥉
+                                            } @else {
+                                                <span class="text-yellow-700">{{ $index + 1 }}</span>
+                                            }
+                                        </div>
+                                        <div class="flex-1 min-w-0">
+                                            <div [class]="$index === 0 ? 'text-white' : 'text-yellow-900'" 
+                                                class="font-bold truncate flex items-center gap-2">
+                                                {{ entry.name }}
+                                                @if (entry.prestigeCount > 0) {
+                                                    <span class="text-xs bg-purple-500 text-white px-2 py-0.5 rounded-full">
+                                                        🌟{{ entry.prestigeCount }}
+                                                    </span>
+                                                }
+                                            </div>
+                                        </div>
+                                        <div [class]="$index === 0 ? 'text-white' : 'text-yellow-600'" 
+                                            class="font-bold text-lg">
+                                            {{ formatNumber(entry.score) }}
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                        
+                        <!-- Submit Score Form -->
+                        <div class="border-t-2 border-yellow-200 pt-6 space-y-3">
+                            <input
+                                type="text"
+                                [(ngModel)]="playerName"
+                                placeholder="Ton nom"
+                                maxlength="20"
+                                class="w-full px-4 py-3 rounded-xl border-2 border-yellow-200 focus:border-yellow-500 focus:outline-none font-medium">
+                            
+                            <button
+                                (click)="submitScore()"
+                                [disabled]="!playerName.trim() || isSubmitting()"
+                                class="w-full bg-green-500 hover:bg-green-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-6 py-3 rounded-xl font-bold transition-all transform hover:scale-105 active:scale-95">
+                                @if (isSubmitting()) {
+                                    <span>Envoi en cours...</span>
+                                } @else {
+                                    <span>📤 Soumettre mon score</span>
+                                }
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="bg-white/90 backdrop-blur rounded-3xl shadow-2xl p-6">
+                        <button
+                            (click)="confirmReset()"
+                            class="w-full bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-xl font-bold transition-all transform hover:scale-105 active:scale-95">
+                            🔄 Reset Game
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Modals -->
+    
+    <!-- Reset Confirmation -->
+    @if (showResetConfirm()) {
+        <div class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" (click)="showResetConfirm.set(false)">
+            <div class="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full" (click)="$event.stopPropagation()">
+                <h3 class="text-2xl font-bold text-yellow-900 mb-4">⚠️ Confirmer le Reset</h3>
+                <p class="text-gray-700 mb-6">
+                    Tu vas perdre toute ta progression ! Es-tu sûr ?
+                </p>
+                <div class="flex gap-3">
+                    <button
+                        (click)="showResetConfirm.set(false)"
+                        class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-3 rounded-xl font-bold">
+                        Annuler
+                    </button>
+                    <button
+                        (click)="resetGame()"
+                        class="flex-1 bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-xl font-bold">
+                        Reset
+                    </button>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Prestige Confirmation -->
+    @if (showPrestigeModal()) {
+        <div class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" (click)="showPrestigeModal.set(false)">
+            <div class="bg-gradient-to-br from-purple-500 to-pink-500 rounded-3xl shadow-2xl p-8 max-w-md w-full text-white" (click)="$event.stopPropagation()">
+                <h3 class="text-3xl font-bold mb-4 flex items-center gap-3">
+                    🌟 Banana Ascension
+                </h3>
+                <div class="space-y-4 mb-6">
+                    <p class="text-lg">
+                        Tu vas reset ta progression mais gagner:
+                    </p>
+                    <div class="bg-white/20 backdrop-blur rounded-xl p-4">
+                        <div class="text-4xl font-bold text-center">
+                            {{ gameService.prestigeDNAReward() }} 🧬 Banana DNA
+                        </div>
+                    </div>
+                    <p class="text-sm opacity-90">
+                        DNA gives +1% production per DNA and unlocks special upgrades!
+                    </p>
+                </div>
+                <div class="flex gap-3">
+                    <button
+                        (click)="showPrestigeModal.set(false)"
+                        class="flex-1 bg-white/20 hover:bg-white/30 backdrop-blur text-white px-6 py-3 rounded-xl font-bold">
+                        Annuler
+                    </button>
+                    <button
+                        (click)="confirmPrestige()"
+                        class="flex-1 bg-white text-purple-600 hover:bg-yellow-100 px-6 py-3 rounded-xl font-bold">
+                        Prestige!
+                    </button>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Achievements Modal -->
+    @if (showAchievementsModal()) {
+        <div class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" (click)="showAchievementsModal.set(false)">
+            <div class="bg-white rounded-3xl shadow-2xl p-8 max-w-2xl w-full max-h-[80vh] overflow-y-auto" (click)="$event.stopPropagation()">
+                <h3 class="text-3xl font-bold text-yellow-900 mb-6 flex items-center gap-3">
+                    🏆 Achievements
+                </h3>
+
+                <!-- Achievement Tabs -->
+                <div class="flex gap-2 mb-6">
+                    <button
+                        (click)="achievementTab.set('unlocked')"
+                        [class]="achievementTab() === 'unlocked' ? 'bg-yellow-500 text-white' : 'bg-yellow-100 text-yellow-900'"
+                        class="flex-1 px-4 py-3 rounded-xl font-bold">
+                        Unlocked ({{ gameService.unlockedAchievements().length }})
+                    </button>
+                    <button
+                        (click)="achievementTab.set('locked')"
+                        [class]="achievementTab() === 'locked' ? 'bg-yellow-500 text-white' : 'bg-yellow-100 text-yellow-900'"
+                        class="flex-1 px-4 py-3 rounded-xl font-bold">
+                        Locked ({{ gameService.lockedAchievements().length }})
+                    </button>
+                </div>
+
+                <div class="space-y-4">
+                    @for (achievement of displayedAchievements(); track achievement.id) {
+                        <div 
+                            [class]="achievement.unlocked ? 'bg-gradient-to-r from-purple-100 to-pink-100 border-purple-300' : 'bg-gray-50 border-gray-200'"
+                            class="border-2 rounded-xl p-5">
+                            <div class="flex items-start gap-4">
+                                <div class="text-4xl">
+                                    @if (achievement.unlocked) {
+                                        🏆
+                                    } @else {
+                                        🔒
+                                    }
+                                </div>
+                                <div class="flex-1">
+                                    <h4 class="font-bold text-lg text-yellow-900">{{ achievement.name }}</h4>
+                                    <p class="text-sm text-gray-700 mt-1">{{ achievement.description }}</p>
+                                    @if (!achievement.unlocked) {
+                                        <div class="mt-3">
+                                            <div class="bg-gray-200 rounded-full h-2 overflow-hidden">
+                                                <div 
+                                                    class="bg-yellow-500 h-full transition-all"
+                                                    [style.width.%]="getAchievementProgress(achievement)">
+                                                </div>
+                                            </div>
+                                            <div class="text-xs text-gray-600 mt-1">
+                                                {{ getAchievementProgress(achievement).toFixed(0) }}% Complete
+                                            </div>
+                                        </div>
+                                    }
+                                    @if (achievement.unlocked && achievement.unlockedAt) {
+                                        <div class="text-xs text-purple-600 mt-2">
+                                            Unlocked: {{ achievement.unlockedAt | date: 'short' }}
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <button
+                    (click)="showAchievementsModal.set(false)"
+                    class="w-full mt-6 bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-3 rounded-xl font-bold">
+                    Close
+                </button>
+            </div>
+        </div>
+    }
+
+    <!-- Skins Modal -->
+    @if (showSkinsModal()) {
+        <div class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" (click)="showSkinsModal.set(false)">
+            <div class="bg-white rounded-3xl shadow-2xl p-8 max-w-2xl w-full max-h-[80vh] overflow-y-auto" (click)="$event.stopPropagation()">
+                <h3 class="text-3xl font-bold text-yellow-900 mb-6 flex items-center gap-3">
+                    ✨ Banana Skins
+                </h3>
+
+                <div class="grid md:grid-cols-2 gap-4">
+                    @for (skinEntry of availableSkins(); track skinEntry[0]) {
+                        @let skinId = skinEntry[0];
+                        @let skin = skinEntry[1];
+                        @let owned = ownedSkins().includes(skinId);
+                        @let equipped = gameService.gameState().selectedSkin === skinId;
+                        
+                        <div 
+                            [class]="equipped ? 'border-green-500 bg-green-50' : owned ? 'border-purple-300 bg-purple-50' : 'border-gray-200 bg-white'"
+                            class="border-2 rounded-xl p-6 text-center transition-all hover:shadow-lg">
+                            <div class="text-6xl mb-3">{{ skin.emoji }}</div>
+                            <h4 class="font-bold text-lg text-yellow-900 mb-2">{{ skin.name }}</h4>
+                            
+                            @if (equipped) {
+                                <div class="bg-green-500 text-white px-4 py-2 rounded-full font-bold">
+                                    ✓ Equipped
+                                </div>
+                            } @else if (owned) {
+                                <button
+                                    (click)="buySkin(skinId, skin.cost)"
+                                    class="w-full bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-full font-bold transition-all">
+                                    Equip
+                                </button>
+                            } @else {
+                                <button
+                                    (click)="buySkin(skinId, skin.cost)"
+                                    [disabled]="gameService.gameState().bananas < skin.cost"
+                                    class="w-full bg-yellow-500 hover:bg-yellow-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-4 py-2 rounded-full font-bold transition-all">
+                                    {{ formatNumber(skin.cost) }} 🍌
+                                </button>
+                            }
+                        </div>
+                    }
+                </div>
+
+                <button
+                    (click)="showSkinsModal.set(false)"
+                    class="w-full mt-6 bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-3 rounded-xl font-bold">
+                    Close
+                </button>
+            </div>
+        </div>
+    }
+
+    <!-- Welcome Back Modal -->
+    @if (showWelcomeBack()) {
+        <div class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" (click)="showWelcomeBack.set(false)">
+            <div class="bg-gradient-to-br from-yellow-400 to-orange-400 rounded-3xl shadow-2xl p-8 max-w-md w-full" (click)="$event.stopPropagation()">
+                <div class="text-center">
+                    <div class="text-7xl mb-4 animate-bounce">🎉</div>
+                    <h2 class="text-3xl font-bold text-white mb-4">Bon retour !</h2>
+                    <p class="text-white text-lg mb-2">
+                        Tu as gagné pendant ton absence :
+                    </p>
+                    <p class="text-5xl font-bold text-white mb-6">
+                        {{ formatNumber(offlineEarnings()) }} 🍌
+                    </p>
+                    <button
+                        (click)="showWelcomeBack.set(false)"
+                        class="bg-white text-yellow-900 px-8 py-3 rounded-full font-bold text-lg hover:bg-yellow-50 transition-all transform hover:scale-105">
+                        Génial ! 🚀
+                    </button>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Footer -->
+    <footer class="bg-yellow-900 text-yellow-100 py-6 mt-12">
+        <div class="container mx-auto px-4 text-center">
+            <p class="text-lg">🍌 BananINT Clicker - Enhanced Edition 🍌</p>
+            <p class="mt-2 text-sm text-yellow-200">
+                Farm des bananes, unlock achievements, prestige to infinity!
+            </p>
+            @if (gameService.gameState().prestigeCount > 0) {
+                <p class="mt-2 text-sm text-purple-300">
+                    🌟 Prestige Level: {{ gameService.gameState().prestigeCount }}
+                </p>
+            }
+        </div>
+    </footer>
+</div>

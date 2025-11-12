@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, signal, computed, inject } from '@angular/core';
+import { Component, signal, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -11,7 +11,7 @@ import { Game, UpgradeType } from '../../services/game/game';
   templateUrl: './clicker.html',
   styleUrl: './clicker.scss'
 })
-export class Clicker implements OnInit, OnDestroy {
+export class Clicker {
   gameService = inject(Game);
   
   playerName = '';
@@ -19,10 +19,15 @@ export class Clicker implements OnInit, OnDestroy {
   isBuying = signal(false);
   isSubmitting = signal(false);
   isSyncing = signal(false);
-  showResetConfirm = signal(false);
+  isLoading = signal(false);
   showWelcomeBack = signal(false);
+  showSessionModal = signal(false);
+  showSessionWarning = signal(false);
   offlineEarnings = signal(0);
   upgradeFilter = signal<'all' | 'click' | 'auto'>('all');
+  
+  newSessionId = '';
+  currentSessionId = signal('');
   
   private lastSyncTime = Date.now();
   timeSinceSync = signal(0);
@@ -38,19 +43,21 @@ export class Clicker implements OnInit, OnDestroy {
     return upgrades.filter(u => u.type === filter);
   });
 
-  ngOnInit() {
+  constructor() {
     this.gameService.initGame().then(() => {
       this.checkOfflineEarnings();
+      this.updateCurrentSessionId();
     });
     
     // Update sync timer display
     setInterval(() => {
       this.timeSinceSync.set(Math.floor((Date.now() - this.lastSyncTime) / 1000));
     }, 1000);
-  }
 
-  ngOnDestroy() {
-    // Cleanup handled by service
+    // Update session ID display periodically
+    setInterval(() => {
+      this.updateCurrentSessionId();
+    }, 5000);
   }
 
   onBananaClick() {
@@ -104,13 +111,92 @@ export class Clicker implements OnInit, OnDestroy {
     }
   }
 
-  confirmReset() {
-    this.showResetConfirm.set(true);
+  openSessionModal() {
+    this.updateCurrentSessionId();
+    this.newSessionId = '';
+    this.showSessionModal.set(true);
   }
 
-  async resetGame() {
-    this.showResetConfirm.set(false);
-    await this.gameService.resetGame();
+  async changeSession() {
+    if (!this.newSessionId.trim()) {
+      alert('⚠️ Veuillez entrer un ID de session valide');
+      return;
+    }
+
+    const confirmed = confirm(
+      `⚠️ Changer de session ?\n\nVous allez basculer vers la session: ${this.newSessionId}\n\nVotre session actuelle est sauvegardée automatiquement.`
+    );
+
+    if (!confirmed) return;
+
+    try {
+      this.isLoading.set(true);
+      
+      // Change session in localStorage
+      localStorage.setItem('banana-session-id', this.newSessionId);
+      
+      this.updateCurrentSessionId();
+      this.showSessionModal.set(false);
+      
+      // Reload game with new session
+      await this.gameService.initGame();
+      this.checkOfflineEarnings();
+      
+      alert('✅ Session changée avec succès !');
+    } catch (error) {
+      alert('❌ Erreur lors du changement de session');
+      console.error(error);
+    } finally {
+      this.isLoading.set(false);
+    }
+  }
+
+  async createNewSession() {
+    const confirmed = confirm(
+      `✨ Créer une nouvelle session ?\n\nUne nouvelle partie sera créée avec un ID unique.\nVotre session actuelle reste sauvegardée.`
+    );
+
+    if (!confirmed) return;
+
+    try {
+      this.isLoading.set(true);
+      
+      // Remove current session ID to force creation of new one
+      localStorage.removeItem('banana-session-id');
+      
+      this.showSessionModal.set(false);
+      
+      // Initialize new session
+      await this.gameService.initGame();
+      this.updateCurrentSessionId();
+      this.checkOfflineEarnings();
+      
+      const newSessionId = this.currentSessionId();
+      alert(`✅ Nouvelle session créée !\n\nID: ${newSessionId}\n\n💡 Sauvegardez cet ID pour revenir à cette partie plus tard !`);
+    } catch (error) {
+      alert('❌ Erreur lors de la création de session');
+      console.error(error);
+    } finally {
+      this.isLoading.set(false);
+    }
+  }
+
+  copySessionId() {
+    const sessionId = this.currentSessionId();
+    navigator.clipboard.writeText(sessionId).then(() => {
+      alert('📋 ID de session copié dans le presse-papier !');
+    }).catch(() => {
+      alert('❌ Impossible de copier l\'ID');
+    });
+  }
+
+  toggleSessionWarning() {
+    this.showSessionWarning.set(!this.showSessionWarning());
+  }
+
+  private updateCurrentSessionId() {
+    const sessionId = this.gameService.gameState().sessionId;
+    this.currentSessionId.set(sessionId);
   }
 
   canAfford(upgrade: UpgradeType): boolean {

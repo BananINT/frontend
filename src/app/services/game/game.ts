@@ -4,7 +4,7 @@ import { firstValueFrom } from 'rxjs';
 
 // Determine API URL based on environment
 const API_BASE_URL = isDevMode() 
-  ? 'http://localhost:5000/api/game'
+  ? 'http://localhost/api/game'
   : 'https://bananint.fr/api/game';
 
 export interface GameState {
@@ -54,6 +54,7 @@ export class Game {
   private readonly upgradesSignal = signal<Map<string, UpgradeType>>(new Map());
   private readonly leaderboardSignal = signal<LeaderboardEntry[]>([]);
   private readonly loadingSignal = signal(true);
+  private readonly errorSignal = signal(false);
   private readonly playerNameSignal = signal('');
   private readonly clickCooldownSignal = signal(false);
   private readonly lastSyncSignal = signal(Date.now());
@@ -63,6 +64,7 @@ export class Game {
   readonly upgrades = this.upgradesSignal.asReadonly();
   readonly leaderboard = this.leaderboardSignal.asReadonly();
   readonly loading = this.loadingSignal.asReadonly();
+  readonly error = this.errorSignal.asReadonly();
   readonly playerName = this.playerNameSignal.asReadonly();
   readonly clickCooldown = this.clickCooldownSignal.asReadonly();
 
@@ -83,22 +85,11 @@ export class Game {
   private pendingClicks = 0;
 
   constructor() {
-    console.log('🍌 Banana Clicker API URL:', API_BASE_URL);
-    console.log('🍌 Dev Mode:', isDevMode());
-    
-    // Start auto-generation timer
-    this.startAutoGeneration();
-    
     // Start auto-sync timer
     this.startAutoSync();
 
-    // Effect to calculate offline earnings on state changes
-    effect(() => {
-      const state = this.gameState();
-      if (state.bananasPerSecond > 0) {
-        this.calculateOfflineEarnings();
-      }
-    });
+    // Start auto-generation timer
+    this.startAutoGeneration();
   }
 
   async initGame(): Promise<void> {
@@ -117,10 +108,7 @@ export class Game {
         }>(`${API_BASE_URL}/init`, { sessionId })
       );
 
-      if (response.sessionId) {
-        localStorage.setItem('banana-session-id', response.sessionId);
-      }
-
+      localStorage.setItem('banana-session-id', response.sessionId);
       this.gameStateSignal.set(response.gameState);
       
       // Convert upgrades array to Map
@@ -134,20 +122,11 @@ export class Game {
       this.playerNameSignal.set(response.playerName);
       this.lastSyncSignal.set(Date.now());
 
-      // Calculate any offline earnings
-      this.calculateOfflineEarnings();
-
+      // Show any offline earnings
+      this.showOfflineEarnings();
     } catch (error) {
       console.error('Game initialization error:', error);
-      this.gameStateSignal.set({
-        sessionId: this.generateSessionId(),
-        bananas: 0,
-        bananasPerClick: 1,
-        bananasPerSecond: 0,
-        totalClicks: 0,
-        lastSyncTime: Date.now()
-      });
-      this.initializeDefaultUpgrades();
+      this.errorSignal.set(true);
     } finally {
       this.loadingSignal.set(false);
     }
@@ -271,31 +250,6 @@ export class Game {
     this.playerNameSignal.set(name);
   }
 
-  async resetGame(): Promise<void> {
-    try {
-      const response = await firstValueFrom(
-        this.http.post<{ 
-          success: boolean; 
-          gameState: GameState;
-          upgrades: UpgradeType[];
-        }>(
-          `${API_BASE_URL}/reset`,
-          { sessionId: this.gameStateSignal().sessionId }
-        )
-      );
-      
-      if (response.success) {
-        this.gameStateSignal.set(response.gameState);
-        
-        const upgradesMap = new Map<string, UpgradeType>();
-        response.upgrades.forEach(u => upgradesMap.set(u.id, u));
-        this.upgradesSignal.set(upgradesMap);
-      }
-    } catch (error) {
-      console.error('Reset error:', error);
-    }
-  }
-
   /**
    * Sync game state with server (batched clicks + time-based generation)
    */
@@ -352,7 +306,7 @@ export class Game {
   /**
    * Calculate offline earnings when player returns
    */
-  private calculateOfflineEarnings(): void {
+  private showOfflineEarnings(): void {
     const state = this.gameState();
     const now = Date.now();
     const timeDiff = (now - state.lastSyncTime) / 1000; // seconds
@@ -381,55 +335,12 @@ export class Game {
     return Math.floor(upgrade.baseCost * Math.pow(1.15, upgrade.owned));
   }
 
-  private initializeDefaultUpgrades(): void {
-    const upgrades = new Map<string, UpgradeType>([
-      ['click_1', {
-        id: 'click_1',
-        name: 'Meilleurs Doigts',
-        baseCost: 10,
-        multiplier: 1,
-        type: 'click',
-        owned: 0
-      }],
-      ['auto_1', {
-        id: 'auto_1',
-        name: 'Bananier',
-        baseCost: 50,
-        multiplier: 1,
-        type: 'auto',
-        owned: 0
-      }],
-      ['click_2', {
-        id: 'click_2',
-        name: 'Bras Musclés',
-        baseCost: 100,
-        multiplier: 5,
-        type: 'click',
-        owned: 0
-      }],
-      ['auto_2', {
-        id: 'auto_2',
-        name: 'Ferme à Bananes',
-        baseCost: 500,
-        multiplier: 5,
-        type: 'auto',
-        owned: 0
-      }]
-    ]);
-    
-    this.upgradesSignal.set(upgrades);
-  }
-
   private getSessionIdFromStorage(): string | null {
     try {
       return localStorage.getItem('banana-session-id');
     } catch {
       return null;
     }
-  }
-
-  private generateSessionId(): string {
-    return `session-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
   }
 
   ngOnDestroy(): void {

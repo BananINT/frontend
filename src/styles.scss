@@ -1,3 +1,7 @@
 /* You can add global styles to this file, and also import other style files */
 @use "tailwindcss";
 body { margin: 0; }
+
+html {
+    scrollbar-color: var(--color-yellow-100) var(--color-yellow-900);
+}

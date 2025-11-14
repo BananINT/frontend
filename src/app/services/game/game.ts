@@ -67,23 +67,24 @@ export class Game {
   readonly error = this.errorSignal.asReadonly();
   readonly playerName = this.playerNameSignal.asReadonly();
   readonly clickCooldown = this.clickCooldownSignal.asReadonly();
-
+  offlineEarnings: number = 0;
+  
   // Computed values
   readonly canAffordUpgrade = computed(() => {
     const state = this.gameState();
     return (cost: number) => state.bananas >= cost;
   });
-
+  
   readonly totalBananasPerSecond = computed(() => {
     return this.gameState().bananasPerSecond;
   });
-
+  
   // Auto-save interval and sync settings
   private autoSyncInterval: any;
   private readonly SYNC_INTERVAL_MS = 30000; // Sync every 30 seconds
   private readonly CLICK_COOLDOWN_MS = 100; // 100ms between clicks (10 clicks/sec max)
   private pendingClicks = 0;
-
+  
   constructor() {
     // Start auto-sync timer
     this.startAutoSync();
@@ -105,6 +106,7 @@ export class Game {
           upgrades: UpgradeType[];
           leaderboard: LeaderboardEntry[];
           playerName: string;
+          offlineEarnings: number;
         }>(`${API_BASE_URL}/init`, { sessionId })
       );
 
@@ -121,9 +123,7 @@ export class Game {
       this.leaderboardSignal.set(response.leaderboard);
       this.playerNameSignal.set(response.playerName);
       this.lastSyncSignal.set(Date.now());
-
-      // Show any offline earnings
-      this.showOfflineEarnings();
+      this.offlineEarnings = response.offlineEarnings;
     } catch (error) {
       console.error('Game initialization error:', error);
       this.errorSignal.set(true);
@@ -301,31 +301,6 @@ export class Game {
     this.autoSyncInterval = setInterval(() => {
       this.syncWithServer();
     }, this.SYNC_INTERVAL_MS);
-  }
-
-  /**
-   * Calculate offline earnings when player returns
-   */
-  private showOfflineEarnings(): void {
-    const state = this.gameState();
-    const now = Date.now();
-    const timeDiff = (now - state.lastSyncTime) / 1000; // seconds
-    
-    if (timeDiff > 60 && state.bananasPerSecond > 0) {
-      // Cap offline earnings to 8 hours
-      const maxOfflineTime = 8 * 60 * 60; // 8 hours in seconds
-      const offlineTime = Math.min(timeDiff, maxOfflineTime);
-      const offlineEarnings = Math.floor(offlineTime * state.bananasPerSecond);
-      
-      if (offlineEarnings > 0) {
-        this.gameStateSignal.update(s => ({
-          ...s,
-          bananas: s.bananas + offlineEarnings
-        }));
-        
-        console.log(`Welcome back! You earned ${offlineEarnings} bananas while away!`);
-      }
-    }
   }
 
   /**

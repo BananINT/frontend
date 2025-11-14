@@ -23,14 +23,11 @@ export class Clicker {
   showWelcomeBack = signal(false);
   showSessionModal = signal(false);
   showSessionWarning = signal(false);
-  offlineEarnings = signal(0);
   upgradeFilter = signal<'all' | 'click' | 'auto'>('all');
+  offlineEarnings = signal(0);
   
   newSessionId = '';
   currentSessionId = signal('');
-  
-  private lastSyncTime = Date.now();
-  timeSinceSync = signal(0);
   
   filteredUpgrades = computed(() => {
     const upgrades = Array.from(this.gameService.upgrades().values());
@@ -45,19 +42,10 @@ export class Clicker {
 
   constructor() {
     this.gameService.initGame().then(() => {
-      this.checkOfflineEarnings();
+      this.offlineEarnings.set(this.gameService.offlineEarnings);
       this.updateCurrentSessionId();
+      this.showWelcomeBack.set(true);
     });
-    
-    // Update sync timer display
-    setInterval(() => {
-      this.timeSinceSync.set(Math.floor((Date.now() - this.lastSyncTime) / 1000));
-    }, 1000);
-
-    // Update session ID display periodically
-    setInterval(() => {
-      this.updateCurrentSessionId();
-    }, 5000);
   }
 
   onBananaClick() {
@@ -124,7 +112,7 @@ export class Clicker {
     }
 
     const confirmed = confirm(
-      `⚠️ Changer de session ?\n\nVous allez basculer vers la session: ${this.newSessionId}\n\nVotre session actuelle est sauvegardée automatiquement.`
+      `⚠️ Changer de session ?\n\nVous allez basculer vers la session: ${this.newSessionId}\n\n⚠️ Vous perdrez votre progression sur la session actuelle si vous n'en sauvegardez pas l'ID !`
     );
 
     if (!confirmed) return;
@@ -140,41 +128,10 @@ export class Clicker {
       
       // Reload game with new session
       await this.gameService.initGame();
-      this.checkOfflineEarnings();
       
       alert('✅ Session changée avec succès !');
     } catch (error) {
       alert('❌ Erreur lors du changement de session');
-      console.error(error);
-    } finally {
-      this.isLoading.set(false);
-    }
-  }
-
-  async createNewSession() {
-    const confirmed = confirm(
-      `✨ Créer une nouvelle session ?\n\nUne nouvelle partie sera créée avec un ID unique.\nVotre session actuelle reste sauvegardée.`
-    );
-
-    if (!confirmed) return;
-
-    try {
-      this.isLoading.set(true);
-      
-      // Remove current session ID to force creation of new one
-      localStorage.removeItem('banana-session-id');
-      
-      this.showSessionModal.set(false);
-      
-      // Initialize new session
-      await this.gameService.initGame();
-      this.updateCurrentSessionId();
-      this.checkOfflineEarnings();
-      
-      const newSessionId = this.currentSessionId();
-      alert(`✅ Nouvelle session créée !\n\nID: ${newSessionId}\n\n💡 Sauvegardez cet ID pour revenir à cette partie plus tard !`);
-    } catch (error) {
-      alert('❌ Erreur lors de la création de session');
       console.error(error);
     } finally {
       this.isLoading.set(false);
@@ -216,21 +173,5 @@ export class Clicker {
       return (num / 1000).toFixed(1) + 'K';
     }
     return Math.floor(num).toString();
-  }
-
-  private checkOfflineEarnings() {
-    const state = this.gameService.gameState();
-    const timeDiff = (Date.now() - state.lastSyncTime) / 1000;
-    
-    if (timeDiff > 60 && state.bananasPerSecond > 0) {
-      const maxOfflineTime = 8 * 60 * 60;
-      const offlineTime = Math.min(timeDiff, maxOfflineTime);
-      const earnings = Math.floor(offlineTime * state.bananasPerSecond);
-      
-      if (earnings > 0) {
-        this.offlineEarnings.set(earnings);
-        this.showWelcomeBack.set(true);
-      }
-    }
   }
 }

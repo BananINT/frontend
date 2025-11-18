@@ -23,9 +23,20 @@
     </div>
     } @else if (gameService.error()) {
     <div class="container mx-auto px-4 py-16">
-        <div class="bg-white/90 backdrop-blur rounded-3xl shadow-2xl p-12 max-w-2xl mx-auto text-center">
+        <div class="bg-white/90 backdrop-blur rounded-3xl shadow-2xl p-12 max-w-2xl mx-auto text-center mb-6">
             <div class="text-6xl mb-6">⚠️</div>
             <p class="text-2xl font-bold text-yellow-900">Something went wrong.</p>
+        </div>
+        <div class="bg-white/90 backdrop-blur rounded-3xl shadow-2xl p-12 max-w-2xl mx-auto text-center">
+            <div class="flex flex-col">
+                <p class="text-2xl font-bold text-yellow-900">
+                    Cette session n'existe pas sur le serveur
+                </p>
+                <p class="text-xl font-bold">
+                    Contactez le staff via instagram pour obtenir de l'aide:
+                    <a class="text-fuchsia-500 underline" href="https://www.instagram.com/bananint/">INSTAGRAM</a>
+                </p>
+            </div>
         </div>
     </div>
     } @else {
@@ -232,14 +243,87 @@
             <div class="bg-white/90 backdrop-blur rounded-3xl shadow-2xl p-6">
             <button
                 (click)="openSessionModal()"
-                class="w-full bg-purple-500 hover:bg-purple-600 text-white px-6 py-3 rounded-xl font-bold transition-all transform hover:scale-105 active:scale-95">
+                class="w-full bg-purple-500 hover:bg-purple-600 text-white px-6 py-3 rounded-xl font-bold transition-all transform hover:scale-105 active:scale-95 mb-6">
                 🔑 Session
+            </button>
+            <button
+                (click)="openBananaMemeModal()"
+                class="w-full bg-sky-400 hover:bg-sky-500 text-white px-6 py-3 rounded-xl font-bold transition-all transform hover:scale-105 active:scale-95">
+                🤪 SURPRISE
             </button>
             </div>
         </div>
         </div>
     </div>
     }
+
+    <!-- Banana meme modal -->
+    @if (showBananaMemeModal()) {
+    <!-- <div class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" (click)="showBananaMemeModal.set(false)">
+        <div class="bg-white rounded-3xl shadow-2xl p-8 max-w-lg w-full max-h-[90vh] overflow-y-auto" (click)="$event.stopPropagation()">
+            <h2 class="text-lg text-yellow-900 font-semibold mb-3">📝 Envoyer une demande de meme</h2>
+    
+            <p>Génère un meme en rapport avec les bananes, grâce à notre modèle d'IA de pointe (technologie à induction)</p>
+
+            <textarea
+                [(ngModel)]="memePrompt"
+                placeholder="Écris ton prompt ici..."
+                rows="3"
+                class="w-full rounded-lg border border-neutral-700 p-3 placeholder-neutral-500 focus:border-yellow-400 focus:outline-none focus:ring-2 focus:ring-yellow-500/40 transition"
+            ></textarea>
+    
+            <button
+                (click)="sendMemeRequest()"
+                [disabled]="isSendingMeme() || memePrompt.trim().length === 0"
+                class="mt-3 w-full rounded-lg bg-yellow-400 py-2 font-semibold text-black transition hover:bg-yellow-300 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+                {{ isSendingMeme() ? '⏳ Envoi...' : 'Envoyer (100M bananes)' }}
+            </button>
+        </div>
+    </div> -->
+    <div class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" (click)="showBananaMemeModal.set(false)">
+        <div class="bg-white rounded-3xl shadow-2xl p-8 max-w-lg w-full max-h-[90vh] overflow-y-auto" (click)="$event.stopPropagation()">
+            <h2 class="text-lg text-yellow-900 font-semibold mb-3">📝 Envoyer une demande de meme</h2>
+
+            <p class="mb-2">
+                Génère un meme bananesque alimenté par notre <b>BananaLLM™ v3</b> 4 cylindres certifié <b>ISO-6722</b>, atteignant une précision de <b>37% d’humour spontané</b>.
+            </p>
+
+            <p class="mb-2">
+                Met un prompt pour expliquer ce que tu veux comme même et entre ton nom sur insta. Le même sera généré puis poster sur notre compte insta @bananint sous 48h (limite de requête API insta). Le même coûte 100M de bananes et tu es limité à un même toutes les 72h.
+            </p>
+
+            <p class="mb-2">
+                Attention : <b>BananaLLM™ v3</b> est en beta
+            </p>
+
+            <textarea
+                [(ngModel)]="memeInsta"
+                placeholder="Qui es-tu? (Mets ton @ instagram)"
+                maxlength="30"
+                rows="1"
+                style="resize: none;"
+                class="w-full rounded-lg border border-neutral-700 p-3 placeholder-neutral-500 focus:border-yellow-400 focus:outline-none focus:ring-2 focus:ring-yellow-500/40 transition"
+            ></textarea>
+            <textarea
+                [(ngModel)]="memePrompt"
+                placeholder="Déverse ici ta sagesse tropicale... (c'est le prompt)"
+                rows="5"
+                maxlength="500"
+                class="w-full rounded-lg border border-neutral-700 p-3 placeholder-neutral-500 focus:border-yellow-400 focus:outline-none focus:ring-2 focus:ring-yellow-500/40 transition"
+            ></textarea>
+
+            <button
+                (click)="sendMemeRequest()"
+                [disabled]="isSendingMeme() || memePrompt.trim().length === 0"
+                class="mt-3 w-full rounded-lg bg-yellow-400 py-2 font-semibold text-black transition hover:bg-yellow-300 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+                {{ isSendingMeme() ? '⏳ Stabilisation du potassium...' : 'Envoyer (100M bananes)' }}
+            </button>
+        </div>
+    </div>
+    }
+
 
     <!-- Welcome Back Modal -->
     @if (showWelcomeBack()) {

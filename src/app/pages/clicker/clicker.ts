@@ -23,8 +23,12 @@ export class Clicker {
   showWelcomeBack = signal(false);
   showSessionModal = signal(false);
   showSessionWarning = signal(false);
+  showBananaMemeModal = signal(false);
   upgradeFilter = signal<'all' | 'click' | 'auto'>('all');
   offlineEarnings = signal(0);
+  memePrompt = '';
+  memeInsta = '';
+  isSendingMeme = signal(false);
   
   newSessionId = '';
   currentSessionId = signal('');
@@ -104,13 +108,11 @@ export class Clicker {
     this.newSessionId = '';
     this.showSessionModal.set(true);
   }
+  openBananaMemeModal() {
+    this.showBananaMemeModal.set(true);
+  }
 
   async changeSession() {
-    if (!this.newSessionId.trim()) {
-      alert('⚠️ Veuillez entrer un ID de session valide');
-      return;
-    }
-
     const confirmed = confirm(
       `⚠️ Changer de session ?\n\nVous allez basculer vers la session: ${this.newSessionId}\n\n⚠️ Vous perdrez votre progression sur la session actuelle si vous n'en sauvegardez pas l'ID !`
     );
@@ -120,16 +122,30 @@ export class Clicker {
     try {
       this.isLoading.set(true);
       
-      // Change session in localStorage
+      // Save the old session ID for rollback
+      const oldSessionId = localStorage.getItem('banana-session-id');
+      
+      // Change session in localStorage BEFORE initializing
       localStorage.setItem('banana-session-id', this.newSessionId);
       
-      this.updateCurrentSessionId();
-      this.showSessionModal.set(false);
-      
-      // Reload game with new session
-      await this.gameService.initGame();
-      
-      alert('✅ Session changée avec succès !');
+      try {
+        // Reload game with new session
+        await this.gameService.initGame();
+        
+        this.updateCurrentSessionId();
+        this.showSessionModal.set(false);
+        
+        alert('✅ Session changée avec succès !');
+      } catch (error) {
+        // Rollback to old session ID on error and reload session
+        if (oldSessionId) {
+          localStorage.setItem('banana-session-id', oldSessionId);
+        } else {
+          localStorage.removeItem('banana-session-id');
+        }
+        await this.gameService.initGame();
+        throw error; // Re-throw to outer catch
+      }
     } catch (error) {
       alert('❌ Erreur lors du changement de session');
       console.error(error);
@@ -164,6 +180,11 @@ export class Clicker {
     return this.gameService.calculateUpgradeCost(upgrade);
   }
 
+  async deleteLocalStorage() {
+    localStorage.removeItem('banana-session-id');
+    await this.gameService.initGame();
+  }
+
   formatNumber(num: number): string {
     if (num >= 1000000000) {
       return (num / 1000000000).toFixed(2) + 'Md';
@@ -173,5 +194,25 @@ export class Clicker {
       return (num / 1000).toFixed(1) + 'K';
     }
     return Math.floor(num).toString();
+  }
+
+  async sendMemeRequest() {
+    if (!this.memePrompt.trim() || this.isSendingMeme()) return;
+
+    this.isSendingMeme.set(true);
+
+    try {
+      const result = await this.gameService.buyMeme(this.memePrompt, this.memeInsta);
+      if (result.success) {
+        alert("🎉 Meme envoyé !");
+        this.memePrompt = '';
+        this.memeInsta = '';
+        this.showBananaMemeModal.set(false);
+      } else {
+        alert(`❌ ${result.message}`);
+      }
+    } finally {
+      this.isSendingMeme.set(false);
+    }
   }
 }

@@ -174,7 +174,7 @@ export class EnhancedGame {
       );
 
       if (response.sessionId) {
-        localStorage.setItem('banana-session-id', response.sessionId);
+        localStorage.setItem('banana-enhanced-session-id', response.sessionId);
       }
 
       this.gameStateSignal.set(response.gameState);
@@ -554,7 +554,7 @@ export class EnhancedGame {
 
   getSessionIdFromStorage(): string | null {
     try {
-      return localStorage.getItem('banana-session-id');
+      return localStorage.getItem('banana-enhanced-session-id');
     } catch {
       return null;
     }

@@ -1,6 +1,6 @@
 import { Injectable, signal, computed, inject, effect, isDevMode } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, throwError } from 'rxjs';
 
 // Determine API URL based on environment
 const API_BASE_URL = isDevMode() 
@@ -35,6 +35,11 @@ export interface UpgradeType {
   multiplier: number;
   type: 'click' | 'auto';
   owned: number;
+}
+
+export interface BuyMemeResponse {
+  success: boolean;
+  message?: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -101,6 +106,7 @@ export class Game {
       
       const response = await firstValueFrom(
         this.http.post<{
+          success: boolean;
           sessionId: string;
           gameState: GameState;
           upgrades: UpgradeType[];
@@ -109,6 +115,10 @@ export class Game {
           offlineEarnings: number;
         }>(`${API_BASE_URL}/init`, { sessionId })
       );
+
+      if (!response.success) {
+        throw "Invalid session id";
+      }
 
       localStorage.setItem('banana-session-id', response.sessionId);
       this.gameStateSignal.set(response.gameState);
@@ -125,8 +135,8 @@ export class Game {
       this.lastSyncSignal.set(Date.now());
       this.offlineEarnings = response.offlineEarnings;
     } catch (error) {
-      console.error('Game initialization error:', error);
       this.errorSignal.set(true);
+      throw error;
     } finally {
       this.loadingSignal.set(false);
     }
@@ -317,6 +327,34 @@ export class Game {
       return null;
     }
   }
+
+  async buyMeme(prompt: string, insta: string): Promise<{ success: boolean; message?: string }> {
+    const sessionId = this.gameStateSignal().sessionId;
+    const devMode = isDevMode();
+
+    try {
+      // Always sync before spending 100M bananas
+      await this.syncWithServer();
+
+      const response = await firstValueFrom(
+        this.http.post<BuyMemeResponse>(`${API_BASE_URL}/buy-meme`, {
+          sessionId,
+          prompt,
+          insta,
+          devMode
+        })
+      );
+
+      return {
+        success: response.success,
+        message: response.message
+      };
+    } catch (err) {
+      console.error("Buy meme error:", err);
+      return { success: false, message: "Erreur lors de l'envoi." };
+    }
+  }
+
 
   ngOnDestroy(): void {
     if (this.autoSyncInterval) {

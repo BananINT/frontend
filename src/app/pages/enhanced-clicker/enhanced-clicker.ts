@@ -50,7 +50,7 @@ export class EnhancedClicker implements OnInit, OnDestroy {
     if (this.achievementTab() === 'unlocked') {
       return this.gameService.unlockedAchievements();
     }
-    return this.gameService.lockedAchievements();
+    return this.gameService.lockedAchievements();;
   });
 
   currentSkin = computed(() => {

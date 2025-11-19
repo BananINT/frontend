@@ -89,7 +89,7 @@ export class EnhancedGame {
   private readonly leaderboardSignal = signal<LeaderboardEntry[]>([]);
   private readonly achievementsSignal = signal<Achievement[]>([]);
   private readonly activeEventsSignal = signal<ActiveEvent[]>([]);
-  private readonly skinsSignal = signal<Record<string, Skin>>({});
+  private readonly skinsSignal = signal<Record<string, Skin>>({"default": {"name": "Classic Banana", "cost": 0, "emoji": "🍌"}});
   private readonly loadingSignal = signal(true);
   private readonly playerNameSignal = signal('');
   private readonly clickCooldownSignal = signal(false);

@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { EnhancedClicker } from './enhanced-clicker';
+import { Footer } from './footer';
 
-describe('EnhancedClicker', () => {
-  let component: EnhancedClicker;
-  let fixture: ComponentFixture<EnhancedClicker>;
+describe('Footer', () => {
+  let component: Footer;
+  let fixture: ComponentFixture<Footer>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [EnhancedClicker]
+      imports: [Footer]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(EnhancedClicker);
+    fixture = TestBed.createComponent(Footer);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

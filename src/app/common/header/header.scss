@@ -1,0 +1,51 @@
+header {
+    background: transparent;
+    padding: 12px 0
+}
+
+mat-toolbar {
+    justify-content: space-between;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 12px
+}
+
+.brand .logo {
+    width: 44px;
+    height: 44px;
+    flex: 0 0 44px;
+    display: grid;
+    place-items: center;
+    border-radius: 8px;
+    background: linear-gradient(135deg, rgba(230, 184, 0, 0.12), rgba(230, 184, 0, 0.04))
+}
+
+.brand mat-icon {
+    width: 30px;
+    height: 30px;
+    color: #e6b800
+}
+
+.brand h1 {
+    margin: 0;
+    font-size: 1rem;
+    color: #ffffff;
+    letter-spacing: 0.4px
+}
+
+.brand p {
+    margin: 0;
+    font-size: 0.78rem;
+    color: #9ca3af
+}
+
+
+@media only screen and (max-width: 500px) {
+    mat-toolbar {
+        flex-direction: column;
+        height: auto;
+    }
+}

@@ -4,16 +4,50 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { Game, UpgradeType } from '../../services/game/game';
 
+import { MatIconModule } from '@angular/material/icon';
+import { MatListModule } from '@angular/material/list';
+import { MatCardModule } from '@angular/material/card';
+import { MatButtonModule } from '@angular/material/button';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatDividerModule } from '@angular/material/divider';
+import { MatTabsModule } from '@angular/material/tabs';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatToolbarModule } from '@angular/material/toolbar';
+import { NgxGradientTextComponent } from '@omnedia/ngx-gradient-text';
+import { Header } from "@common/header/header";
+import { Footer } from "@common/footer/footer";
+
 @Component({
   selector: 'app-clicker',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [
+    CommonModule,
+    FormsModule,
+    RouterLink,
+    MatIconModule,
+    MatListModule,
+    MatCardModule,
+    MatButtonModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatDividerModule,
+    MatTabsModule,
+    MatProgressSpinnerModule,
+    MatToolbarModule,
+    NgxGradientTextComponent,
+    Header,
+    Footer
+],
   templateUrl: './clicker.html',
-  styleUrl: './clicker.scss'
+  styleUrls: ['./clicker.scss']
 })
 export class Clicker {
   gameService = inject(Game);
   
+  // used by the mat-tab-group two-way binding
+  selectedTabIndex = 0;
+
   playerName = '';
   clickAnimation = signal(false);
   isBuying = signal(false);
@@ -41,7 +75,7 @@ export class Clicker {
       return upgrades;
     }
     
-    return upgrades.filter(u => u.type === filter);
+    return upgrades.filter(u => u.upgradeType === filter);
   });
 
   constructor() {
@@ -72,7 +106,7 @@ export class Clicker {
     this.isBuying.set(true);
     
     try {
-      const success = await this.gameService.buyUpgrade(upgrade.id);
+      const success = await this.gameService.buyUpgrade(upgrade.upgradeId);
       if (!success) {
         // Could show error message
       }

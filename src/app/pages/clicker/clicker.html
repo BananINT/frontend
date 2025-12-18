@@ -1,403 +1,228 @@
-<div class="min-h-screen bg-gradient-to-br from-yellow-400 via-yellow-300 to-orange-400">
-    <!-- Header -->
-    <header class="bg-yellow-900 shadow-lg">
-        <div class="container mx-auto px-4 py-4">
-        <div class="flex flex-col md:flex-row items-center justify-between">
-            <a 
-                routerLink="/"
-                class="bg-yellow-900 text-yellow-100 px-6 py-3 rounded-full font-bold hover:bg-yellow-800 transition-all transform hover:scale-105 flex items-center gap-2"
-            >
-                🚪 Retour
-            </a>
-            <h1 class="text-3xl font-bold text-yellow-100">🍌 BananINT Clicker 🍌</h1>
-        </div>
-        </div>
-    </header>
+<!-- Header -->
+<app-header>
+        <a mat-list-item routerLink="/">
+                <mat-icon matListItemIcon>home</mat-icon>
+                Accueil
+        </a>
+</app-header>
 
+<!-- Loading / Error / Main -->
+<div class="page-container">
     @if (gameService.loading()) {
-    <div class="container mx-auto px-4 py-16">
-        <div class="bg-white/90 backdrop-blur rounded-3xl shadow-2xl p-12 max-w-2xl mx-auto text-center">
-        <div class="text-6xl animate-bounce mb-6">🍌</div>
-        <p class="text-2xl font-bold text-yellow-900">Loading your banana empire...</p>
+        <div class="loading-center">
+            <mat-card class="loading-card">
+                <mat-card-content class="text-center">
+                    <mat-icon class="emoji" svgIcon="banana"></mat-icon>
+                    <h3>Loading your banana empire...</h3>
+                    <mat-progress-spinner mode="indeterminate"></mat-progress-spinner>
+                </mat-card-content>
+            </mat-card>
         </div>
-    </div>
-    } @else if (gameService.error()) {
-    <div class="container mx-auto px-4 py-16">
-        <div class="bg-white/90 backdrop-blur rounded-3xl shadow-2xl p-12 max-w-2xl mx-auto text-center mb-6">
-            <div class="text-6xl mb-6">⚠️</div>
-            <p class="text-2xl font-bold text-yellow-900">Something went wrong.</p>
-        </div>
-        <div class="bg-white/90 backdrop-blur rounded-3xl shadow-2xl p-12 max-w-2xl mx-auto text-center">
-            <div class="flex flex-col">
-                <p class="text-2xl font-bold text-yellow-900">
-                    Cette session n'existe pas sur le serveur
-                </p>
-                <p class="text-xl font-bold">
-                    Contactez le staff via instagram pour obtenir de l'aide:
-                    <a class="text-fuchsia-500 underline" href="https://www.instagram.com/bananint/">INSTAGRAM</a>
-                </p>
-            </div>
-        </div>
-    </div>
     } @else {
-    <!-- Main Content -->
-    <div class="container mx-auto px-4 py-8">
-        <div class="grid lg:grid-cols-3 gap-8">
-        
-        <!-- Left Column - Stats & Clicker -->
-        <div class="lg:col-span-2 space-y-6">
-            
-            <!-- Stats Cards -->
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div class="bg-white/90 backdrop-blur rounded-2xl shadow-xl p-6 text-center transform hover:scale-105 transition-all">
-                <div class="text-3xl font-bold text-yellow-600">{{ formatNumber(gameService.gameState().bananas) }}</div>
-                <div class="text-sm text-yellow-900 mt-1">🍌 Bananas</div>
-            </div>
-            
-            <div class="bg-white/90 backdrop-blur rounded-2xl shadow-xl p-6 text-center transform hover:scale-105 transition-all">
-                <div class="text-3xl font-bold text-yellow-600">{{ gameService.gameState().bananasPerClick }}</div>
-                <div class="text-sm text-yellow-900 mt-1">👆 Per Click</div>
-            </div>
-            
-            @if (gameService.totalBananasPerSecond() > 0) {
-                <div class="bg-gradient-to-br from-yellow-400 to-orange-400 rounded-2xl shadow-xl p-6 text-center transform hover:scale-105 transition-all">
-                <div class="text-3xl font-bold text-white">{{ formatNumber(gameService.totalBananasPerSecond()) }}</div>
-                <div class="text-sm text-white mt-1">⚙️ Per Second</div>
-                </div>
-            }
-            
-            <div class="bg-white/90 backdrop-blur rounded-2xl shadow-xl p-6 text-center transform hover:scale-105 transition-all">
-                <div class="text-3xl font-bold text-yellow-600">{{ formatNumber(gameService.gameState().totalClicks) }}</div>
-                <div class="text-sm text-yellow-900 mt-1">🎯 Total Clicks</div>
-            </div>
-            </div>
+        <div class="layout-grid">
+            <mat-card class="stat-card">
+                <mat-card-content>
+                    <div class="stat-label"><mat-icon svgIcon="banana"></mat-icon> Bananas</div>
+                    <div class="stat-number">{{ formatNumber(gameService.gameState().bananas) }}</div>
+                </mat-card-content>
+            </mat-card>
 
-            <!-- Clicker Area -->
-            <div class="bg-white/90 backdrop-blur rounded-3xl shadow-2xl p-12">
-            <div class="flex flex-col items-center justify-center">
-                <div class="relative">
-                <button
-                    (click)="onBananaClick()"
-                    [disabled]="gameService.clickCooldown()"
-                    [class.opacity-60]="gameService.clickCooldown()"
-                    [class.cursor-not-allowed]="gameService.clickCooldown()"
-                    class="relative w-64 h-64 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-500 shadow-2xl hover:shadow-3xl transition-all transform hover:scale-105 active:scale-95 flex items-center justify-center text-9xl disabled:hover:scale-100">
-                    🍌
-                    
+            <mat-card class="stat-card">
+                <mat-card-content>
+                    <div class="stat-label"><mat-icon>left_click</mat-icon> Per Click</div>
+                    <div class="stat-number">{{ formatNumber(gameService.gameState().bananasPerClick) }}</div>
+                </mat-card-content>
+            </mat-card>
+
+            <mat-card class="stat-card">
+                <mat-card-content class="accent">
+                    <div class="stat-label"><mat-icon>settings</mat-icon> Per Second</div>
+                    <div class="stat-number">{{ formatNumber(gameService.totalBananasPerSecond()) }}</div>
+                </mat-card-content>
+            </mat-card>
+
+            <mat-card class="stat-card">
+                <mat-card-content>
+                    <div class="stat-label"><mat-icon>social_leaderboard</mat-icon> Total Clicks</div>
+                    <div class="stat-number">{{ formatNumber(gameService.gameState().totalClicks) }}</div>
+                </mat-card-content>
+            </mat-card>
+
+            <!-- Banana clicker -->
+            <mat-card class="clicker-card">
+                <mat-card-content class="clicker-content">
                     @if (clickAnimation()) {
-                    <div class="absolute -top-12 left-1/2 transform -translate-x-1/2 text-3xl font-bold text-yellow-600 animate-float-up pointer-events-none">
-                        +{{ gameService.gameState().bananasPerClick }}
-                    </div>
+                        <div class="float-text">+{{ gameService.gameState().bananasPerClick }}</div>
                     }
-                </button>
-                </div>
-                
-                <p class="mt-6 text-xl text-yellow-900 font-semibold">
-                Clique sur la banane !
-                </p>
-            </div>
-            </div>
 
-            <!-- Upgrades Section -->
-            <div class="bg-white/90 backdrop-blur rounded-3xl shadow-2xl p-8">
-            <div class="flex items-center justify-between mb-6">
-                <h2 class="text-3xl font-bold text-yellow-900">🏪 Shop d'Upgrades</h2>
-            </div>
-            
-            <!-- Upgrade Tabs -->
-            <div class="flex gap-2 mb-6">
-                <button 
-                (click)="upgradeFilter.set('all')"
-                [class]="upgradeFilter() === 'all' ? 'bg-yellow-500 text-white' : 'bg-yellow-100 text-yellow-900'"
-                class="flex-1 px-4 py-3 rounded-xl font-bold transition-all hover:bg-yellow-400">
-                Tous
-                </button>
-                <button 
-                (click)="upgradeFilter.set('click')"
-                [class]="upgradeFilter() === 'click' ? 'bg-yellow-500 text-white' : 'bg-yellow-100 text-yellow-900'"
-                class="flex-1 px-4 py-3 rounded-xl font-bold transition-all hover:bg-yellow-400">
-                👆 Click
-                </button>
-                <button 
-                (click)="upgradeFilter.set('auto')"
-                [class]="upgradeFilter() === 'auto' ? 'bg-yellow-500 text-white' : 'bg-yellow-100 text-yellow-900'"
-                class="flex-1 px-4 py-3 rounded-xl font-bold transition-all hover:bg-yellow-400">
-                ⚙️ Auto
-                </button>
-            </div>
-
-            <!-- Upgrades Grid -->
-            <div class="grid md:grid-cols-2 gap-4 max-h-[600px] overflow-y-auto pr-2">
-                @for (upgrade of filteredUpgrades(); track upgrade.id) {
-                <div 
-                    [class]="canAfford(upgrade) ? 'border-green-500 bg-green-50' : 'border-yellow-200 bg-white'"
-                    class="border-2 rounded-2xl p-5 transition-all hover:shadow-lg">
-                    
-                    <div class="flex items-start justify-between mb-3">
-                    <div>
-                        <h3 class="text-lg font-bold text-yellow-900">{{ upgrade.name }}</h3>
-                        @if (upgrade.type === 'click') {
-                        <p class="text-sm text-yellow-700">👆 +{{ upgrade.multiplier }} par clic</p>
-                        } @else {
-                        <p class="text-sm text-yellow-700">⚙️ +{{ upgrade.multiplier }}/sec</p>
-                        }
-                    </div>
-                    
-                    @if (upgrade.owned > 0) {
-                        <span class="bg-yellow-500 text-white px-3 py-1 rounded-full text-sm font-bold">
-                        ×{{ upgrade.owned }}
-                        </span>
-                    }
-                    </div>
-                    
-                    <div class="flex items-center justify-between">
-                    <div class="text-lg font-bold text-yellow-900">
-                        {{ formatNumber(getCost(upgrade)) }} 🍌
-                    </div>
-                    
-                    <button
-                        (click)="buyUpgrade(upgrade)"
-                        [disabled]="!canAfford(upgrade) || isBuying()"
-                        class="bg-yellow-500 hover:bg-yellow-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-6 py-2 rounded-full font-bold transition-all transform hover:scale-105 active:scale-95">
-                        @if (isBuying()) {
-                        <span>...</span>
-                        } @else {
-                        <span>Acheter</span>
-                        }
+                    <button mat-flat-button
+                    color="accent"
+                    class="banana-button"
+                    (click)="onBananaClick()"
+                    [disabled]="gameService.clickCooldown()">
+                        <mat-icon svgIcon="banana"></mat-icon>
                     </button>
+
+                    <div class="clicker-sub">
+                        <om-gradient-text [text]="'Clique sur la banane !'" [gradientStart]="'#FFDE3F'" [gradientEnd]="'#6D9B7B'"></om-gradient-text>
                     </div>
-                </div>
-                }
-            </div>
-            </div>
-        </div>
+                </mat-card-content>
+            </mat-card>
 
-        <!-- Right Column - Leaderboard -->
-        <div class="space-y-6">
-            <!-- Actions -->
-            <div class="bg-white/90 backdrop-blur rounded-3xl shadow-2xl p-6">
-            <button
-                (click)="openSessionModal()"
-                class="w-full bg-purple-500 hover:bg-purple-600 text-white px-6 py-3 rounded-xl font-bold transition-all transform hover:scale-105 active:scale-95 mb-6">
-                🔑 Session
-            </button>
-            <button
-                (click)="openBananaMemeModal()"
-                class="w-full bg-sky-400 hover:bg-sky-500 text-white px-6 py-3 rounded-xl font-bold transition-all transform hover:scale-105 active:scale-95">
-                🤪 SURPRISE
-            </button>
-            </div>
+            <!-- Upgrades -->
+            <mat-card class="upgrades-card">
+                <mat-card-header>
+                    <mat-card-title>
+                        <mat-icon>account_balance</mat-icon>
+                        Shop d'Upgrades
+                    </mat-card-title>
+                </mat-card-header>
 
-            <!-- Leaderboard -->
-            <div class="bg-white/90 backdrop-blur rounded-3xl shadow-2xl p-8">
-            <h2 class="text-3xl font-bold text-yellow-900 mb-6 text-center">🏆 Leaderboard</h2>
-            
-            @if (gameService.leaderboard().length === 0) {
-                <div class="text-center py-12">
-                <div class="text-6xl mb-4">🍌</div>
-                <p class="text-yellow-700">Aucun score pour le moment</p>
-                <p class="text-sm text-yellow-600 mt-2">Sois le premier !</p>
-                </div>
-            } @else {
-                <div class="space-y-3 mb-6">
-                @for (entry of gameService.leaderboard(); track $index) {
-                    <div 
-                    [class]="$index === 0 ? 'bg-gradient-to-r from-yellow-400 to-orange-400' : 'bg-yellow-50'"
-                    class="rounded-xl p-4 flex items-center gap-3 transition-all hover:shadow-md">
-                    <div class="text-2xl font-bold w-8">
-                        @if ($index === 0) {
-                        🥇
-                        } @else if ($index === 1) {
-                        🥈
-                        } @else if ($index === 2) {
-                        🥉
-                        } @else {
-                        <span class="text-yellow-700">{{ $index + 1 }}</span>
+                <mat-card-content>
+                    <mat-tab-group [(selectedIndex)]="selectedTabIndex">
+                        <mat-tab label="Tous"></mat-tab>
+                        <mat-tab label="👆 Click"></mat-tab>
+                        <mat-tab label="⚙️ Auto"></mat-tab>
+                    </mat-tab-group>
+
+                    <div class="upgrades-grid">
+                        @for (upgrade of filteredUpgrades(); track $index) {
+                            <mat-card class="upgrade">
+                                <mat-card-content>
+                                    <div class="upgrade-header">
+                                        <div>
+                                            <div class="upgrade-name">{{ upgrade.name }}</div>
+                                            @if (upgrade.upgradeType === 'click') { <div class="upgrade-desc">👆 +{{ upgrade.multiplier }} par clic</div> }
+                                            @if (upgrade.upgradeType === 'auto') { <div class="upgrade-desc">⚙️ +{{ upgrade.multiplier }}/sec</div> }
+                                        </div>
+                                        @if (upgrade.owned > 0) { <div class="owned-badge">x{{ upgrade.owned }}</div> }
+                                    </div>
+
+                                    <div class="upgrade-bottom">
+                                        <div class="cost">{{ formatNumber(getCost(upgrade)) }} 🍌</div>
+                                        <button mat-raised-button color="primary"
+                                                        (click)="buyUpgrade(upgrade)"
+                                                        [disabled]="!canAfford(upgrade) || isBuying()">
+                                            {{ isBuying() ? '...' : 'Acheter' }}
+                                        </button>
+                                    </div>
+                                </mat-card-content>
+                            </mat-card>
                         }
                     </div>
-                    <div class="flex-1 min-w-0">
-                        <div [class]="$index === 0 ? 'text-white' : 'text-yellow-900'" 
-                            class="font-bold truncate">
-                        {{ entry.name }}
+                </mat-card-content>
+            </mat-card>
+
+            <mat-card class="leaderboard-card">
+                <mat-card-title class="center">
+                    <mat-icon>trophy</mat-icon>
+                    Leaderboard
+                </mat-card-title>
+                <mat-card-content>
+                    @if (gameService.leaderboard().length === 0) {
+                        <div class="empty-leader">
+                            <mat-icon svgIcon="banana"></mat-icon>
+                            <div>Aucun score pour le moment</div>
+                            <div class="muted">Sois le premier !</div>
                         </div>
-                    </div>
-                    <div [class]="$index === 0 ? 'text-white' : 'text-yellow-600'" 
-                            class="font-bold text-lg">
-                        {{ formatNumber(entry.score) }}
-                    </div>
-                    </div>
-                }
-                </div>
-            }
+                    }
+
+                    @if (gameService.leaderboard().length > 0) {
+                        <mat-list>
+                            @for (entry of gameService.leaderboard(); track $index) {
+                                <mat-list-item>
+                                    <div mat-line class="leader-name">{{ entry.name }}</div>
+                                    <div mat-line class="leader-score">{{ formatNumber(entry.score) }}</div>
+                                </mat-list-item>
+                            }
+                        </mat-list>
+                    }
+
+                    <mat-form-field appearance="outline" class="full">
+                        <input matInput placeholder="Ton nom" [(ngModel)]="playerName" maxlength="20">
+                    </mat-form-field>
+
+                    <button mat-flat-button color="primary" class="full" (click)="submitScore()" [disabled]="!playerName.trim() || isSubmitting()">
+                        {{ isSubmitting() ? 'Envoi en cours...' : '📤 Soumettre mon score' }}
+                    </button>
+                </mat-card-content>
+            </mat-card>
             
-            <!-- Submit Score Form -->
-            <div class="border-t-2 border-yellow-200 pt-6 space-y-3">
-                <input
-                type="text"
-                [(ngModel)]="playerName"
-                placeholder="Ton nom"
-                maxlength="20"
-                class="w-full px-4 py-3 rounded-xl border-2 border-yellow-200 focus:border-yellow-500 focus:outline-none font-medium">
-                
-                <button
-                (click)="submitScore()"
-                [disabled]="!playerName.trim() || isSubmitting()"
-                class="w-full bg-green-500 hover:bg-green-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-6 py-3 rounded-xl font-bold transition-all transform hover:scale-105 active:scale-95">
-                @if (isSubmitting()) {
-                    <span>Envoi en cours...</span>
-                } @else {
-                    <span>📤 Soumettre mon score</span>
-                }
+            <mat-card class="actions-card">
+                <mat-card-content>
+                    <button mat-raised-button color="primary" class="full" (click)="openSessionModal()">
+                        <mat-icon>key</mat-icon>
+                        Session
+                    </button>
+                    <button mat-stroked-button color="accent" class="full" (click)="openBananaMemeModal()">
+                        <mat-icon>ar_stickers</mat-icon>
+                        SURPRISE
+                    </button>
+                </mat-card-content>
+            </mat-card>
+        </div>
+    }
+
+    <!-- Modals (basic inline overlays) -->
+    @if (showBananaMemeModal()) {
+        <div class="overlay" (click)="showBananaMemeModal.set(false)">
+            <div class="modal" (click)="$event.stopPropagation()">
+                <h3>📝 Envoyer une demande de meme</h3>
+                <mat-form-field appearance="outline" class="full">
+                    <input matInput placeholder="Ton @ instagram" [(ngModel)]="memeInsta" maxlength="30">
+                </mat-form-field>
+                <mat-form-field appearance="outline" class="full">
+                    <textarea matInput placeholder="Prompt" rows="4" [(ngModel)]="memePrompt" maxlength="500"></textarea>
+                </mat-form-field>
+                <button mat-raised-button color="accent" class="full" (click)="sendMemeRequest()" [disabled]="isSendingMeme() || !memePrompt.trim()">
+                    {{ isSendingMeme() ? '⏳ Stabilisation du potassium...' : 'Envoyer (100M bananes)' }}
                 </button>
             </div>
-            </div>
         </div>
-        </div>
-    </div>
     }
 
-    <!-- Banana meme modal -->
-    @if (showBananaMemeModal()) {
-    <div class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" (click)="showBananaMemeModal.set(false)">
-        <div class="bg-white rounded-3xl shadow-2xl p-8 max-w-lg w-full max-h-[90vh] overflow-y-auto" (click)="$event.stopPropagation()">
-            <h2 class="text-lg text-yellow-900 font-semibold mb-3">📝 Envoyer une demande de meme</h2>
-
-            <p class="mb-2">
-                Génère un meme bananesque alimenté par notre <b>BananaLLM™ v3</b> 4 cylindres certifié <b>ISO-6722</b>, atteignant une précision de <b>37% d’humour spontané</b>.
-            </p>
-            <p class="mb-2">
-                Mets un prompt pour expliquer ce que tu veux comme meme et entre ton @ insta. Le même sera généré puis posté sur notre compte insta @bananint sous 48h (limite de requête API insta). Le même coûte 100M de bananes et tu es limité à un même toutes les 72h.
-            </p>
-            <p class="mb-2">
-                Attention : <b>BananaLLM™ v3</b> est en beta
-            </p>
-
-            <textarea
-                [(ngModel)]="memeInsta"
-                placeholder="Qui es-tu? (Mets ton @ instagram)"
-                maxlength="30"
-                rows="1"
-                style="resize: none;"
-                class="w-full rounded-lg border border-neutral-700 p-3 placeholder-neutral-500 focus:border-yellow-400 focus:outline-none focus:ring-2 focus:ring-yellow-500/40 transition"
-            ></textarea>
-            <textarea
-                [(ngModel)]="memePrompt"
-                placeholder="Déverse ici ta sagesse tropicale... (c'est le prompt)"
-                rows="5"
-                maxlength="500"
-                class="w-full rounded-lg border border-neutral-700 p-3 placeholder-neutral-500 focus:border-yellow-400 focus:outline-none focus:ring-2 focus:ring-yellow-500/40 transition"
-            ></textarea>
-
-            <button
-                (click)="sendMemeRequest()"
-                [disabled]="isSendingMeme() || memePrompt.trim().length === 0"
-                class="mt-3 w-full rounded-lg bg-yellow-400 py-2 font-semibold text-black transition hover:bg-yellow-300 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-                {{ isSendingMeme() ? '⏳ Stabilisation du potassium...' : 'Envoyer (100M bananes)' }}
-            </button>
-        </div>
-    </div>
-    }
-
-
-    <!-- Welcome Back Modal -->
-    @if (showWelcomeBack()) {
-    <div class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" (click)="showWelcomeBack.set(false)">
-        <div class="bg-gradient-to-br from-yellow-400 to-orange-400 rounded-3xl shadow-2xl p-8 max-w-md w-full" (click)="$event.stopPropagation()">
-        <div class="text-center">
-            <div class="text-7xl mb-4 animate-bounce">🎉</div>
-            <h2 class="text-3xl font-bold text-white mb-4">Bon retour !</h2>
-            <p class="text-white text-lg mb-2">
-            Tu as gagné pendant ton absence :
-            </p>
-            <p class="text-5xl font-bold text-white mb-6">
-            {{ formatNumber(offlineEarnings()) }} 🍌
-            </p>
-            <button
-            (click)="showWelcomeBack.set(false)"
-            class="bg-white text-yellow-900 px-8 py-3 rounded-full font-bold text-lg hover:bg-yellow-50 transition-all transform hover:scale-105">
-            Génial ! 🚀
-            </button>
-        </div>
-        </div>
-    </div>
-    }
-
-    <!-- Session Management Modal -->
+    <!-- Session modal -->
     @if (showSessionModal()) {
-        <div class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" (click)="showSessionModal.set(false)">
-            <div class="bg-white rounded-3xl shadow-2xl p-8 max-w-lg w-full max-h-[90vh] overflow-y-auto" (click)="$event.stopPropagation()">
-                <h3 class="text-3xl font-bold text-yellow-900 mb-6 flex items-center gap-3">
-                    🔑 Gestion de Session
+        <div class="overlay" (click)="showSessionModal.set(false)">
+            <div class="modal" (click)="$event.stopPropagation()">
+                <h3>
+                    <mat-icon>key</mat-icon>
+                    Gestion de Session
                 </h3>
-
-                <!-- Current Session -->
-                <div class="mb-6">
-                    <label class="block text-sm font-bold text-gray-700 mb-2">
-                        Session Actuelle
-                    </label>
-                    <div class="flex gap-2">
-                        <input
-                            type="text"
-                            [value]="currentSessionId()"
-                            readonly
-                            class="flex-1 px-4 py-3 rounded-xl border-2 border-gray-300 bg-gray-50 font-mono text-sm">
-                        <button
-                            (click)="copySessionId()"
-                            class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-3 rounded-xl font-bold transition-all">
-                            📋
-                        </button>
-                    </div>
-                    <p class="text-xs text-gray-500 mt-2">
-                        Cette session est automatiquement synchronisée avec le serveur
-                    </p>
+                <mat-form-field appearance="outline" class="full">
+                    <input matInput [value]="currentSessionId()" readonly>
+                </mat-form-field>
+                <div class="row gap">
+                    <button mat-stroked-button color="primary" (click)="copySessionId()">📋 Copier</button>
+                    <button mat-button (click)="deleteLocalStorage()">Supprimer local</button>
                 </div>
-
-                <!-- Change Session -->
-                <div class="mb-6">
-                    <label class="block text-sm font-bold text-gray-700 mb-2">
-                        Charger une Session Existante
-                    </label>
-                    <input
-                        type="text"
-                        [(ngModel)]="newSessionId"
-                        placeholder="Collez un ID de session existant"
-                        class="w-full px-4 py-3 rounded-xl border-2 border-yellow-200 focus:border-yellow-500 focus:outline-none font-mono text-sm mb-2">
-                    <p class="bg-orange-50 border-2 border-orange-200 rounded-xl p-4 text-sm font-bold text-red-600">
-                        ⚠️ Vous perdrez votre progression sur la session actuelle si vous n'en sauvegardez pas l'ID !
-                    </p>
-                </div>
-
-                <!-- Actions -->
-                <div class="space-y-3">
-                    <button
-                        (click)="changeSession()"
-                        [disabled]="!newSessionId.trim()"
-                        class="w-full bg-purple-500 hover:bg-purple-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-6 py-3 rounded-xl font-bold transition-all">
-                        Charger cette Session
-                    </button>
-                    
-                    <button
-                        (click)="showSessionModal.set(false)"
-                        class="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-3 rounded-xl font-bold transition-all">
-                        Annuler
-                    </button>
-                </div>
-
-                <!-- Info Box -->
-                <div class="mt-6 bg-blue-50 border-2 border-blue-200 rounded-xl p-4 text-sm text-blue-900">
-                    <p class="font-bold mb-1">ℹ️ Comment ça marche ?</p>
-                    <p>Une session correspond à une partie sauvegardée sur le serveur. Il suffit d'avoir l'ID de session pour accéder à la partie.</p>
+    
+                <mat-form-field appearance="outline" class="full">
+                    <input matInput placeholder="Collez un ID de session existant" [(ngModel)]="newSessionId">
+                </mat-form-field>
+    
+                <div class="warn">⚠️ Vous perdrez votre progression sur la session actuelle si vous n'en sauvegardez pas l'ID !</div>
+    
+                <div class="row">
+                    <button mat-raised-button color="primary" (click)="changeSession()" [disabled]="!newSessionId.trim()">Charger cette Session</button>
+                    <button mat-stroked-button (click)="showSessionModal.set(false)">Annuler</button>
                 </div>
             </div>
         </div>
     }
 
-    <!-- Footer -->
-    <footer class="bg-yellow-900 text-yellow-100 py-6 mt-12">
-    <div class="container mx-auto px-4 text-center">
-        <p class="text-lg">🍌 BananINT Clicker 🍌</p>
-        <p class="mt-2 text-sm text-yellow-200">Farm des bananes, deviens riche !</p>
-    </div>
-    </footer>
+    @if (gameService.error()) {
+        <div class="error-card">
+            <mat-card>
+                <mat-card-content>
+                    <div class="emoji-large">⚠️</div>
+                    <h3>Cette session n'existe pas sur le serveur</h3>
+                    <p>Contactez le staff via <a href="https://www.instagram.com/bananint/">INSTAGRAM</a></p>
+                </mat-card-content>
+            </mat-card>
+        </div>
+    }
 </div>
+
+<!-- Footer -->
+<app-footer />

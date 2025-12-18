@@ -1,157 +1,121 @@
-<div class="min-h-screen bg-gradient-to-br from-yellow-400 via-yellow-300 to-orange-400">
 <!-- Header -->
-<header class="flex flex-col md:flex-row items-center justify-between bg-yellow-900 text-yellow-100 shadow-lg px-6 py-6">
-    <div class="m-3 flex items-center gap-3">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" class="lucide lucide-banana w-12 h-12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M4 13c3.5-2 8-2 10 2a5.5 5.5 0 0 1 8 5"></path>
-            <path d="M5.15 17.89c5.52-1.52 8.65-6.89 7-12C11.55 4 11.5 2 13 2c3.22 0 5 5.5 5 8 0 6.5-4.2 12-10.49 12C5.11 22 2 22 2 20c0-1.5 1.14-1.55 3.15-2.11Z"></path>
-        </svg>
-        <div>
-        <h1 class="text-4xl font-bold">BANANINT</h1>
-        <p class="text-sm">Club de Télécom SudParis</p>
-        </div>
-    </div>
-    <div class="flex flex-col md:flex-row gap-3">
-        <a 
-            routerLink="/clicker"
-            class="bg-yellow-100 text-yellow-900 px-6 py-3 rounded-full font-bold hover:bg-yellow-200 transition-all transform hover:scale-105 flex items-center gap-2"
-        >
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-gamepad2 w-5 h-5">
-                <line x1="6" x2="10" y1="11" y2="11"></line>
-                <line x1="8" x2="8" y1="9" y2="13"></line>
-                <line x1="15" x2="15.01" y1="12" y2="12"></line>
-                <line x1="18" x2="18.01" y1="10" y2="10"></line>
-                <path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4 4 0 0 0 17.32 5z"></path>
-            </svg>
-            Banana Clicker
-        </a>
-        <a 
-            routerLink="/enhanced-clicker"
-            class="bg-purple-100 text-purple-900 px-6 py-3 rounded-full font-bold hover:bg-purple-200 transition-all transform hover:scale-105 flex items-center gap-2"
-        >
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-gamepad2 w-5 h-5">
-                <line x1="6" x2="10" y1="11" y2="11"></line>
-                <line x1="8" x2="8" y1="9" y2="13"></line>
-                <line x1="15" x2="15.01" y1="12" y2="12"></line>
-                <line x1="18" x2="18.01" y1="10" y2="10"></line>
-                <path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4 4 0 0 0 17.32 5z"></path>
-            </svg>
-            Shiny Banana Clicker
-        </a>
-    </div>
-</header>
+<app-header>
+    <a mat-list-item routerLink="/clicker">
+        <mat-icon matListItemIcon>
+            <mat-icon>stadia_controller</mat-icon>
+        </mat-icon>
+        Banana Clicker V2
+    </a>
+</app-header>
 
 <!-- Hero Section -->
-<section class="container mx-auto px-4 py-16 text-center">
-<div class="bg-yellow-100 backdrop-blur rounded-3xl shadow-2xl p-12 max-w-4xl mx-auto">
-    <div class="text-8xl mb-6 animate-bounce">🍌</div>
-    <h2 class="text-5xl font-bold text-yellow-900 mb-4">
-    Bienvenue chez BananINT !
-    </h2>
-    <p class="text-xl text-gray-700 mb-8">
-    Le club le plus fun de l'INT. Du fun, des events, des jeux et... des bananes ! 🎉
-    </p>
-    <div class="flex flex-wrap justify-center gap-4 mb-8">
-    <div class="bg-white px-6 py-3 rounded-full flex items-center gap-2">
-        <span class="text-xl">✨</span>
-        <span class="font-semibold text-yellow-900">100% Fun</span>
-    </div>
-    <div class="bg-white px-6 py-3 rounded-full flex items-center gap-2">
-        <span class="text-xl">👥</span>
-        <span class="font-semibold text-yellow-900">100% Convivial</span>
-    </div>
-    <div class="bg-white px-6 py-3 rounded-full flex items-center gap-2">
-        <span class="text-xl">🍌</span>
-        <span class="font-semibold text-yellow-900">100% Bananes</span>
-    </div>
-    </div>
-    <p class="text-xl text-gray-700">Rejoins-nous sur <a class="text-yellow-600 underline" href="https://www.instagram.com/bananint/">Instagram</a> !</p>
-</div>
+<section id="hero">
+    <om-aurora>
+    <om-shiny-text 
+        text="BananINT"
+        styleClass="shiny-text-style" 
+        [textColor]="'hsla(0, 0%, 87.5%, 0.7)'"
+        [shimmerColor]="'hsl(0, 0%, 100%)'"
+        style="display: flex; justify-content: center; padding-top: 7rem;"
+    />
+    <om-globe
+        [globeSize]="isMobile() ? 400 : 1500"
+        [rotationSpeed]="0.002"
+        [globeOptions]="{
+            markers: [
+                        { location: [64.0522, -118.2437], size: 0.1 },
+                        { location: [69.5, -75.0], size: 0.1 },
+                        { location: [88.5, 10.0], size: 0.1 },
+                        { location: [34.0522, -118.2437], size: 0.1 },
+                        { location: [48.8566, 2.3522], size: 0.1 },
+                        { location: [35.6895, 139.6917], size: 0.1 },
+                        { location: [-33.8688, 151.2093], size: 0.1 },
+                        { location: [55.7558, 37.6173], size: 0.1 },
+                        { location: [72.1, -150.0], size: 0.1 },
+                        { location: [74.3, -30.0], size: 0.1 },
+                        { location: [76.5, 20.0], size: 0.1 },
+                        { location: [78.0, 110.0], size: 0.1 },
+                        { location: [82.2, -60.0], size: 0.1 },
+                        { location: [70.0, 45.0], size: 0.1 },
+                        { location: [85.0, -10.0], size: 0.1 },
+                        { location: [71.6, 170.0], size: 0.1 }
+                    ],
+            markerColor: [0.327, 0.708, 0.382],
+            glowColor: [1, 0.871, 0.247],
+            baseColor: [1, 0.871, 0.247]
+        }"
+        style="display: flex; justify-content: center;"
+    />
+    </om-aurora>
 </section>
 
+
 <!-- Events Section -->
-<section class="container mx-auto px-4 py-16">
-<h3 class="text-4xl font-bold text-center text-yellow-900 mb-12">
-    Nos Events 🎊
-</h3>
-<div class="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-    <div class="bg-white rounded-2xl shadow-xl p-8 transform hover:scale-105 transition-all">
-    <div class="text-5xl mb-4 text-center">🎯</div>
-    <h4 class="text-2xl font-bold text-yellow-900 mb-3">WEB Week-end Banane</h4>
-    <p class="text-gray-700">
-        Un week-end délirant où on mange des bananes entre amis 😉 !
-    </p>
+<section id="events">
+    <om-cryptic-text [text]="'Nos Events'" styleClass="head-text" style="grid-column: span 2;"></om-cryptic-text>
+    <div>
+        <om-lava-lamp color="#FFDE3F" cursorBallColor="#FFDE3F" [enableMouseInteraction]="true"></om-lava-lamp>
     </div>
-    
-    <div class="bg-white rounded-2xl shadow-xl p-8 transform hover:scale-105 transition-all">
-    <div class="text-5xl mb-4 text-center">🎮</div>
-    <h4 class="text-2xl font-bold text-yellow-900 mb-3">Tournois Jeux</h4>
-    <p class="text-gray-700">
-        Mario Kart, Donkey Kong et plein d'autres jeux ! Viens affronter tes potes dans une ambiance banane.
-    </p>
+    <div style="display: flex; flex-direction: column;">
+        <div class="container">
+            <mat-icon>event</mat-icon>
+            <div>
+                <h4>WEB Week-end Banane</h4>
+                <p>Un week-end délirant où on mange des bananes entre amis!</p>
+            </div>
+        </div>
+        
+        <div class="container">
+            <mat-icon>gamepad</mat-icon>
+            <div>
+                <h4>Tournois Jeux</h4>
+                <p>Mario Kart, Donkey Kong et plein d'autres jeux ! Viens affronter tes potes dans une ambiance banane.</p>
+            </div>
+        </div>
+        
+        <div class="container">
+            <mat-icon>arrow_downward</mat-icon>
+            <div>
+                <h4>Import de Bananes</h4>
+                <p>On importe des bananes pour toute l'école ! Recettes à base de banane et bonheur garanti.</p>
+            </div>
+        </div>
     </div>
-    
-    <div class="bg-white rounded-2xl shadow-xl p-8 transform hover:scale-105 transition-all">
-    <div class="text-5xl mb-4 text-center">🍌</div>
-    <h4 class="text-2xl font-bold text-yellow-900 mb-3">Import de Bananes</h4>
-    <p class="text-gray-700">
-        On importe des bananes pour toute l'école ! Recettes à base de banane et bonheur garanti.
-    </p>
-    </div>
-</div>
 </section>
 
 <!-- Stats Section -->
-<section class="container mx-auto px-4 py-16">
-<div class="bg-white rounded-3xl shadow-2xl p-12 max-w-4xl mx-auto">
-    <h3 class="text-4xl font-bold text-center text-yellow-900 mb-12">
-    Nos Stats Bananes 📊
-    </h3>
-    <div class="grid md:grid-cols-3 gap-8 text-center">
-    <div>
-        <div class="text-5xl font-bold text-yellow-400 mb-2">InfinityMd+</div>
-        <div class="text-xl text-yellow-400">Bananes farmées</div>
+<section id="stats">
+    <om-cryptic-text [text]="'Nos Stats'" styleClass="head-text" style="grid-column: span 2;"></om-cryptic-text>
+    <div style="display: flex; flex-direction: column;">
+        <div>
+            <div class="container">
+                <om-number-ticker [countTo]="10" style="margin: auto;"></om-number-ticker>
+                <span>Membres staff actifs</span>
+            </div>
+
+            <div class="container">
+                <om-number-ticker [countTo]="200" style="margin: auto;"></om-number-ticker>
+                <span>Sessions du clicker</span>
+            </div>
+
+            <div class="container">
+                <om-number-ticker [countTo]="bananas()" style="margin: auto;"></om-number-ticker>
+                <span>Bananes farmées</span>
+            </div>
+        </div>
     </div>
     <div>
-        <div class="text-5xl font-bold text-yellow-400 mb-2">20+</div>
-        <div class="text-xl text-yellow-400">Membres actifs</div>
+        <om-orb [hue]="150" />
     </div>
-    <div>
-        <div class="text-5xl font-bold text-yellow-400 mb-2">10+</div>
-        <div class="text-xl text-yellow-400">Events par an</div>
-    </div>
-    </div>
-</div>
 </section>
 
 <!-- Banana Monday ! -->
-<section class="container mx-auto px-4 py-16 mb-16">
-<div class="bg-gradient-to-r from-yellow-500 to-orange-500 rounded-3xl shadow-2xl p-12 max-w-4xl mx-auto">
-    <h3 class="text-4xl font-bold text-center text-white mb-12">
-    🍌 ! Le Banana Monday ! 🍌
-    </h3>
-    <div class="grid md:grid-cols-3 gap-8 text-center">
+<section id="bananas">
     <div>
-        <div class="text-5xl font-bold text-white mb-2">Le lundi</div>
-        <div class="text-xl text-yellow-100">Des bananes partout</div>
+        <om-gradient-text [text]="'LE BANANA MONDAY'" [gradientStart]="'#FFDE3F'" [gradientEnd]="'#6D9B7B'"></om-gradient-text>
     </div>
-    <div>
-        <div class="text-5xl font-bold text-white mb-2">Le lundi</div>
-        <div class="text-xl text-yellow-100">Des bananes partout</div>
-    </div>
-    <div>
-        <div class="text-5xl font-bold text-white mb-2">Le lundi</div>
-        <div class="text-xl text-yellow-100">Des bananes partout</div>
-    </div>
-    </div>
-</div>
+    <om-neon-underline [middleColor]="'#FFDE3F'" [sideColor]="'#6D9B7B'" />
 </section>
 
 <!-- Footer -->
-<footer class="bg-yellow-900 text-yellow-100 py-8">
-<div class="container mx-auto px-4 text-center">
-    <p class="text-lg">Rejoins-nous sur <a class="text-yellow-200 underline" href="https://www.instagram.com/bananint/">Instagram</a> !</p>
-    <p class="mt-2">🍌 BananINT - Le club qui a la banane 🍌</p>
-</div>
-</footer>
-</div>
+<app-footer />

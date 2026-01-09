@@ -45,9 +45,6 @@ import { Footer } from "@common/footer/footer";
 export class Clicker {
   gameService = inject(Game);
   
-  // used by the mat-tab-group two-way binding
-  selectedTabIndex = 0;
-
   playerName = '';
   clickAnimation = signal(false);
   isBuying = signal(false);
@@ -58,7 +55,6 @@ export class Clicker {
   showSessionModal = signal(false);
   showSessionWarning = signal(false);
   showBananaMemeModal = signal(false);
-  upgradeFilter = signal<'all' | 'click' | 'auto'>('all');
   offlineEarnings = signal(0);
   memePrompt = '';
   memeInsta = '';
@@ -66,17 +62,6 @@ export class Clicker {
   
   newSessionId = '';
   currentSessionId = signal('');
-  
-  filteredUpgrades = computed(() => {
-    const upgrades = Array.from(this.gameService.upgrades().values());
-    const filter = this.upgradeFilter();
-    
-    if (filter === 'all') {
-      return upgrades;
-    }
-    
-    return upgrades.filter(u => u.upgradeType === filter);
-  });
 
   constructor() {
     this.gameService.initGame().then(() => {
@@ -84,6 +69,13 @@ export class Clicker {
       this.updateCurrentSessionId();
       this.showWelcomeBack.set(true);
     });
+  }
+
+  filteredUpgrades(type: string): UpgradeType[] {
+    if (type === 'all') {
+      return this.gameService.upgrades();
+    }
+    return this.gameService.upgrades().filter(upg => upg.upgradeType === type);
   }
 
   onBananaClick() {
@@ -215,8 +207,12 @@ export class Clicker {
   }
 
   async deleteLocalStorage() {
-    localStorage.removeItem('banana-session-id');
-    await this.gameService.initGame();
+    const confirmed = window.confirm('Vous êtes sûr de vouloir supprimer l\'id de votre partie de votre navigateur? Cela va créer une nouvelle partie.\n⚠️Votre progression actuelle sera perdue si vous n\'avez pas sauvegardé votre id de session.');
+
+    if (confirmed) {
+      localStorage.removeItem('banana-session-id');
+      await this.gameService.initGame();
+    }
   }
 
   formatNumber(num: number): string {

@@ -5,12 +5,12 @@ import { firstValueFrom } from 'rxjs';
 // Determine API URL based on environment
 // Backend mounts routers under the '/api' prefix (see backend/src/main.py)
 const API_BASE_URL = isDevMode()
-  ? 'http://localhost/api'
-  : 'https://bananint.fr/api';
+  ? 'http://localhost/api/game'
+  : 'https://bananint.fr/api/game';
 
 const WS_BASE_URL = isDevMode()
-  ? 'ws://localhost/api'
-  : 'wss://bananint.fr/api';
+  ? 'ws://localhost/api/websocket'
+  : 'wss://bananint.fr/api/websocket';
 
 
 export interface GameState {
@@ -40,7 +40,7 @@ export interface UpgradeType {
   name: string;
   baseCost: number;
   multiplier: number;
-  upgradeType: 'click' | 'auto' | 'prestige' | 'synergy';
+  upgradeType: 'click' | 'auto' | 'synergy' | 'prestige';
   owned: number;
   description: string;
 }
@@ -55,6 +55,69 @@ export interface Achievement {
   rewardValue: number;
   unlocked: boolean;
   unlockedAt: string | null;
+}
+
+/**
+ * Normalize server-side snake_case game state to client-side camelCase shape.
+ */
+function normalizeGameState(serverState: any, sessionId?: string): GameState {
+  if (!serverState) {
+    return {
+      sessionId: sessionId || '',
+      sessionName: 'Anonymous',
+      createdAt: '',
+      totalClicks: 0,
+      totalBananasEarned: 0,
+      bananas: 0,
+      bananasPerClick: 1,
+      bananasPerSecond: 0,
+      bananaDna: 0,
+      prestigeCount: 0,
+      ownedSkins: '',
+      lastSyncTime: Date.now()
+    };
+  }
+
+  return {
+    sessionId: sessionId || serverState.sessionId || serverState.id || '',
+    sessionName: serverState.session_name ?? serverState.sessionName ?? null,
+    createdAt: serverState.created_at ?? serverState.createdAt ?? '',
+    totalClicks: serverState.total_clicks ?? serverState.totalClicks ?? 0,
+    totalBananasEarned: serverState.total_bananas_earned ?? serverState.totalBananasEarned ?? 0,
+    bananas: serverState.bananas ?? 0,
+    bananasPerClick: serverState.bananas_per_click ?? serverState.bananasPerClick ?? 1,
+    bananasPerSecond: serverState.bananas_per_second ?? serverState.bananasPerSecond ?? 0,
+    bananaDna: serverState.banana_dna ?? serverState.bananaDna ?? serverState.bananaDNA ?? 0,
+    prestigeCount: serverState.prestige_count ?? serverState.prestigeCount ?? 0,
+    ownedSkins: serverState.owned_skins ?? serverState.ownedSkins ?? '',
+    lastSyncTime: serverState.last_sync_time ?? serverState.lastSyncTime ?? Date.now()
+  };
+}
+
+function normalizeUpgrade(u: any): UpgradeType {
+  return {
+    upgradeId: u.upgrade_id ?? u.upgradeId ?? u.id,
+    name: u.name,
+    baseCost: u.base_cost ?? u.baseCost ?? 0,
+    multiplier: u.multiplier ?? 1,
+    upgradeType: (u.upgrade_type ?? u.upgradeType) as any ?? 'click',
+    owned: u.owned ?? 0,
+    description: u.description ?? ''
+  };
+}
+
+function normalizeAchievement(a: any): Achievement {
+  return {
+    achievementId: a.achievement_id ?? a.achievementId ?? a.id,
+    name: a.name,
+    description: a.description,
+    requirementType: a.requirement_type ?? a.requirementType ?? '',
+    requirementValue: a.requirement_value ?? a.requirementValue ?? 0,
+    rewardType: a.reward_type ?? a.rewardType ?? '',
+    rewardValue: a.reward_value ?? a.rewardValue ?? 0,
+    unlocked: Boolean(a.unlocked),
+    unlockedAt: a.unlocked_at ?? a.unlockedAt ?? null
+  };
 }
 
 @Injectable({ providedIn: 'root' })
@@ -82,7 +145,7 @@ export class Game {
     lastSyncTime: Date.now()
   });
 
-  private readonly upgradesSignal = signal<Map<string, UpgradeType>>(new Map());
+  private readonly upgradesSignal = signal<UpgradeType[]>([]);
   private readonly achievementsSignal = signal<Achievement[]>([]);
   private readonly leaderboardSignal = signal<LeaderboardEntry[]>([]);
   private readonly loadingSignal = signal(true);
@@ -146,21 +209,25 @@ export class Game {
         }>(`${API_BASE_URL}/init`, { sessionId })
       );
 
+      // Persist session id
       localStorage.setItem('banana-session-id', response.sessionId);
-      this.gameStateSignal.update(state => ({
-        ...state,
-        ...response.gameState
-      }));
-      
-      // Convert upgrades array to Map
-      const upgradesMap = new Map<string, UpgradeType>();
-      response.upgrades.forEach(upgrade => {
-        upgradesMap.set(upgrade.upgradeId, upgrade);
-      });
-      this.upgradesSignal.set(upgradesMap);
-      
-      this.achievementsSignal.set(response.achievements || []);
-      this.leaderboardSignal.set(response.leaderboard);
+
+      // Normalize game state fields coming from the server (snake_case -> camelCase)
+      const normalizedState = normalizeGameState(response.gameState, response.sessionId);
+      this.gameStateSignal.set({ ...this.gameStateSignal(), ...normalizedState });
+
+      // Transform upgrades into a simple array
+      const upgradesArray: UpgradeType[] = (response.upgrades || []).map((u: any) => 
+        normalizeUpgrade(u)
+      );
+      this.upgradesSignal.set(upgradesArray);
+
+      // Normalize achievements
+      const achievements = (response.achievements || []).map((a: any) => normalizeAchievement(a));
+      this.achievementsSignal.set(achievements);
+
+      // Leaderboard can be passed through (server already uses camelCase keys there)
+      this.leaderboardSignal.set(response.leaderboard || []);
 
       // Connect WebSocket after HTTP init
       this.connectWebSocket(response.sessionId);
@@ -232,9 +299,11 @@ export class Game {
     switch (message.type) {
       case 'game_update':
         if (message.data) {
+          // merge update (message.data already uses camelCase from server ws sync)
           this.gameStateSignal.update(state => ({
             ...state,
-            ...message.data
+            ...message.data,
+            lastSyncTime: message.data.lastSyncTime || state.lastSyncTime
           }));
         }
         break;
@@ -248,23 +317,29 @@ export class Game {
       case 'upgrade_purchased':
         if (message.data) {
           // Update game state
+          // Normalize potential variants for DNA field and other keys
+          const dna = message.data.bananaDNA ?? message.data.bananaDna ?? message.data.banana_dna ?? null;
+          const bananasPerClick = message.data.bananasPerClick ?? message.data.bananas_per_click;
+          const bananasPerSecond = message.data.bananasPerSecond ?? message.data.bananas_per_second;
+
           this.gameStateSignal.update(state => ({
             ...state,
-            bananas: message.data.bananas,
-            bananaDNA: message.data.bananaDNA,
-            bananasPerClick: message.data.bananasPerClick,
-            bananasPerSecond: message.data.bananasPerSecond
+            bananas: message.data.bananas ?? state.bananas,
+            bananaDna: dna ?? state.bananaDna,
+            bananasPerClick: bananasPerClick ?? state.bananasPerClick,
+            bananasPerSecond: bananasPerSecond ?? state.bananasPerSecond
           }));
           
           // Update specific upgrade
           const upgradeId = message.data.upgradeId;
-          this.upgradesSignal.update(map => {
-            const newMap = new Map(map);
-            const upgrade = newMap.get(upgradeId);
-            if (upgrade) {
-              upgrade.owned = message.data.owned;
-            }
-            return newMap;
+          this.upgradesSignal.update(list => {
+            const newList = list.map(upg => {
+              if (upg.upgradeId === upgradeId) {
+                return { ...upg, owned: message.data.owned };
+              }
+              return upg;
+            });
+            return newList;
           });
         }
         break;
@@ -324,7 +399,7 @@ export class Game {
    * Buy an upgrade via HTTP
    */
   async buyUpgrade(upgradeId: string): Promise<boolean> {
-    const upgrade = this.upgradesSignal().get(upgradeId);
+    const upgrade = this.upgradesSignal().find(upg => upg.upgradeId === upgradeId);
     if (!upgrade) return false;
 
     const cost = this.calculateUpgradeCost(upgrade);
@@ -359,12 +434,9 @@ export class Game {
       // Sync before submitting
       await this.syncViaWebSocket();
 
+      // Submit score; server will broadcast leaderboard updates via WebSocket
       const response = await firstValueFrom(
-        this.http.post<{ 
-          success: boolean; 
-          leaderboard: LeaderboardEntry[];
-          message?: string;
-        }>(
+        this.http.post<{ success: boolean; message?: string }>(
           `${API_BASE_URL}/submit-score`,
           {
             sessionId: this.gameStateSignal().sessionId,
@@ -372,16 +444,16 @@ export class Game {
           }
         )
       );
-      
+
       if (response.success) {
         localStorage.setItem('banana-player-name', trimmedName);
         this.playerNameSignal.set(trimmedName);
-        this.leaderboardSignal.set(response.leaderboard);
+        // Do NOT set leaderboard here; server will push updates via WebSocket
       }
-      
-      return { 
-        success: response.success, 
-        message: response.message 
+
+      return {
+        success: response.success,
+        message: response.message
       };
     } catch (error) {
       console.error('Score submission error:', error);

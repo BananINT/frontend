@@ -10,10 +10,8 @@ import { NgxGlobeComponent } from '@omnedia/ngx-globe';
 import { NgxAuroraComponent } from '@omnedia/ngx-aurora';
 import { NgxShinyTextComponent } from '@omnedia/ngx-shiny-text';
 import { NgxLavaLampComponent } from '@omnedia/ngx-lava-lamp';
-import { NgxCrypticTextComponent } from '@omnedia/ngx-cryptic-text';
 import { NgxNumberTickerComponent } from '@omnedia/ngx-number-ticker';
 import { NgxOrbComponent } from '@omnedia/ngx-orb';
-import { NgxNeonUnderlineComponent } from '@omnedia/ngx-neon-underline';
 import { NgxGradientTextComponent } from '@omnedia/ngx-gradient-text';
 
 import { Header } from '@common/header/header';
@@ -33,10 +31,8 @@ interface totBanRes {
     NgxAuroraComponent,
     NgxShinyTextComponent,
     NgxLavaLampComponent,
-    NgxCrypticTextComponent,
     NgxNumberTickerComponent,
     NgxOrbComponent,
-    NgxNeonUnderlineComponent,
     NgxGradientTextComponent,
     Header,
     Footer
@@ -59,7 +55,7 @@ export class Home {
         this.isMobile.set(state.matches);
       });
 
-    this.http.get<totBanRes>('/api/total-bananas').subscribe(dict => {
+    this.http.get<totBanRes>('/api/game/total-bananas').subscribe(dict => {
       this.bananas.set(dict.total_bananas);
     });
   }

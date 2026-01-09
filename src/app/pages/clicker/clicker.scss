@@ -1,133 +1,113 @@
-/* Layout container used to make overlays absolute relative to this component */
+/* Layout container */
 .page-container {
-    margin: 1rem;
+    margin: 2rem auto;
+    max-width: 1200px;
+    padding: 0 1rem;
 }
 
-/* Overlay using absolute positioning (fills the component) */
-.overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.45);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 50;
-    padding: 1rem;
-}
-
-.modal {
-    background: #fff;
-    border-radius: 1rem;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-    max-width: 720px;
-    width: 100%;
-    max-height: 90vh;
-    overflow-y: auto;
-    padding: 1.25rem;
-}
-
-// Grid
+/* Main Dashboard Grid */
 .layout-grid {
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    grid-auto-flow: dense;
+    grid-template-columns: 5fr 2fr;
     gap: 1rem;
 }
 
-@media (max-width: 900px) {
-    .layout-grid {
+/* Stats Grid */
+.stats-wrapper {
+    grid-column: span 2;
+
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+}
+
+/* Leaderboard */
+.leaderboard-card {
+    height: fit-content;
+}
+
+/* Responsive Grid Adjustments */
+@media (max-width: 705px) {
+    .layout-grid,.stats-wrapper {
         display: flex;
         flex-direction: column;
     }
 }
 
-.stats-row {
-    grid-column: span 4;
+/* Upgrade Grid */
+.upgrades-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1rem;
+    padding-top: 1.5rem;
 }
 
-.clicker-card {
-    grid-column: span 4;
+.upgrade {
+    margin-bottom: 0;
+    height: 100%;
+    
+    .upgrade-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 0.5rem;
+    }
+    
+    .upgrade-name { font-weight: bold; font-size: 1.1rem; }
+    .upgrade-desc { font-size: 0.85rem; color: var(--mat-sys-on-surface-variant); }
+    
+    .upgrade-bottom {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 1rem;
+    }
 }
 
-.upgrades-card {
-    grid-column: span 4;
-}
-
-.leaderboard-card {
-    grid-row: span 2;
-}
-
-// Stats
-.stat-card {
+/* Modal Repair */
+.overlay {
+    position: fixed; /* Changed from absolute to fixed */
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.7); /* Darker backdrop */
+    backdrop-filter: blur(4px); /* Modern blur effect */
     display: flex;
+    align-items: center;
     justify-content: center;
+    z-index: 1000;
+}
+
+.modal-card {
+    .warn { 
+        color: var(--mat-sys-on-error-container);
+        padding: 10px; 
+        background: var(--mat-sys-error-container); 
+        border-radius: 8px; 
+        margin: 15px 0;
+        font-size: 0.9rem;
+    }
+    .row { display: flex; align-items: center; gap: 10px; margin-top: 1rem; }
+}
+
+/* Spacing and Polish */
+.stat-label { color: var(--mat-sys-on-surface-variant); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px; }
+.stat-number { font-size: 2rem; font-weight: 800; }
+
+.clicker-content {
+    padding: 3rem 1rem;
     text-align: center;
 }
 
-.stat-label {
-    font-size: 1.25rem;
-    color: var(--mat-sys-on-surface-variant);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-}
-
-.stat-number {
-    font-size: 2.5rem;
-    font-weight: 700;
-    color: var(--mat-sys-on-surface);
-}
-
-// Banana clicker
-.clicker-content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 2rem;
-}
-
 .banana-button {
-    width: 20rem;
-    height: 20rem;
+    width: 200px;
+    height: 200px;
     border-radius: 50%;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-    transition: transform 120ms ease, box-shadow 120ms ease;
-
-    mat-icon {
-        height: 10rem;
-        width: 10rem;
-    }
+    mat-icon { font-size: 80px; width: 80px; height: 80px; }
 }
 
+.clicker-sub { margin-top: 1rem; font-size: 1.2rem;}
 
-.clicker-sub {
-    font-size: 3rem;
-    
-    div {
-        margin-top: 1.5rem;
-    }
-}
-
-.banana-button:active {
-    transform: scale(0.96);
-}
-
-.float-text {
-    position: absolute;
-    font-weight: 700;
-    font-size: 5rem;
-}
-
-.full { width: 100%; }
-
-.center { text-align: center; }
-
-.top-toolbar a { color: inherit; text-decoration: none; }
+.full { width: 100%; margin-top: 0.5rem; }
+.gap { gap: 1rem; }

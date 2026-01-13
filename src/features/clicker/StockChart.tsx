@@ -2,13 +2,26 @@ import React, { useEffect, useRef, useState } from 'react';
 import { createChart, ColorType, CandlestickSeries } from 'lightweight-charts';
 import type { IChartApi, ISeriesApi } from 'lightweight-charts';
 import { useGame } from '@/context/GameContext';
-import { TrendingUp, TrendingDown, DollarSign, Activity, CircleDollarSign, ChartCandlestick } from 'lucide-react';
+import { api } from '@/lib/api';
+import { socketManager } from '@/lib/socket';
+import { CircleDollarSign, ChartCandlestick } from 'lucide-react';
 import GameSection from '@/components/shared/GameSection';
 
-const STOCKS = [
-    { symbol: 'BNDAQ', name: 'BanaNASDAQ', basePrice: 100, volatility: 0.02, color: '#FAFF00' },
-    { symbol: 'BG', name: 'BanaGone', basePrice: 1000, volatility: 0.15, color: '#FAFF00' }
-];
+interface Stock {
+    symbol: string;
+    name: string;
+    basePrice: number;
+    volatility: number;
+    color: string;
+    current_price?: number;
+}
+
+// Metadata for styling, since API doesn't provide colors
+const STOCK_META: Record<string, { color: string }> = {
+    'BNDAQ': { color: '#FAFF00' },
+    'BG': { color: '#00FFA3' }, // Changed to green for distinction
+    'STONK': { color: '#FF0055' } // Fallback
+};
 
 export default function StockChart() {
     const { gameState, buyStock, sellStock } = useGame();
@@ -16,17 +29,58 @@ export default function StockChart() {
     const chartRef = useRef<IChartApi | null>(null);
     const seriesRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
 
-    const [activeStock, setActiveStock] = useState(STOCKS[0]);
-    const [currentPrice, setCurrentPrice] = useState(activeStock.basePrice);
+    const [stocks, setStocks] = useState<Stock[]>([]);
+    const [activeStock, setActiveStock] = useState<Stock | null>(null);
+    const [currentPrice, setCurrentPrice] = useState(0);
+    const lastCloseRef = useRef<number>(0);
 
-    // Keep track of prices to prevent jumps when switching (basic persistence)
-    const pricesRef = useRef<Record<string, number>>({
-        'BNDAQ': 100,
-        'BG': 1000
-    });
-
+    // Initial Fetch & Market Data
     useEffect(() => {
-        if (!chartContainerRef.current) return;
+        const handleMarketData = (data: any) => {
+            const apiStocks = data.stocks.map((s: any) => ({
+                symbol: s.symbol,
+                name: s.name,
+                basePrice: s.base_price,
+                volatility: s.volatility,
+                color: STOCK_META[s.symbol]?.color || '#FFFFFF',
+                current_price: s.current_price
+            }));
+            setStocks(apiStocks);
+            if (apiStocks.length > 0 && !activeStock) {
+                // Only set active stock if not already set or we want to force default
+                // But better to check if we have one. 
+                // Since this runs on mount, activeStock is null initially.
+                setActiveStock(apiStocks[0]);
+                const initialPrice = apiStocks[0].current_price || apiStocks[0].basePrice;
+                setCurrentPrice(initialPrice);
+                lastCloseRef.current = initialPrice;
+            }
+        };
+
+        socketManager.on('market_data_response', handleMarketData);
+
+        // Request data
+        // Check if ready, if not, wait? 
+        // socketManager.send handles check, but connection might not be ready on initial load immediately if GameContext is connecting.
+        // However, GameContext renders children after isLoading is false (which implies connection).
+        // So we should be safe to send.
+        socketManager.send('get_market_data', {});
+
+        return () => {
+            socketManager.off('market_data_response', handleMarketData);
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []); // Run once on mount
+
+    // Chart Setup & Listeners
+    useEffect(() => {
+        if (!chartContainerRef.current || !activeStock) return;
+
+        // Cleanup old chart
+        if (chartRef.current) {
+            chartRef.current.remove();
+            chartRef.current = null;
+        }
 
         chartContainerRef.current.innerHTML = '';
 
@@ -44,7 +98,7 @@ export default function StockChart() {
             },
             timeScale: {
                 timeVisible: true,
-                secondsVisible: false,
+                secondsVisible: true,
             },
             handleScroll: false,
             handleScale: false,
@@ -58,82 +112,129 @@ export default function StockChart() {
             wickDownColor: '#ef5350',
         });
 
-        // Initial Data Generation for the selected stock
-        const data = [];
-        let time = Math.floor(Date.now() / 1000) - 100; // 100 seconds history
-        let value = pricesRef.current[activeStock.symbol];
-
-        for (let i = 0; i < 100; i++) {
-            time += 1;
-            const open = value;
-            const close = value * (1 + (Math.random() - 0.5) * activeStock.volatility);
-            const high = Math.max(open, close) * (1 + Math.random() * 0.01);
-            const low = Math.min(open, close) * (1 - Math.random() * 0.01);
-
-            value = close;
-            data.push({ time: time as any, open, high, low, close });
-        }
-
-        // Ensure strictly positive price
-        if (value < 0.1) value = 0.1;
-
-        newSeries.setData(data);
-        chart.timeScale().fitContent();
-
         chartRef.current = chart;
         seriesRef.current = newSeries;
-        pricesRef.current[activeStock.symbol] = value;
-        setCurrentPrice(value);
 
+        chart.timeScale().fitContent();
+
+        // Resize handler
         const handleResize = () => {
-            if (chartContainerRef.current && chart) {
-                chart.applyOptions({ width: chartContainerRef.current.clientWidth });
+            if (chartContainerRef.current && chartRef.current) {
+                chartRef.current.applyOptions({ width: chartContainerRef.current.clientWidth });
             }
         };
         window.addEventListener('resize', handleResize);
 
-        const interval = setInterval(() => {
-            time += 1;
-            // Update ALL stock prices internally, but only render the active one
-            STOCKS.forEach(stock => {
-                let p = pricesRef.current[stock.symbol];
-                const open = p;
-                const close = p * (1 + (Math.random() - 0.5) * stock.volatility);
-                // Ensure price doesn't go negative
-                const finalClose = close < 0.1 ? 0.1 : close;
-                pricesRef.current[stock.symbol] = finalClose;
+        // Candle History Listener
+        const handleCandlesResponse = (data: any) => {
+            if (data.symbol !== activeStock.symbol) return;
 
-                // If this is the active stock, simulate candle params
-                if (stock.symbol === activeStock.symbol) {
-                    const high = Math.max(open, finalClose) * (1 + Math.random() * 0.01);
-                    const low = Math.min(open, finalClose) * (1 - Math.random() * 0.01);
-                    newSeries.update({
-                        time: time as any,
+            const candles = data.candles.map((c: any) => ({
+                time: c.time,
+                open: c.open,
+                high: c.high,
+                low: c.low,
+                close: c.close,
+            }));
+
+            if (candles.length > 0) {
+                newSeries.setData(candles);
+                lastCloseRef.current = candles[candles.length - 1].close;
+                curTimeRef.current = candles[candles.length - 1].time;
+            } else {
+                newSeries.setData([]);
+                lastCloseRef.current = activeStock.basePrice;
+                curTimeRef.current = Math.floor(Date.now() / 1000);
+            }
+        };
+
+        socketManager.on('candles_response', handleCandlesResponse);
+
+        // Request history
+
+        // Initial Data Load
+        if (gameState.marketHistory && gameState.marketHistory[activeStock.symbol]) {
+            const history = gameState.marketHistory[activeStock.symbol];
+            const candles = history.map((c: any) => ({
+                time: c.time,
+                open: c.open,
+                high: c.high,
+                low: c.low,
+                close: c.close,
+            }));
+            if (candles.length > 0) {
+                newSeries.setData(candles);
+                lastCloseRef.current = candles[candles.length - 1].close;
+                curTimeRef.current = candles[candles.length - 1].time;
+            }
+        } else {
+            // Request history if not in context
+            socketManager.send('get_candles', { symbol: activeStock.symbol });
+        }
+
+        // Socket Listener for Updates
+        const handleMarketUpdate = (data: any) => {
+            if (!data || !data.stocks) return;
+
+            const stockData = data.stocks.find((s: any) => s.symbol === activeStock.symbol);
+            if (stockData) {
+                const price = stockData.price;
+                setCurrentPrice(price);
+
+                // Update candle
+                if (stockData.candle) {
+                    // Use backend provided candle
+                    newSeries.update(stockData.candle);
+                    lastCloseRef.current = stockData.candle.close;
+                    curTimeRef.current = stockData.candle.time;
+                } else {
+                    // Fallback to simulated candle if backend logic fails
+                    curTimeRef.current += 10;
+                    const open = lastCloseRef.current;
+                    const close = price;
+                    const candle = {
+                        time: curTimeRef.current as any,
                         open,
-                        high,
-                        low,
-                        close: finalClose
-                    });
-                    setCurrentPrice(finalClose);
+                        high: Math.max(open, close),
+                        low: Math.min(open, close),
+                        close
+                    };
+                    newSeries.update(candle);
+                    lastCloseRef.current = close;
                 }
-            });
+            }
+        };
 
-        }, 1000);
+        socketManager.on('market_update', handleMarketUpdate);
 
         return () => {
             window.removeEventListener('resize', handleResize);
-            clearInterval(interval);
-            chart.remove();
+            socketManager.off('market_update', handleMarketUpdate);
+            socketManager.off('candles_response', handleCandlesResponse);
+            if (chartRef.current) {
+                chartRef.current.remove();
+                chartRef.current = null;
+            }
         };
-    }, [activeStock]);
+
+
+    }, [activeStock, gameState.marketHistory]);
+
+    const curTimeRef = { current: Math.floor(Date.now() / 1000) };
 
     const handleBuy = (qty: number) => {
-        buyStock(activeStock.symbol, qty, currentPrice);
+        if (!activeStock) return;
+        buyStock(activeStock.symbol, qty); // No price arg needed
     };
 
     const handleSell = (qty: number) => {
-        sellStock(activeStock.symbol, qty, currentPrice);
+        if (!activeStock) return;
+        sellStock(activeStock.symbol, qty); // No price arg needed
     };
+
+    if (!activeStock) {
+        return <GameSection title="BANANA_EXCHANGE" icon={ChartCandlestick}><div>Loading market...</div></GameSection>;
+    }
 
     return (
         <GameSection
@@ -143,7 +244,7 @@ export default function StockChart() {
                 <div className="flex items-center gap-4">
                     {/* Stock Selector */}
                     <div className="flex gap-2">
-                        {STOCKS.map(stock => (
+                        {stocks.map(stock => (
                             <button
                                 key={stock.symbol}
                                 onClick={() => setActiveStock(stock)}

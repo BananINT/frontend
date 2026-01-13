@@ -1,7 +1,16 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useRef } from 'react';
+import { socketManager } from '@/lib/socket';
+import Modal from '@/components/shared/Modal';
 import { useInterval } from '@/hooks/useInterval';
-import { ACHIEVEMENTS_DATA, MISSIONS_DATA } from '@/data/gameData';
 
+export interface LeaderboardEntry {
+  name: string;
+  score: number;
+  date: string;
+  prestigeCount: number;
+}
+
+// Backend types
 export interface GameState {
   bananas: number;
   clickCount: number;
@@ -10,20 +19,37 @@ export interface GameState {
   userId: string;
   team: string | null;
   unlockedAchievements: string[];
-  missionProgress: Record<string, { progress: number; completed: boolean }>;
+  missionProgress: Record<string, { progress: number; completed: boolean }>; // Kept for UI compatibility, even if not fully synced
   stocks: Record<string, number>;
   prestigeCount: number;
+  banana_dna: number; // Added from backend
+  leaderboard_rank?: number;
+  leaderboard: LeaderboardEntry[];
+  marketHistory: Record<string, any[]>;
+}
+
+export interface Upgrade {
+  id: string;
+  name: string;
+  cost: number;
+  value: number;
+  type: 'click' | 'auto' | 'synergy' | 'prestige';
+  icon?: any;
+  desc?: string;
+  owned: number;
 }
 
 interface GameContextType {
   gameState: GameState;
+  availableUpgrades: Upgrade[];
+  isLoading: boolean;
   clickBanana: () => void;
-  buyUpgrade: (cost: number, value: number, type: 'click' | 'auto') => boolean;
+  buyUpgrade: (upgradeId: string) => Promise<boolean>;
   setUserId: (id: string) => void;
   joinTeam: (teamId: string) => void;
   claimMission: (missionId: string) => void;
-  buyStock: (symbol: string, quantity: number, price: number) => boolean;
-  sellStock: (symbol: string, quantity: number, price: number) => boolean;
+  buyStock: (symbol: string, quantity: number) => Promise<boolean>;
+  sellStock: (symbol: string, quantity: number) => Promise<boolean>;
 }
 
 const defaultState: GameState = {
@@ -31,109 +57,226 @@ const defaultState: GameState = {
   clickCount: 0,
   autoClickers: 0,
   clickValue: 1,
-  userId: typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : 'GUEST-' + Math.floor(Math.random() * 10000),
+  userId: '',
   team: null,
   unlockedAchievements: [],
   missionProgress: {},
   stocks: {},
-  prestigeCount: 0
+  prestigeCount: 0,
+  banana_dna: 0,
+  leaderboard: [],
+  marketHistory: {}
 };
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
 
 export const GameProvider = ({ children }: { children: ReactNode }) => {
-  // Initialize state function to load from localStorage
-  const initializeState = (): GameState => {
-    // 1. Check for stored bananaId
-    let storedId = localStorage.getItem('bananaId');
-    if (!storedId) {
-      storedId = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : 'OPERATOR-' + Math.floor(Math.random() * 100000);
-      localStorage.setItem('bananaId', storedId);
-    }
+  const [gameState, setGameState] = useState<GameState>(defaultState);
+  const [availableUpgrades, setAvailableUpgrades] = useState<Upgrade[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const pendingClicks = useRef(0);
+  const lastServerState = useRef<Partial<GameState>>({});
 
-    // 2. Try to load state for this ID
-    const savedState = localStorage.getItem(`bananint_state_${storedId}`);
-    if (savedState) {
-      try {
-        const parsed = JSON.parse(savedState);
-        return {
-          ...defaultState,
-          ...parsed,
-          // Merge data structures safely
-          missionProgress: { ...defaultState.missionProgress, ...(parsed.missionProgress || {}) },
-          userId: storedId
-        };
-      } catch (e) {
-        console.error("Failed to parse saved state", e);
-      }
-    }
-
-    return { ...defaultState, userId: storedId };
-  };
-
-  const [gameState, setGameState] = useState<GameState>(initializeState);
-
-  // Persistence Effect
+  // Initialize Game
   useEffect(() => {
-    if (gameState.userId) {
-      localStorage.setItem(`bananint_state_${gameState.userId}`, JSON.stringify(gameState));
-    }
-  }, [gameState]);
+    const initGame = async () => {
+      let storedId = localStorage.getItem('bananaId');
 
-  // Achievement & Mission Monitoring Loop
-  useInterval(() => {
-    setGameState(prev => {
-      let newState = { ...prev };
-      let changed = false;
-
-      // Auto-increment bananas
-      if (prev.autoClickers > 0) {
-        newState.bananas += prev.autoClickers;
-        changed = true;
+      if (!storedId) {
+        storedId = crypto.randomUUID();
+        localStorage.setItem('bananaId', storedId);
       }
 
-      // Check Achievements
-      const checkAchievement = (id: string, condition: boolean) => {
-        if (condition && !prev.unlockedAchievements.includes(id)) {
-          newState.unlockedAchievements = [...newState.unlockedAchievements, id];
-          changed = true;
-          // Could emit a toast here
-          console.log("ACHIEVEMENT UNLOCKED:", id);
-        }
+      try {
+        socketManager.connect(storedId);
+        await socketManager.waitForConnection();
+        socketManager.send('init_session', { sessionId: storedId });
+      } catch (error) {
+        console.error("Failed to connect socket:", error);
+        setIsLoading(false);
+      }
+    };
+
+    initGame();
+
+    // Socket Listeners
+    const handleInitSuccess = (response: any) => {
+      // socket.ts unwraps message.data, so response IS the data object
+      const { sessionId, gameState: serverState, upgrades, achievements, leaderboard } = response;
+
+      // Map backend state to frontend state
+      const mappedState: GameState = {
+        bananas: serverState.bananas,
+        clickCount: serverState.total_clicks,
+        autoClickers: serverState.bananas_per_second,
+        clickValue: serverState.bananas_per_click,
+        userId: sessionId,
+        team: null,
+        unlockedAchievements: achievements?.filter((a: any) => a.unlocked).map((a: any) => a.achievement_id) || [],
+        missionProgress: {},
+        stocks: {}, // Portfolio will be synced via separate portfolio_update or next sync
+        prestigeCount: serverState.prestige_count,
+        banana_dna: serverState.banana_dna,
+        leaderboard: leaderboard || [],
+        marketHistory: {} // Initial synced state
       };
 
-      checkAchievement('first_click', prev.clickCount >= 1);
-      checkAchievement('banana_beginner', prev.bananas >= 100);
-      checkAchievement('banana_hoarder', prev.bananas >= 1000);
-      checkAchievement('automation_start', prev.autoClickers > 0);
+      lastServerState.current = mappedState;
+      setGameState(mappedState);
 
-      // Update Mission Progress (Basic Sync)
-      MISSIONS_DATA.forEach(mission => {
-        if (mission.type === 'personal') {
-          const currentProgress = newState.missionProgress[mission.id]?.progress || 0;
-          let newProgress = currentProgress;
+      // Process Upgrades
+      const mappedUpgrades = upgrades.map((u: any) => ({
+        id: u.upgrade_id,
+        name: u.name,
+        cost: u.base_cost,
+        value: u.multiplier,
+        type: u.upgrade_type,
+        desc: u.description,
+        owned: u.owned
+      }));
+      setAvailableUpgrades(mappedUpgrades);
 
-          if (mission.id === 'click_100') newProgress = prev.clickCount;
-          if (mission.id === 'earn_500') newProgress = Math.max(newProgress, prev.bananas); // 'max' because bananas fluctuate
+      // Also trigger an immediate sync to get latest portfolio/passive/etc
+      socketManager.send('sync', { pendingClicks: 0 });
 
-          if (newProgress !== currentProgress) {
-            newState.missionProgress = {
-              ...newState.missionProgress,
-              [mission.id]: {
-                progress: newProgress,
-                completed: newProgress >= mission.goal
-              }
-            };
-            changed = true;
-          }
-        }
+      setIsLoading(false);
+    };
+
+    const handleGameUpdate = (data: any) => {
+      if (!data || Object.keys(data).length === 0) return;
+
+      setGameState(prev => {
+        const newState = {
+          ...prev,
+          bananas: Math.max(prev.bananas, data.bananas),
+          clickValue: data.bananasPerClick,
+          autoClickers: data.bananasPerSecond,
+          clickCount: data.totalClicks,
+          stocks: data.stocks || prev.stocks
+        };
+        lastServerState.current = newState;
+        return newState;
       });
+    };
 
-      return changed ? newState : prev;
-    });
+    const handleLeaderboardUpdate = (data: LeaderboardEntry[]) => {
+      setGameState(prev => ({
+        ...prev,
+        leaderboard: data
+      }));
+    };
+
+    const handleMarketHistory = (response: any) => {
+      // response: { type: 'market_history', data: { SYMBOL: [candles], ... } }
+      // socket unwraps data if we rely on standard message handler, but socket.ts handles raw message?
+      // No, socket.ts line 105: handler(message.data !== undefined ? message.data : message);
+      // Backend: await websocket.send_json({ "type": "market_history", "data": history_data })
+      // So response passed here is history_data which is { SYMBOL: [candles] }
+
+      if (!response) return;
+
+      setGameState(prev => ({
+        ...prev,
+        marketHistory: {
+          ...prev.marketHistory,
+          ...response
+        }
+      }));
+    };
+
+    socketManager.on('init_success', handleInitSuccess);
+
+    const handleUpgradeSuccess = (response: any) => {
+      // response is { type: 'purchase_success', data: { success: true, ..., data: { ...stats } } }
+      // OR direct data if socket unwraps it. Socket.ts passes message.data.
+      // So payload is { success: true, ..., data: { ...stats } }
+      const payload = response;
+      if (!payload.success) return;
+
+      // Update available upgrades
+      setAvailableUpgrades(prev => prev.map(u =>
+        u.id === payload.upgrade_id
+          ? { ...u, owned: payload.new_level, cost: payload.next_cost || u.cost }
+          : u
+      ));
+
+      // Update Game State from server response (Source of Truth)
+      const stats = payload.data;
+      if (stats) {
+        setGameState(prev => {
+          const newState = {
+            ...prev,
+            bananas: stats.bananas,
+            clickValue: stats.bananasPerClick, // Ensure backend sends camelCase or map it
+            autoClickers: stats.bananasPerSecond,
+            banana_dna: stats.bananaDNA || prev.banana_dna
+          };
+          lastServerState.current = newState;
+          return newState;
+        });
+      }
+    };
+
+    const handleTradeSuccess = (response: any) => {
+      // response: { success, new_balance, ... }
+      if (response.success && response.new_balance !== undefined) {
+        setGameState(prev => ({
+          ...prev,
+          bananas: response.new_balance
+        }));
+      }
+    };
+
+    const handlePortfolioUpdate = (data: any) => {
+      // data: { symbol, shares }
+      if (data && data.symbol) {
+        setGameState(prev => ({
+          ...prev,
+          stocks: {
+            ...prev.stocks,
+            [data.symbol]: data.shares
+          }
+        }));
+      }
+    };
+
+    const handleError = (data: any) => {
+      if (data && data.message) setErrorMessage(data.message);
+    };
+
+    socketManager.on('game_update', handleGameUpdate);
+    socketManager.on('purchase_success', handleUpgradeSuccess);
+    socketManager.on('trade_success', handleTradeSuccess);
+    socketManager.on('portfolio_update', handlePortfolioUpdate);
+    socketManager.on('leaderboard_update', handleLeaderboardUpdate);
+    socketManager.on('market_history', handleMarketHistory);
+    socketManager.on('error', handleError);
+
+    return () => {
+      socketManager.off('game_update', handleGameUpdate);
+      socketManager.off('purchase_success', handleUpgradeSuccess);
+      socketManager.off('trade_success', handleTradeSuccess);
+      socketManager.off('portfolio_update', handlePortfolioUpdate);
+      socketManager.off('leaderboard_update', handleLeaderboardUpdate);
+      socketManager.off('market_history', handleMarketHistory);
+      socketManager.off('error', handleError);
+    };
+  }, []);
+
+  // Sync Interval
+  useInterval(() => {
+    if (pendingClicks.current > 0) {
+      socketManager.send('sync', { pendingClicks: pendingClicks.current });
+      pendingClicks.current = 0;
+    } else {
+      // Send empty sync to get server time/passive income updates
+      socketManager.send('sync', { pendingClicks: 0 });
+    }
   }, 1000);
 
   const clickBanana = () => {
+    pendingClicks.current += 1;
     setGameState(prev => ({
       ...prev,
       bananas: prev.bananas + prev.clickValue,
@@ -141,82 +284,58 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
     }));
   };
 
-  const buyUpgrade = (cost: number, value: number, type: 'click' | 'auto'): boolean => {
-    if (gameState.bananas >= cost) {
-      setGameState(prev => ({
-        ...prev,
-        bananas: prev.bananas - cost,
-        clickValue: type === 'click' ? prev.clickValue + value : prev.clickValue,
-        autoClickers: type === 'auto' ? prev.autoClickers + value : prev.autoClickers
-      }));
-      return true;
-    }
-    return false;
+  const buyUpgrade = async (upgradeId: string): Promise<boolean> => {
+    if (!gameState.userId) return false;
+    socketManager.send('buy_upgrade', { upgradeId });
+    return true;
   };
 
   const setUserId = (newId: string) => {
-    if (!newId) return;
+    // Reload to re-init with new ID
     localStorage.setItem('bananaId', newId);
     window.location.reload();
   };
 
   const joinTeam = (teamId: string) => {
-    setGameState(prev => ({
-      ...prev,
-      team: teamId
-    }));
+    socketManager.send('join_team', { teamId });
+    setGameState(prev => ({ ...prev, team: teamId }));
   };
 
   const claimMission = (missionId: string) => {
-    setGameState(prev => {
-      const mission = MISSIONS_DATA.find(m => m.id === missionId);
-      const userMissionState = prev.missionProgress[missionId];
-
-      if (mission && userMissionState && userMissionState.completed) {
-        return {
-          ...prev,
-          bananas: prev.bananas + mission.reward
-        };
-      }
-      return prev;
-    });
+    console.log("Claim mission:", missionId);
   };
 
-  const buyStock = (symbol: string, quantity: number, price: number) => {
-    const totalCost = quantity * price;
-    if (gameState.bananas >= totalCost) {
-      setGameState(prev => ({
-        ...prev,
-        bananas: prev.bananas - totalCost,
-        stocks: {
-          ...prev.stocks,
-          [symbol]: (prev.stocks[symbol] || 0) + quantity
-        }
-      }));
-      return true;
-    }
-    return false;
+  const buyStock = async (symbol: string, quantity: number): Promise<boolean> => {
+    socketManager.send('buy_stock', { symbol, shares: quantity });
+    return true;
   };
 
-  const sellStock = (symbol: string, quantity: number, price: number) => {
-    const currentHolding = gameState.stocks[symbol] || 0;
-    if (currentHolding >= quantity) {
-      setGameState(prev => ({
-        ...prev,
-        bananas: prev.bananas + (quantity * price),
-        stocks: {
-          ...prev.stocks,
-          [symbol]: currentHolding - quantity
-        }
-      }));
-      return true;
-    }
-    return false;
+  const sellStock = async (symbol: string, quantity: number): Promise<boolean> => {
+    socketManager.send('sell_stock', { symbol, shares: quantity });
+    return true;
   };
 
   return (
-    <GameContext.Provider value={{ gameState, clickBanana, buyUpgrade, setUserId, joinTeam, claimMission, buyStock, sellStock }}>
+    <GameContext.Provider value={{
+      gameState,
+      availableUpgrades,
+      isLoading,
+      clickBanana,
+      buyUpgrade,
+      setUserId,
+      joinTeam,
+      claimMission,
+      buyStock,
+      sellStock
+    }}>
       {children}
+      <Modal
+        isOpen={!!errorMessage}
+        onClose={() => setErrorMessage(null)}
+        title="ERROR"
+      >
+        <p className="text-white text-lg font-mono">{errorMessage}</p>
+      </Modal>
     </GameContext.Provider>
   );
 };

@@ -12,33 +12,12 @@ import GameSection from '@/components/shared/GameSection';
 import { formatNumber } from '@/utils/format';
 
 export default function ClickerPage() {
-    const { gameState, clickBanana, buyUpgrade } = useGame();
+    const { gameState, clickBanana, buyUpgrade, availableUpgrades } = useGame();
     const [isAchievementsOpen, setIsAchievementsOpen] = useState(false);
     const [isMissionsOpen, setIsMissionsOpen] = useState(false);
     const [activeTab, setActiveTab] = useState<'click' | 'auto' | 'synergy' | 'prestige'>('click');
 
-    // Mock Shop Items (Expanded)
-    const upgrades = [
-        // Click Upgrades
-        { id: 'click_1', name: 'Souris Optique', cost: 10, value: 1, type: 'click' as const, icon: Zap },
-        { id: 'click_2', name: 'Bras Mécanique', cost: 100, value: 5, type: 'click' as const, icon: Zap },
-        { id: 'click_3', name: 'Gants Laser', cost: 1000, value: 20, type: 'click' as const, icon: Zap },
-
-        // Auto Upgrades
-        { id: 'auto_1', name: 'Plantation', cost: 50, value: 1, type: 'auto' as const, icon: TrendingUp },
-        { id: 'auto_2', name: 'Ouvrier Singe', cost: 500, value: 10, type: 'auto' as const, icon: TrendingUp },
-        { id: 'auto_3', name: 'Usine à Bananes', cost: 5000, value: 80, type: 'auto' as const, icon: TrendingUp },
-
-        // Synergy Upgrades
-        { id: 'synergy_1', name: 'Bots de Clic', cost: 1000000, value: 0, type: 'synergy' as const, icon: CircuitBoard, desc: 'Auto-clic toutes les 10s' },
-        { id: 'synergy_2', name: 'Bananes Photosynthétiques', cost: 100000000, value: 0, type: 'synergy' as const, icon: CircuitBoard, desc: '+10% clicks / auto' },
-
-        // Prestige Upgrades
-        { id: 'prestige_1', name: 'Amplificateur ADN', cost: 5, value: 0, type: 'prestige' as const, icon: Dna, desc: '+10% production' },
-        { id: 'prestige_2', name: 'Matrice Quantique', cost: 10, value: 0, type: 'prestige' as const, icon: Dna, desc: '+25% production' },
-    ];
-
-    const filteredUpgrades = upgrades.filter(u => u.type === activeTab);
+    const filteredUpgrades = availableUpgrades.filter(u => u.type === activeTab);
 
     return (
         <div className="flex flex-col">
@@ -86,24 +65,25 @@ export default function ClickerPage() {
                         </div>
 
                         <div className="flex-1 overflow-y-auto">
-                            {filteredUpgrades.length === 0 ? (
+                            {availableUpgrades.filter(u => u.type === activeTab).length === 0 ? (
                                 <div className="p-8 text-center text-xs font-mono text-white/30 uppercase">
                                     Aucune amélioration disponible
                                 </div>
                             ) : (
-                                filteredUpgrades.map((item) => (
+                                availableUpgrades.filter(u => u.type === activeTab).map((item) => (
                                     <button
                                         key={item.id}
-                                        onClick={() => buyUpgrade(item.cost, item.value, item.type as any)}
+                                        onClick={() => buyUpgrade(item.id)}
                                         disabled={gameState.bananas < item.cost}
                                         className="w-full flex items-center justify-between p-4 border-b border-white/10 hover:bg-white/5 active:bg-banan-primary active:text-black transition-colors disabled:opacity-30 group"
                                     >
                                         <div className="text-left">
                                             <div className="font-bold font-mono text-xs uppercase tracking-wider mb-1 flex items-center gap-2">
                                                 {item.name}
+                                                <span className="text-white/30 ml-2">x{item.owned}</span>
                                             </div>
                                             <div className="text-[10px] font-mono opacity-50">
-                                                {(item as any).desc ? (item as any).desc : `+${item.value} ${item.type === 'click' ? '/CLICK' : '/SEC'}`}
+                                                {item.desc || `+${item.value} ${item.type === 'click' ? '/CLICK' : '/SEC'}`}
                                             </div>
                                         </div>
                                         <div className="font-mono font-bold text-banan-primary text-xs group-hover:text-white group-active:text-black">

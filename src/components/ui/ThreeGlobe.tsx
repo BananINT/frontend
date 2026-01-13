@@ -1,4 +1,4 @@
-import React, { useRef, useMemo } from 'react';
+import { useRef, useMemo } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, Stars } from '@react-three/drei';
 import * as THREE from 'three';
@@ -27,7 +27,7 @@ function GlobeMesh() {
         return positions;
     }, []);
 
-    useFrame((state) => {
+    useFrame((_) => {
         if (meshRef.current) {
             meshRef.current.rotation.y += 0.001;
         }
@@ -56,9 +56,7 @@ function GlobeMesh() {
                 <bufferGeometry>
                     <bufferAttribute
                         attach="attributes-position"
-                        count={particlesPosition.length / 3}
-                        array={particlesPosition}
-                        itemSize={3}
+                        args={[particlesPosition, 3]}
                     />
                 </bufferGeometry>
                 <pointsMaterial

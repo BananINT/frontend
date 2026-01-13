@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils';
-import { CSSProperties, FC } from 'react';
+import type { CSSProperties, FC } from 'react';
 
 interface ShinyTextProps {
     text: string;

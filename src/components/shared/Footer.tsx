@@ -1,5 +1,5 @@
-import React from 'react';
-import { Banana, Github, Instagram, Linkedin, Heart } from 'lucide-react';
+
+import { Banana, Github, Instagram, Heart } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export default function Footer() {

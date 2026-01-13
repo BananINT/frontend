@@ -1,8 +1,8 @@
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { createChart, ColorType, CandlestickSeries } from 'lightweight-charts';
 import type { IChartApi, ISeriesApi } from 'lightweight-charts';
 import { useGame } from '@/context/GameContext';
-import { api } from '@/lib/api';
+
 import { socketManager } from '@/lib/socket';
 import { CircleDollarSign, ChartCandlestick } from 'lucide-react';
 import GameSection from '@/components/shared/GameSection';

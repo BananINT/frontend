@@ -17,7 +17,7 @@ export default function ClickerPage() {
     const [isMissionsOpen, setIsMissionsOpen] = useState(false);
     const [activeTab, setActiveTab] = useState<'click' | 'auto' | 'synergy' | 'prestige'>('click');
 
-    const filteredUpgrades = availableUpgrades.filter(u => u.type === activeTab);
+
 
     return (
         <div className="flex flex-col">

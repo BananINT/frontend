@@ -1,4 +1,4 @@
-import React, { Suspense } from 'react';
+
 import Globe from '@/components/ui/Globe';
 import ShinyText from '@/components/ui/ShinyText';
 import Aurora from '@/components/ui/Aurora';

@@ -1,4 +1,4 @@
-import React, { type ReactNode, type ComponentType } from 'react';
+import type { ReactNode, ComponentType } from 'react';
 
 interface GameSectionProps {
     title: string;

@@ -1,8 +1,8 @@
-import React from 'react';
+
 import Modal from '@/components/shared/Modal';
 import { useGame } from '@/context/GameContext';
 import { MISSIONS_DATA } from '@/data/gameData';
-import { Target, CheckCircle, Users, Banana } from 'lucide-react';
+import { Target, Users, Banana } from 'lucide-react';
 
 interface Props {
     isOpen: boolean;

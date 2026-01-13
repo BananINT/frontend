@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode, useRef } from 'react';
+import { createContext, useContext, useState, useEffect, useRef } from 'react';
+import type { ReactNode } from 'react';
 import { socketManager } from '@/lib/socket';
 import Modal from '@/components/shared/Modal';
 import { useInterval } from '@/hooks/useInterval';

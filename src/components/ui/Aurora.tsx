@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils';
-import React, { ReactNode } from 'react';
+import type { ReactNode } from 'react';
 
 interface AuroraProps {
     children: ReactNode;

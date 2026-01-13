@@ -1,8 +1,8 @@
-import React from 'react';
+
 import Modal from '@/components/shared/Modal';
 import { useGame } from '@/context/GameContext';
 import { ACHIEVEMENTS_DATA } from '@/data/gameData';
-import { Lock, Unlock, Medal } from 'lucide-react';
+import { Lock, Medal } from 'lucide-react';
 
 interface Props {
     isOpen: boolean;

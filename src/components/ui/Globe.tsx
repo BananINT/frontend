@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import ThreeGlobe from 'three-globe';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
 // TYPES
 interface ArcData {
@@ -253,7 +253,7 @@ export default function Globe() {
             // Randomly add rings
             if (Math.random() > 0.97) {
                 const numberOfRings = genRandomNumbers(0, uniquePoints.length, Math.floor(uniquePoints.length * 0.8));
-                globe.ringsData(uniquePoints.filter((d, i) => numberOfRings.includes(i)));
+                globe.ringsData(uniquePoints.filter((_, i) => numberOfRings.includes(i)));
             }
         };
         animate();

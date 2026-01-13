@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useGame } from '@/context/GameContext';
 import { Users, Fingerprint, Save, LogIn, Copy, AlertTriangle } from 'lucide-react';
 import GameSection from '@/components/shared/GameSection';

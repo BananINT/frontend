@@ -17,18 +17,7 @@ class WebSocketManager {
         // Construct WebSocket URL based on current window location
         const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
 
-        let host = window.location.host;
-
-        // Handle Beta Basic Auth
-        if (import.meta.env.VITE_PROD_BETA === 'true') {
-            const user = import.meta.env.VITE_BASIC_AUTH_USER;
-            const password = import.meta.env.VITE_BASIC_AUTH_PASSWORD;
-            if (user && password) {
-                host = `${user}:${password}@${host}`;
-            }
-        }
-
-        this.url = `${proto}//${host}/api/websocket/ws`;
+        this.url = `${proto}//${window.location.host}/api/websocket/ws`;
     }
 
     connect(sessionId: string) {

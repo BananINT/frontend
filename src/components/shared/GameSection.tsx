@@ -18,7 +18,7 @@ export default function GameSection({
     headerClassName = "mb-6"
 }: GameSectionProps) {
     return (
-        <div className={`w-full border-t border-white/10 p-4 bg-black ${className}`}>
+        <div className={`w-full border-t border-white/10 p-4 bg-banan-black ${className}`}>
             <div className={`flex items-center gap-2 ${headerClassName}`}>
                 {Icon && <Icon className="h-4 w-4 text-banan-primary" />}
                 <h2 className="text-xl font-black text-banan-primary uppercase tracking-tighter">

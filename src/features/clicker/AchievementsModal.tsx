@@ -24,7 +24,7 @@ export default function AchievementsModal({ isOpen, onClose }: Props) {
                             className={`flex items-center gap-4 p-4 border border-white/10 ${isUnlocked ? 'bg-banan-primary/10 border-banan-primary/50' : 'bg-white/5 opacity-50'
                                 }`}
                         >
-                            <div className={`p-3 rounded-full border ${isUnlocked ? 'bg-banan-primary text-black border-banan-primary' : 'bg-black text-white/30 border-white/10'}`}>
+                            <div className={`p-3 rounded-full border ${isUnlocked ? 'bg-banan-primary text-black border-banan-primary' : 'bg-banan-black text-white/30 border-white/10'}`}>
                                 {isUnlocked ? <Medal className="h-5 w-5" /> : <Lock className="h-5 w-5" />}
                             </div>
                             <div className="flex-1">

@@ -47,7 +47,7 @@ export default function MissionsModal({ isOpen, onClose }: Props) {
                                             <span>PROGRESSION</span>
                                             <span>{progressData.progress} / {mission.goal}</span>
                                         </div>
-                                        <div className="h-2 w-full bg-black border border-white/10 overflow-hidden">
+                                        <div className="h-2 w-full bg-banan-black border border-white/10 overflow-hidden">
                                             <div
                                                 className="h-full bg-banan-primary transition-all duration-500"
                                                 style={{ width: `${percent}%` }}
@@ -103,7 +103,7 @@ export default function MissionsModal({ isOpen, onClose }: Props) {
                                                 <span>PROGRESSION GLOBALE</span>
                                                 <span>{(progress / 1000).toFixed(1)}k / {(mission.goal / 1000).toFixed(0)}k</span>
                                             </div>
-                                            <div className="h-2 w-full bg-black border border-white/10 overflow-hidden">
+                                            <div className="h-2 w-full bg-banan-black border border-white/10 overflow-hidden">
                                                 <div
                                                     className="h-full bg-white transition-all duration-500"
                                                     style={{ width: `${percent}%` }}

@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Banana, Home, Calendar, Menu, X } from 'lucide-react';
+import { Banana, Home, Calendar, Menu, X, LogIn, LogOut } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/context/AuthContext';
 
 export default function Header() {
+    const { authenticated, username, login, logout } = useAuth();
     const location = useLocation();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -54,6 +56,25 @@ export default function Header() {
                             </Link>
                         );
                     })}
+
+                    {/* Auth Toggle */}
+                    {authenticated ? (
+                        <button 
+                            onClick={() => logout()}
+                            className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest transition-all duration-200 border-b-2 border-transparent hover:border-black opacity-60 hover:opacity-100"
+                        >
+                            <LogOut className="h-3 w-3" />
+                            <span>Déconnexion ({username})</span>
+                        </button>
+                    ) : (
+                        <button 
+                            onClick={() => login()}
+                            className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest transition-all duration-200 border-b-2 border-transparent hover:border-black opacity-60 hover:opacity-100"
+                        >
+                            <LogIn className="h-3 w-3" />
+                            <span>Connexion</span>
+                        </button>
+                    )}
                 </nav>
 
                 {/* Mobile Menu Button */}
@@ -115,6 +136,31 @@ export default function Header() {
                                     </motion.div>
                                 );
                             })}
+
+                            {/* Mobile Auth Toggle */}
+                            <motion.div
+                                initial={{ x: -20, opacity: 0 }}
+                                animate={{ x: 0, opacity: 1 }}
+                                transition={{ delay: 0.1 + navItems.length * 0.1 }}
+                            >
+                                {authenticated ? (
+                                    <button
+                                        onClick={() => { logout(); setIsMobileMenuOpen(false); }}
+                                        className="flex items-center gap-4 text-xl font-black uppercase tracking-tighter py-3 border-b border-black/10 text-black hover:opacity-70 transition-opacity w-full text-left"
+                                    >
+                                        <LogOut className="h-5 w-5" />
+                                        <span>Déconnexion</span>
+                                    </button>
+                                ) : (
+                                    <button
+                                        onClick={() => { login(); setIsMobileMenuOpen(false); }}
+                                        className="flex items-center gap-4 text-xl font-black uppercase tracking-tighter py-3 border-b border-black/10 text-black hover:opacity-70 transition-opacity w-full text-left"
+                                    >
+                                        <LogIn className="h-5 w-5" />
+                                        <span>Connexion</span>
+                                    </button>
+                                )}
+                            </motion.div>
                         </nav>
                         <motion.p
                             initial={{ opacity: 0 }}

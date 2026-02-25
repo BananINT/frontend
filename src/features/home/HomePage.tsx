@@ -4,6 +4,7 @@ import ShinyText from '@/components/ui/ShinyText';
 import Aurora from '@/components/ui/Aurora';
 import LavaLamp from '@/components/ui/LavaLamp';
 import { Banana, Users, Calendar, Gamepad, ArrowDown } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 export default function HomePage() {
     return (
@@ -67,6 +68,16 @@ export default function HomePage() {
                         <div className="flex items-center gap-4 mb-8">
                             <h2 className="text-4xl font-black uppercase text-white">Nos Events</h2>
                             <div className="h-1 flex-1 bg-gradient-to-r from-banan-primary to-transparent rounded-full" />
+                        </div>
+
+                        <div className="m-10 flex justify-center">
+                            <Link 
+                                to="/clicker" 
+                                className="inline-flex items-center gap-3 bg-banan-primary text-black font-black uppercase tracking-tighter text-lg px-10 py-4 rounded-full hover:scale-105 active:scale-95 transition-all shadow-[0_0_30px_rgba(250,255,0,0.4)]"
+                            >
+                                <Banana className="w-6 h-6" />
+                                Jouer Maintenant
+                            </Link>
                         </div>
 
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">

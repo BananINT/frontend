@@ -33,6 +33,7 @@ export default function StockChart() {
     const [activeStock, setActiveStock] = useState<Stock | null>(null);
     const [currentPrice, setCurrentPrice] = useState(0);
     const lastCloseRef = useRef<number>(0);
+    const curTimeRef = useRef<number>(Math.floor(Date.now() / 1000));
 
     // Initial Fetch & Market Data
     useEffect(() => {
@@ -219,8 +220,6 @@ export default function StockChart() {
 
 
     }, [activeStock, gameState.marketHistory]);
-
-    const curTimeRef = { current: Math.floor(Date.now() / 1000) };
 
     const handleBuy = (qty: number) => {
         if (!activeStock) return;

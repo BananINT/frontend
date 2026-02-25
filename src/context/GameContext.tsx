@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect, useRef } from 'react';
+import { useAuth } from './AuthContext';
 import type { ReactNode } from 'react';
 import { socketManager } from '@/lib/socket';
 import Modal from '@/components/shared/Modal';
@@ -18,6 +19,7 @@ export interface GameState {
   autoClickers: number;
   clickValue: number;
   userId: string;
+  session_name: string | null;
   team: string | null;
   unlockedAchievements: string[];
   missionProgress: Record<string, { progress: number; completed: boolean }>; // Kept for UI compatibility, even if not fully synced
@@ -47,6 +49,7 @@ interface GameContextType {
   clickBanana: () => void;
   buyUpgrade: (upgradeId: string) => Promise<boolean>;
   setUserId: (id: string) => void;
+  changeName: (name: string) => void;
   joinTeam: (teamId: string) => void;
   claimMission: (missionId: string) => void;
   buyStock: (symbol: string, quantity: number) => Promise<boolean>;
@@ -59,6 +62,7 @@ const defaultState: GameState = {
   autoClickers: 0,
   clickValue: 1,
   userId: '',
+  session_name: null,
   team: null,
   unlockedAchievements: [],
   missionProgress: {},
@@ -79,8 +83,11 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
   const pendingClicks = useRef(0);
   const lastServerState = useRef<Partial<GameState>>({});
 
+  const { authenticated, token, loading: authLoading } = useAuth();
+
   // Initialize Game
   useEffect(() => {
+    if (authLoading) return;
     const initGame = async () => {
       let storedId = localStorage.getItem('bananaId');
 
@@ -100,8 +107,17 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
     };
 
     initGame();
+  }, [authLoading]);
 
-    // Socket Listeners
+  // Handle Authentication Sync
+  useEffect(() => {
+    if (authenticated && token) {
+      socketManager.send('authenticate', { token });
+    }
+  }, [authenticated, token]);
+
+  // Socket Listeners
+  useEffect(() => {
     const handleInitSuccess = (response: any) => {
       // socket.ts unwraps message.data, so response IS the data object
       const { sessionId, gameState: serverState, upgrades, achievements, leaderboard } = response;
@@ -113,12 +129,13 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
         autoClickers: serverState.bananas_per_second,
         clickValue: serverState.bananas_per_click,
         userId: sessionId,
-        team: null,
-        unlockedAchievements: achievements?.filter((a: any) => a.unlocked).map((a: any) => a.achievement_id) || [],
-        missionProgress: {},
-        stocks: {}, // Portfolio will be synced via separate portfolio_update or next sync
-        prestigeCount: serverState.prestige_count,
-        banana_dna: serverState.banana_dna,
+        session_name: serverState.session_name || null,
+        team: serverState.team || null,
+        unlockedAchievements: achievements.map((a: any) => a.achievement_id),
+        missionProgress: {}, // Will implement later with backend
+        stocks: {}, // Handled separately or below
+        prestigeCount: serverState.prestige_count || 0,
+        banana_dna: serverState.banana_dna || 0,
         leaderboard: leaderboard || [],
         marketHistory: {} // Initial synced state
       };
@@ -154,6 +171,7 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
           clickValue: data.bananasPerClick,
           autoClickers: data.bananasPerSecond,
           clickCount: data.totalClicks,
+          session_name: data.session_name || prev.session_name,
           stocks: data.stocks || prev.stocks
         };
         lastServerState.current = newState;
@@ -169,12 +187,6 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
     };
 
     const handleMarketHistory = (response: any) => {
-      // response: { type: 'market_history', data: { SYMBOL: [candles], ... } }
-      // socket unwraps data if we rely on standard message handler, but socket.ts handles raw message?
-      // No, socket.ts line 105: handler(message.data !== undefined ? message.data : message);
-      // Backend: await websocket.send_json({ "type": "market_history", "data": history_data })
-      // So response passed here is history_data which is { SYMBOL: [candles] }
-
       if (!response) return;
 
       setGameState(prev => ({
@@ -188,28 +200,40 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
 
     socketManager.on('init_success', handleInitSuccess);
 
+    const handleAuthSuccess = (response: any) => {
+      const { gameState } = response;
+      if (gameState && gameState.sessionId) {
+        setGameState(prev => ({
+          ...prev,
+          userId: gameState.sessionId
+        }));
+        localStorage.setItem('bananaId', gameState.sessionId);
+      }
+      
+      if (gameState) {
+        handleInitSuccess(gameState);
+      }
+    };
+    
+    socketManager.on('auth_success', handleAuthSuccess);
+
     const handleUpgradeSuccess = (response: any) => {
-      // response is { type: 'purchase_success', data: { success: true, ..., data: { ...stats } } }
-      // OR direct data if socket unwraps it. Socket.ts passes message.data.
-      // So payload is { success: true, ..., data: { ...stats } }
       const payload = response;
       if (!payload.success) return;
 
-      // Update available upgrades
       setAvailableUpgrades(prev => prev.map(u =>
         u.id === payload.upgrade_id
           ? { ...u, owned: payload.new_level, cost: payload.next_cost || u.cost }
           : u
       ));
 
-      // Update Game State from server response (Source of Truth)
       const stats = payload.data;
       if (stats) {
         setGameState(prev => {
           const newState = {
             ...prev,
             bananas: stats.bananas,
-            clickValue: stats.bananasPerClick, // Ensure backend sends camelCase or map it
+            clickValue: stats.bananasPerClick,
             autoClickers: stats.bananasPerSecond,
             banana_dna: stats.bananaDNA || prev.banana_dna
           };
@@ -220,7 +244,6 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
     };
 
     const handleTradeSuccess = (response: any) => {
-      // response: { success, new_balance, ... }
       if (response.success && response.new_balance !== undefined) {
         setGameState(prev => ({
           ...prev,
@@ -230,7 +253,6 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
     };
 
     const handlePortfolioUpdate = (data: any) => {
-      // data: { symbol, shares }
       if (data && data.symbol) {
         setGameState(prev => ({
           ...prev,
@@ -238,6 +260,15 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
             ...prev.stocks,
             [data.symbol]: data.shares
           }
+        }));
+      }
+    };
+
+    const handleNameChangeSuccess = (data: any) => {
+      if (data && data.name) {
+        setGameState(prev => ({
+          ...prev,
+          session_name: data.name
         }));
       }
     };
@@ -252,6 +283,7 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
     socketManager.on('portfolio_update', handlePortfolioUpdate);
     socketManager.on('leaderboard_update', handleLeaderboardUpdate);
     socketManager.on('market_history', handleMarketHistory);
+    socketManager.on('name_change_success', handleNameChangeSuccess);
     socketManager.on('error', handleError);
 
     return () => {
@@ -261,9 +293,11 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
       socketManager.off('portfolio_update', handlePortfolioUpdate);
       socketManager.off('leaderboard_update', handleLeaderboardUpdate);
       socketManager.off('market_history', handleMarketHistory);
+      socketManager.off('auth_success', handleAuthSuccess);
+      socketManager.off('name_change_success', handleNameChangeSuccess);
       socketManager.off('error', handleError);
     };
-  }, []);
+  }, [authLoading]);
 
   // Sync Interval
   useInterval(() => {
@@ -297,6 +331,10 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
     window.location.reload();
   };
 
+  const changeName = (name: string) => {
+    socketManager.send('change_name', { name });
+  };
+
   const joinTeam = (teamId: string) => {
     socketManager.send('join_team', { teamId });
     setGameState(prev => ({ ...prev, team: teamId }));
@@ -324,6 +362,7 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
       clickBanana,
       buyUpgrade,
       setUserId,
+      changeName,
       joinTeam,
       claimMission,
       buyStock,

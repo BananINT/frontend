@@ -1,32 +1,25 @@
 import { useState, useEffect } from 'react';
 import { useGame } from '@/context/GameContext';
-import { Users, Fingerprint, Save, LogIn, Copy, AlertTriangle } from 'lucide-react';
+import { Users, Fingerprint, Save, LogIn } from 'lucide-react';
 import GameSection from '@/components/shared/GameSection';
 
 export default function SessionManager() {
-    const { gameState, setUserId, joinTeam } = useGame();
-    const [localId, setLocalId] = useState('');
+    const { gameState, changeName, joinTeam } = useGame();
+    const [localName, setLocalName] = useState('');
     const [selectedTeam, setSelectedTeam] = useState('ÉQUIPE_ALPHA');
-    const [copySuccess, setCopySuccess] = useState(false);
 
     useEffect(() => {
-        if (gameState.userId) {
-            setLocalId(gameState.userId);
+        if (gameState.session_name) {
+            setLocalName(gameState.session_name);
+        } else if (gameState.userId) {
+            setLocalName(`OPERATOR_${gameState.userId.substring(0, 4)}`);
         }
-    }, [gameState.userId]);
+    }, [gameState.session_name, gameState.userId]);
 
-    const handleSaveId = () => {
-        if (localId && localId !== gameState.userId) {
-            if (confirm("Attention : Changer d'ID de session rechargera la page et changera votre contexte. Continuer ?")) {
-                setUserId(localId);
-            }
+    const handleSaveName = () => {
+        if (localName && localName !== gameState.session_name) {
+            changeName(localName);
         }
-    };
-
-    const handleCopyId = () => {
-        navigator.clipboard.writeText(gameState.userId);
-        setCopySuccess(true);
-        setTimeout(() => setCopySuccess(false), 2000);
     };
 
     const handleJoinTeam = () => {
@@ -42,39 +35,32 @@ export default function SessionManager() {
                 <div className="flex flex-col gap-2">
                     <label className="text-[10px] font-mono text-white/50 uppercase tracking-widest flex items-center gap-2">
                         <Fingerprint className="h-3 w-3" />
-                        IDENTIFIANT DE SESSION
+                        IDENTITÉ D'OPÉRATEUR
                     </label>
                     <div className="flex gap-2">
                         <input
                             type="text"
-                            value={localId}
-                            onChange={(e) => setLocalId(e.target.value)}
+                            value={localName}
+                            onChange={(e) => setLocalName(e.target.value)}
+                            maxLength={20}
+                            placeholder="Entrez votre nom..."
                             className="flex-1 bg-white/5 border border-white/10 p-2 text-xs font-mono text-white focus:border-banan-primary focus:outline-none"
                         />
                         <button
-                            onClick={handleCopyId}
-                            className="bg-white/10 text-white px-3 py-2 text-xs font-bold uppercase tracking-wider hover:bg-white/20 transition-colors flex items-center gap-2"
-                            title="Copier l'ID"
-                        >
-                            <Copy className="h-3 w-3" />
-                            {copySuccess ? 'COPIÉ' : ''}
-                        </button>
-                        <button
-                            onClick={handleSaveId}
-                            disabled={localId === gameState.userId}
+                            onClick={handleSaveName}
+                            disabled={localName === gameState.session_name || !localName.trim()}
                             className="bg-banan-primary text-black px-4 py-2 text-xs font-bold uppercase tracking-wider hover:bg-white hover:text-black transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                         >
                             <Save className="h-3 w-3" />
-                            CHANGER
+                            SAUVEGARDER
                         </button>
                     </div>
 
-                    <div className="flex items-start gap-2 mt-2 p-2 bg-red-500/10 border border-red-500/20 rounded">
-                        <AlertTriangle className="h-4 w-4 text-red-500 shrink-0 mt-0.5" />
+                    <div className="flex items-start gap-2 mt-2 p-2 bg-white/5 border border-white/10 rounded">
                         <div className="flex flex-col gap-1">
-                            <span className="text-[10px] font-bold font-mono text-red-500 uppercase">Avertissement de sécurité</span>
-                            <p className="text-[10px] font-mono text-white/70 leading-tight">
-                                Conservez cet identifiant précieusement. Si vous le perdez ou videz votre cache, votre progression sera définitivement perdue.
+                            <span className="text-[10px] font-bold font-mono text-white/50 uppercase">Réseau d'Identité</span>
+                            <p className="text-[10px] font-mono text-white/40 leading-tight">
+                                Votre identité sera retransmise en direct sur le système de classement global de la corporation. Les pseudonymes de moins de 3 ou plus de 20 caractères sont rejetés par le réseau central.
                             </p>
                         </div>
                     </div>
@@ -93,7 +79,7 @@ export default function SessionManager() {
                             className="flex-1 bg-white/5 border border-white/10 p-2 text-xs font-mono text-white focus:border-banan-primary focus:outline-none uppercase appearance-none"
                         >
                             {teams.map(team => (
-                                <option key={team} value={team} className="bg-black text-white">{team}</option>
+                                <option key={team} value={team} className="bg-banan-black text-white">{team}</option>
                             ))}
                         </select>
                         <button

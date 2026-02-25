@@ -23,7 +23,7 @@ export default function ClickerPage() {
         <div className="flex flex-col">
             <div className="grid grid-cols-1 lg:grid-cols-4 min-h-[calc(100vh-6rem)] border-l border-white/10">
                 {/* Column 1: ARMORY (Upgrades) */}
-                <div className="order-2 lg:order-1 lg:col-span-1 bg-black border-r border-white/10 flex flex-col">
+                <div className="order-2 lg:order-1 lg:col-span-1 bg-banan-black border-r border-white/10 flex flex-col">
                     <GameSection
                         title="MARKETPLACE"
                         icon={Zap}
@@ -101,8 +101,8 @@ export default function ClickerPage() {
                     <GameSection
                         title="CANAL_PRINCIPAL"
                         rightElement="EN LIGNE"
-                        className="h-full border-none p-0 relative bg-[url('/grid.svg')] bg-[length:20px_20px] flex flex-col"
-                        headerClassName="p-4 mb-0 border-b border-white/10 relative z-10 bg-black/80 backdrop-blur-sm"
+                        className="h-full border-none p-0 relative banan-grid flex flex-col"
+                        headerClassName="p-4 mb-0 border-b border-white/10 relative z-10 bg-banan-black/80 backdrop-blur-sm"
                     >
                         <div className="flex-1 flex flex-col items-center justify-center p-8 min-h-[500px]">
                             <div className="mb-12 text-center">
@@ -149,7 +149,7 @@ export default function ClickerPage() {
                         </div>
 
                         {/* Stats Footer */}
-                        <div className="h-16 border-t border-white/10 grid grid-cols-2 divide-x divide-white/10 bg-black/80 backdrop-blur-sm z-10 relative">
+                        <div className="h-16 border-t border-white/10 grid grid-cols-2 divide-x divide-white/10 bg-banan-black/80 backdrop-blur-sm z-10 relative">
                             <div className="flex items-center justify-between px-6">
                                 <span className="text-[10px] font-mono uppercase text-white/50">Efficacité</span>
                                 <span className="text-xl font-bold font-sans text-white">{gameState.clickValue}</span>
@@ -163,25 +163,46 @@ export default function ClickerPage() {
                 </div>
 
                 {/* Column 3: ELITE (Leaderboard) */}
-                <div className="order-3 lg:order-3 lg:col-span-1 bg-black border-l border-white/10 flex flex-col">
+                <div className="order-3 lg:order-3 lg:col-span-1 bg-banan-black border-l border-white/10 flex flex-col">
                     <GameSection
                         title="LEADERBOARD"
                         icon={Trophy}
                         className="h-full border-none p-0"
                         headerClassName="p-4 mb-0"
                     >
-                        <div className="flex-1 p-0">
-                            {[1, 2, 3, 4, 5].map((i) => (
-                                <div key={i} className="flex items-center justify-between p-4 border-b border-white/10 hover:bg-white/5 transition-colors">
-                                    <div className="flex items-center gap-4">
-                                        <span className={`font-mono font-bold w-6 text-center text-xs ${i === 1 ? 'text-banan-primary' : 'text-white/30'}`}>
-                                            {i.toString().padStart(2, '0')}
+                        <div className="flex-1 p-0 overflow-y-auto">
+                            {gameState.leaderboard && gameState.leaderboard.length > 0 ? (
+                                gameState.leaderboard.map((entry, idx) => {
+                                    const isCurrentUser = entry.name === gameState.session_name || (!gameState.session_name && entry.name === `OPERATOR_${gameState.userId?.substring(0, 4)}`);
+                                    const displayScore = isCurrentUser ? Math.max(entry.score, gameState.bananas) : entry.score;
+                                    
+                                    return (
+                                    <div key={`${entry.name}-${idx}`} className="flex items-center justify-between p-4 border-b border-white/10 hover:bg-white/5 transition-colors">
+                                        <div className="flex items-center gap-4">
+                                            <span className={`font-mono font-bold w-6 text-center text-xs ${idx === 0 ? 'text-banan-primary' : 'text-white/30'}`}>
+                                                {(idx + 1).toString().padStart(2, '0')}
+                                            </span>
+                                            <span className={`font-mono text-xs ${isCurrentUser ? 'text-banan-primary font-bold' : 'text-white/70'}`}>
+                                                {entry.name || `OPERATOR_${idx + 1}00`}
+                                                {entry.prestigeCount > 0 && (
+                                                    <span className="ml-2 text-[10px] text-banan-primary" title={`Prestige ${entry.prestigeCount}`}>
+                                                        ★ {entry.prestigeCount}
+                                                    </span>
+                                                )}
+                                                {isCurrentUser && <span className="ml-2 text-[10px] opacity-70">(VOUS)</span>}
+                                            </span>
+                                        </div>
+                                        <span className="font-mono text-banan-primary text-xs font-bold">
+                                            {formatNumber(displayScore)}
                                         </span>
-                                        <span className="font-mono text-xs text-white/70">OPERATOR_{i}00</span>
                                     </div>
-                                    <span className="font-mono text-banan-primary text-xs">{(10000 / i).toFixed(0)}</span>
+                                    );
+                                })
+                            ) : (
+                                <div className="p-8 text-center text-xs font-mono text-white/30 uppercase">
+                                    Aucun classement disponible
                                 </div>
-                            ))}
+                            )}
                         </div>
                         <div className="p-4 text-[10px] font-mono text-white/30 text-center uppercase">
                             Mise à jour en temps réel...

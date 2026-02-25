@@ -2,10 +2,11 @@
 import { Outlet } from 'react-router-dom';
 import Header from '@/components/shared/Header';
 import Footer from '@/components/shared/Footer';
+import RadioOverlay from '@/components/shared/RadioOverlay';
 
 export default function RootLayout() {
     return (
-        <div className="min-h-screen bg-[#050505] text-white font-mono flex flex-col">
+        <div className="min-h-screen bg-[#050505] text-white font-mono flex flex-col relative">
             {/* Header */}
             <Header />
 
@@ -16,6 +17,8 @@ export default function RootLayout() {
 
             {/* Footer */}
             <Footer />
+
+            <RadioOverlay />
         </div>
     );
 }

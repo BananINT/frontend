@@ -11,6 +11,7 @@ class WebSocketManager {
     private handlers: Map<string, WebSocketHandler[]> = new Map();
     private reconnectInterval: number = 3000;
     private isConnecting: boolean = false;
+    private isManuallyClosed: boolean = false;
     private connectResolvers: (() => void)[] = [];
 
     constructor() {
@@ -21,6 +22,7 @@ class WebSocketManager {
     }
 
     connect(sessionId: string) {
+        this.isManuallyClosed = false;
         if (this.socket?.readyState === WebSocket.OPEN) {
             // Already connected, ensure we resolve pending waiters if any (though usually empty)
             this.resolveWaiters();
@@ -32,15 +34,18 @@ class WebSocketManager {
         const wsUrl = `${this.url}/${sessionId}`;
 
         console.log('Connecting to WebSocket:', wsUrl);
-        this.socket = new WebSocket(wsUrl);
+        const socket = new WebSocket(wsUrl);
+        this.socket = socket;
 
-        this.socket.onopen = () => {
+        socket.onopen = () => {
+            if (this.socket !== socket) return;
             console.log('WebSocket connected');
             this.isConnecting = false;
             this.resolveWaiters();
         };
 
-        this.socket.onmessage = (event) => {
+        socket.onmessage = (event) => {
+            if (this.socket !== socket) return;
             try {
                 const message: WebSocketMessage = JSON.parse(event.data);
                 this.handleMessage(message);
@@ -49,18 +54,32 @@ class WebSocketManager {
             }
         };
 
-        this.socket.onclose = () => {
+        socket.onclose = () => {
+            // Only old socket disconnecting message if mismatched
+            if (this.socket !== socket) return;
             console.log('WebSocket disconnected');
             this.isConnecting = false;
             this.socket = null;
-            // Auto reconnect
-            setTimeout(() => this.connect(sessionId), this.reconnectInterval);
+            // Auto reconnect if not manually closed
+            if (!this.isManuallyClosed) {
+                setTimeout(() => this.connect(sessionId), this.reconnectInterval);
+            }
         };
 
-        this.socket.onerror = (error) => {
+        socket.onerror = (error) => {
+            if (this.socket !== socket) return;
             console.error('WebSocket error:', error);
             this.isConnecting = false;
         };
+    }
+
+    disconnect() {
+        this.isManuallyClosed = true;
+        this.isConnecting = false;
+        if (this.socket) {
+            this.socket.close();
+            this.socket = null;
+        }
     }
 
     private resolveWaiters() {

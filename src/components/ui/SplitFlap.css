@@ -1,0 +1,137 @@
+/* ═══════════════════════════════════════════════════════
+   Split-Flap Display
+   ═══════════════════════════════════════════════════════ */
+
+.sf-display {
+    display: inline-flex;
+    align-items: center;
+    font-variant-numeric: tabular-nums;
+}
+
+/* ─── Character container ────────────────────────────── */
+.sf-char {
+    position: relative;
+    width: 1em;
+    height: 1.3em;
+    margin: 0 1px;
+    perspective: 500px;
+    font-weight: 600;
+}
+
+/* ─── Panel (each half of a character) ───────────────── */
+.sf-panel {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 50%;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.06);
+    backface-visibility: hidden;
+}
+
+.sf-top {
+    top: 0;
+    border-radius: 4px 4px 0 0;
+}
+
+.sf-bottom {
+    bottom: 0;
+    border-radius: 0 0 4px 4px;
+}
+
+/* ─── Text positioning ───────────────────────────────── */
+.sf-text {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 200%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+.sf-top .sf-text {
+    top: 0;
+}
+
+.sf-bottom .sf-text {
+    bottom: 0;
+}
+
+/* ─── Static background layers ───────────────────────── */
+.sf-static {
+    z-index: 1;
+}
+
+/* ─── Top flap (current value — folds down) ──────────── */
+.sf-flap-top {
+    z-index: 3;
+    transform-origin: bottom center;
+    transform-style: preserve-3d;
+    animation: flipTop calc(var(--sf-duration, 100ms) * 0.5) ease-in forwards;
+}
+
+@keyframes flipTop {
+    0% { transform: rotateX(0deg); }
+    100% { transform: rotateX(-90deg); }
+}
+
+.sf-flap-top::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    animation: fadeOpacity calc(var(--sf-duration, 100ms) * 0.5) ease-in forwards;
+    pointer-events: none;
+}
+
+@keyframes fadeOpacity {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+}
+
+/* ─── Bottom flap (next value — unfolds from top) ────── */
+.sf-flap-btm {
+    z-index: 2;
+    transform-origin: top center;
+    transform-style: preserve-3d;
+    transform: rotateX(90deg); /* Start folded */
+    animation: flipBtm calc(var(--sf-duration, 100ms) * 0.5) ease-out forwards;
+    animation-delay: calc(var(--sf-duration, 100ms) * 0.5);
+}
+
+@keyframes flipBtm {
+    0% { transform: rotateX(90deg); }
+    100% { transform: rotateX(0deg); }
+}
+
+.sf-flap-btm::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.1);
+    animation: fadeOpacityOut calc(var(--sf-duration, 100ms) * 0.5) ease-out forwards;
+    animation-delay: calc(var(--sf-duration, 100ms) * 0.5);
+    pointer-events: none;
+    opacity: 1;
+}
+
+@keyframes fadeOpacityOut {
+    0% { opacity: 1; }
+    100% { opacity: 0; }
+}
+
+/* ─── Hinge line ─────────────────────────────────────── */
+.sf-hinge {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    height: 1px;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 10;
+    pointer-events: none;
+    transform: translateY(-0.5px);
+}

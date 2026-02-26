@@ -1,0 +1,41 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;700;800&display=swap');
+
+body {
+  font-family: 'Space Mono', monospace;
+}
+
+h1, h2, h3, .brand {
+  font-family: 'Syne', sans-serif;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  10% { transform: translateY(-2px) translateX(1px); }
+  30% { transform: translateY(-12px) rotate(-1deg); }
+  50% { transform: translateY(-10px) translateX(-1px); }
+  70% { transform: translateY(-15px) rotate(1deg); }
+  90% { transform: translateY(-5px); }
+}
+
+.animate-float {
+  animation: float 4s ease-in-out infinite
+}
+
+@keyframes pulse-glow {
+  0%, 100% { 
+    filter: drop-shadow(0 0 20px rgba(250,255,0,0.4));
+    opacity: 0.65; /* Slightly dimmed */
+  }
+  50% { 
+    filter: drop-shadow(0 0 60px rgba(250,255,0,1));
+    opacity: 1; /* Full brightness */
+  }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none
+}

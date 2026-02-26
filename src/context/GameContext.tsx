@@ -1,9 +1,10 @@
 import { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { useAuth } from './AuthContext';
 import type { ReactNode } from 'react';
-import { socketManager } from '@/lib/socket';
-import Modal from '@/components/shared/Modal';
-import { useInterval } from '@/hooks/useInterval';
+import { socketManager } from '@app/lib/socket';
+import Modal from '@app/components/shared/Modal';
+import BananLoader from '@app/components/shared/BananLoader';
+import { useInterval } from '@app/hooks/useInterval';
 
 export interface LeaderboardEntry {
   name: string;
@@ -21,6 +22,7 @@ export interface GameState {
   userId: string;
   session_name: string | null;
   team: string | null;
+  team_members?: { id: string; name: string; role: string }[];
   unlockedAchievements: string[];
   missionProgress: Record<string, { progress: number; completed: boolean }>; // Kept for UI compatibility, even if not fully synced
   stocks: Record<string, number>;
@@ -29,6 +31,7 @@ export interface GameState {
   leaderboard_rank?: number;
   leaderboard: LeaderboardEntry[];
   marketHistory: Record<string, any[]>;
+  marketData: any[];
 }
 
 export interface Upgrade {
@@ -51,7 +54,7 @@ interface GameContextType {
   setUserId: (id: string) => void;
   changeName: (name: string) => void;
   joinTeam: (teamId: string) => void;
-  claimMission: (missionId: string) => void;
+  claimMission: (missionId: string, reward: number) => void;
   buyStock: (symbol: string, quantity: number) => Promise<boolean>;
   sellStock: (symbol: string, quantity: number) => Promise<boolean>;
 }
@@ -70,7 +73,8 @@ const defaultState: GameState = {
   prestigeCount: 0,
   banana_dna: 0,
   leaderboard: [],
-  marketHistory: {}
+  marketHistory: {},
+  marketData: []
 };
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -85,10 +89,12 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
 
   const { authenticated, token, loading: authLoading } = useAuth();
 
-  // Initialize Game
+  // Initialize Game & Handle Auth Sync
   useEffect(() => {
     if (authLoading) return;
-    const initGame = async () => {
+    let isMounted = true;
+
+    const initConnection = async () => {
       let storedId = localStorage.getItem('bananaId');
 
       if (!storedId) {
@@ -99,22 +105,30 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
       try {
         socketManager.connect(storedId);
         await socketManager.waitForConnection();
-        socketManager.send('init_session', { sessionId: storedId });
+        
+        if (!isMounted) return;
+
+        // If authenticated, we use 'authenticate' which implicitly inits
+        // If not, we use 'init_session'
+        if (authenticated && token) {
+          socketManager.send('authenticate', { token });
+        } else {
+          socketManager.send('init_session', { sessionId: storedId });
+        }
       } catch (error) {
+        if (!isMounted) return;
         console.error("Failed to connect socket:", error);
         setIsLoading(false);
       }
     };
 
-    initGame();
-  }, [authLoading]);
+    initConnection();
 
-  // Handle Authentication Sync
-  useEffect(() => {
-    if (authenticated && token) {
-      socketManager.send('authenticate', { token });
-    }
-  }, [authenticated, token]);
+    return () => {
+      isMounted = false;
+      socketManager.disconnect();
+    };
+  }, [authLoading, authenticated, token]);
 
   // Socket Listeners
   useEffect(() => {
@@ -137,7 +151,8 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
         prestigeCount: serverState.prestige_count || 0,
         banana_dna: serverState.banana_dna || 0,
         leaderboard: leaderboard || [],
-        marketHistory: {} // Initial synced state
+        marketHistory: {}, // Initial synced state
+        marketData: []
       };
 
       lastServerState.current = mappedState;
@@ -172,6 +187,8 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
           autoClickers: data.bananasPerSecond,
           clickCount: data.totalClicks,
           session_name: data.session_name || prev.session_name,
+          team: data.team || prev.team,
+          team_members: data.team_members || prev.team_members,
           stocks: data.stocks || prev.stocks
         };
         lastServerState.current = newState;
@@ -195,6 +212,14 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
           ...prev.marketHistory,
           ...response
         }
+      }));
+    };
+
+    const handleMarketData = (data: any) => {
+      if (!data || !data.stocks) return;
+      setGameState(prev => ({
+        ...prev,
+        marketData: data.stocks
       }));
     };
 
@@ -283,6 +308,7 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
     socketManager.on('portfolio_update', handlePortfolioUpdate);
     socketManager.on('leaderboard_update', handleLeaderboardUpdate);
     socketManager.on('market_history', handleMarketHistory);
+    socketManager.on('market_data_response', handleMarketData);
     socketManager.on('name_change_success', handleNameChangeSuccess);
     socketManager.on('error', handleError);
 
@@ -293,6 +319,7 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
       socketManager.off('portfolio_update', handlePortfolioUpdate);
       socketManager.off('leaderboard_update', handleLeaderboardUpdate);
       socketManager.off('market_history', handleMarketHistory);
+      socketManager.off('market_data_response', handleMarketData);
       socketManager.off('auth_success', handleAuthSuccess);
       socketManager.off('name_change_success', handleNameChangeSuccess);
       socketManager.off('error', handleError);
@@ -340,8 +367,8 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
     setGameState(prev => ({ ...prev, team: teamId }));
   };
 
-  const claimMission = (missionId: string) => {
-    console.log("Claim mission:", missionId);
+  const claimMission = (missionId: string, reward: number) => {
+    socketManager.send('claim_mission', { missionId, reward });
   };
 
   const buyStock = async (symbol: string, quantity: number): Promise<boolean> => {
@@ -368,7 +395,11 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
       buyStock,
       sellStock
     }}>
-      {children}
+      {isLoading ? (
+        <BananLoader message="IMPORTING_GAME..." />
+      ) : (
+        children
+      )}
       <Modal
         isOpen={!!errorMessage}
         onClose={() => setErrorMessage(null)}

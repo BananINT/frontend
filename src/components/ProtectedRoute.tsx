@@ -1,5 +1,6 @@
 import { Navigate, useLocation } from 'react-router-dom';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@app/context/AuthContext';
+import BananLoader from '@app/components/shared/BananLoader';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -10,11 +11,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const location = useLocation();
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-[#0a0a0a]">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-500"></div>
-      </div>
-    );
+    return <BananLoader message="AUTHENTIFICATION..." />;
   }
 
   if (!authenticated) {

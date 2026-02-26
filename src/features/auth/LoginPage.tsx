@@ -1,5 +1,5 @@
 import React from 'react';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@app/context/AuthContext';
 import { Navigate, useLocation } from 'react-router-dom';
 import { ShieldAlert, Fingerprint, Lock } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -23,7 +23,7 @@ const LoginPage: React.FC = () => {
       <motion.div 
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="max-w-md w-full relative"
+        className="max-w-lg w-full relative"
       >
         {/* Corner Brackets */}
         <div className="absolute -top-2 -left-2 w-8 h-8 border-t-2 border-l-2 border-banan-primary z-10"></div>
@@ -47,13 +47,13 @@ const LoginPage: React.FC = () => {
           <div className="space-y-2 mb-10">
             <div className="flex items-center justify-center gap-2 mb-2">
               <ShieldAlert className="w-4 h-4 text-banan-primary" />
-              <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-banan-primary/60">Security Protocol v2.5</span>
+              <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-banan-primary/60">Protocole de Sécurité v2.5</span>
             </div>
-            <h1 className="text-4xl font-sans font-black uppercase tracking-tighter leading-none text-white">
-              Identity <span className="text-banan-primary">Verified</span>
+            <h1 className="text-2xl font-sans font-black uppercase tracking-tighter leading-none text-white">
+              Authentification <span className="text-banan-primary">Requise</span>
             </h1>
             <p className="font-mono text-xs text-white/40 uppercase tracking-widest mt-4">
-              Authorized personnel only. Access to the potassium production facility requires active credentials.
+              Accès réservé au personnel autorisé. La connexion via le service CAS est nécessaire pour accéder aux protocoles bananiers.
             </p>
           </div>
 
@@ -63,7 +63,7 @@ const LoginPage: React.FC = () => {
               className="w-full bg-transparent hover:bg-banan-primary border border-banan-primary text-banan-primary hover:text-black font-mono font-bold py-5 px-6 transition-all flex items-center justify-center gap-4 active:scale-[0.98] uppercase tracking-widest text-sm relative"
             >
               <Lock className="w-4 h-4" />
-              Initialize Access
+              Initialiser l'accès
               <div className="absolute top-0 right-0 p-1">
                 <div className="w-1 h-1 bg-banan-primary group-hover:bg-black transition-colors"></div>
               </div>
@@ -73,7 +73,7 @@ const LoginPage: React.FC = () => {
           <div className="mt-8 flex flex-col gap-2">
             <div className="w-full h-px bg-white/5"></div>
             <div className="flex justify-between items-center font-mono text-[9px] uppercase tracking-tighter text-white/30">
-              <span>Status: Waiting for Auth</span>
+              <span>Statut : En attente d'authentification</span>
               <span>Enc: OIDC/S256</span>
             </div>
           </div>
@@ -83,7 +83,7 @@ const LoginPage: React.FC = () => {
       {/* Decorative Floor Label */}
       <div className="absolute bottom-10 left-10 hidden md:block opacity-20">
         <div className="font-mono text-[10px] uppercase tracking-[0.5em] vertical-text transform -rotate-90 origin-left">
-          BANAN-INT // FACILITY_LOGIN // SECTOR_7G
+          BANAN-INT // CONNEXION_INSTALLATION // SECTEUR_7G
         </div>
       </div>
     </div>

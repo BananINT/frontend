@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { useGame } from '@/context/GameContext';
+import { useGame } from '@app/context/GameContext';
 import { Users, Fingerprint, Save, LogIn } from 'lucide-react';
-import GameSection from '@/components/shared/GameSection';
+import GameSection from '@app/components/shared/GameSection';
 
 export default function SessionManager() {
     const { gameState, changeName, joinTeam } = useGame();
@@ -14,7 +14,11 @@ export default function SessionManager() {
         } else if (gameState.userId) {
             setLocalName(`OPERATOR_${gameState.userId.substring(0, 4)}`);
         }
-    }, [gameState.session_name, gameState.userId]);
+        
+        if (gameState.team) {
+            setSelectedTeam(gameState.team);
+        }
+    }, [gameState.session_name, gameState.userId, gameState.team]);
 
     const handleSaveName = () => {
         if (localName && localName !== gameState.session_name) {
@@ -23,13 +27,13 @@ export default function SessionManager() {
     };
 
     const handleJoinTeam = () => {
-        joinTeam(selectedTeam);
+        if (selectedTeam && selectedTeam !== gameState.team) {
+            joinTeam(selectedTeam.toUpperCase());
+        }
     };
 
-    const teams = ['ÉQUIPE_ALPHA', 'ÉQUIPE_BETA', 'ÉQUIPE_OMEGA', 'ÉQUIPE_NULL'];
-
     return (
-        <GameSection title="SESSION_MANAGER" icon={Users}>
+        <GameSection title="OPERATOR" icon={Users}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {/* Session ID Section */}
                 <div className="flex flex-col gap-2">
@@ -41,14 +45,14 @@ export default function SessionManager() {
                         <input
                             type="text"
                             value={localName}
-                            onChange={(e) => setLocalName(e.target.value)}
+                            onChange={(e) => setLocalName(e.target.value.replace(/[^a-zA-Z0-9_\-À-ÿœŒæÆ ]/g, ''))}
                             maxLength={20}
                             placeholder="Entrez votre nom..."
                             className="flex-1 bg-white/5 border border-white/10 p-2 text-xs font-mono text-white focus:border-banan-primary focus:outline-none"
                         />
                         <button
                             onClick={handleSaveName}
-                            disabled={localName === gameState.session_name || !localName.trim()}
+                            disabled={localName === gameState.session_name || localName.trim().length < 3}
                             className="bg-banan-primary text-black px-4 py-2 text-xs font-bold uppercase tracking-wider hover:bg-white hover:text-black transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                         >
                             <Save className="h-3 w-3" />
@@ -73,23 +77,31 @@ export default function SessionManager() {
                         AFFECTATION D'UNITÉ
                     </label>
                     <div className="flex gap-2">
-                        <select
+                        <input
+                            type="text"
                             value={selectedTeam}
-                            onChange={(e) => setSelectedTeam(e.target.value)}
-                            className="flex-1 bg-white/5 border border-white/10 p-2 text-xs font-mono text-white focus:border-banan-primary focus:outline-none uppercase appearance-none"
-                        >
-                            {teams.map(team => (
-                                <option key={team} value={team} className="bg-banan-black text-white">{team}</option>
-                            ))}
-                        </select>
+                            onChange={(e) => setSelectedTeam(e.target.value.replace(/[^a-zA-Z0-9_\-À-ÿœŒæÆ ]/g, '').toUpperCase())}
+                            placeholder="Rejoindre ou créer une équipe..."
+                            maxLength={15}
+                            className="flex-1 bg-white/5 border border-white/10 p-2 text-xs font-mono text-white focus:border-banan-primary focus:outline-none uppercase"
+                        />
                         <button
                             onClick={handleJoinTeam}
-                            disabled={selectedTeam === gameState.team}
+                            disabled={selectedTeam === gameState.team || selectedTeam.trim().length < 3}
                             className="border border-banan-primary text-banan-primary px-4 py-2 text-xs font-bold uppercase tracking-wider hover:bg-banan-primary hover:text-black transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                         >
                             <LogIn className="h-3 w-3" />
                             {gameState.team === selectedTeam ? 'ACTUEL' : 'REJOINDRE'}
                         </button>
+                    </div>
+
+                    <div className="flex items-start gap-2 mt-2 p-2 bg-white/5 border border-white/10 rounded">
+                        <div className="flex flex-col gap-1">
+                            <span className="text-[10px] font-bold font-mono text-white/50 uppercase">Protocole d'Équipe</span>
+                            <p className="text-[10px] font-mono text-white/40 leading-tight">
+                                Rejoignez une escouade pour synchroniser vos efforts de production. Le rendement global de l'unité sera minutieusement évalué par le réseau central.
+                            </p>
+                        </div>
                     </div>
 
                     {gameState.team && (
@@ -99,28 +111,20 @@ export default function SessionManager() {
                                 <span className="text-banan-primary">ONLINE</span>
                             </h4>
                             <div className="space-y-1">
-                                {[1, 2, 3, 4, 5].map((i) => (
-                                    <div key={i} className="flex items-center justify-between text-xs font-mono group">
+                                {gameState.team_members && gameState.team_members.map((member, i) => (
+                                    <div key={member.id} className="flex items-center justify-between text-xs font-mono group">
                                         <div className="flex items-center gap-2">
-                                            <div className={`w-1.5 h-1.5 rounded-full ${i <= 3 ? 'bg-green-500 shadow-[0_0_5px_rgba(34,197,94,0.5)]' : 'bg-white/30'}`} />
+                                            <div className={`w-1.5 h-1.5 rounded-full ${i === 0 ? 'bg-banan-primary shadow-[0_0_5px_rgba(250,255,0,0.5)]' : 'bg-green-500 shadow-[0_0_5px_rgba(34,197,94,0.5)]'}`} />
                                             <span className="text-white/70 group-hover:text-white transition-colors">
-                                                OPERATOR_{Math.floor(Math.random() * 9000) + 1000}
+                                                {member.name} {member.id === gameState.userId && <span className="opacity-50">(VOUS)</span>}
                                             </span>
                                         </div>
                                         <span className="text-white/30 text-[10px]">
-                                            {i === 1 ? 'LEADER' : 'MEMBER'}
+                                            {i === 0 ? 'LEADER' : member.role}
                                         </span>
                                     </div>
                                 ))}
-                                <div className="flex items-center justify-between text-xs font-mono group pt-2 border-t border-white/5 mt-2">
-                                    <div className="flex items-center gap-2">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-banan-primary shadow-[0_0_5px_rgba(250,255,0,0.5)]" />
-                                        <span className="text-banan-primary font-bold">
-                                            {gameState.userId.split('-').pop()?.substring(0, 8)} (VOUS)
-                                        </span>
-                                    </div>
-                                    <span className="text-banan-primary/50 text-[10px]">RECRUE</span>
-                                </div>
+
                             </div>
                         </div>
                     )}

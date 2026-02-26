@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import { createChart, ColorType, CandlestickSeries } from 'lightweight-charts';
 import type { IChartApi, ISeriesApi } from 'lightweight-charts';
-import { useGame } from '@/context/GameContext';
+import { useGame } from '@app/context/GameContext';
+import { useTheme } from '@app/hooks/useTheme';
 
-import { socketManager } from '@/lib/socket';
+import { socketManager } from '@app/lib/socket';
 import { CircleDollarSign, ChartCandlestick } from 'lucide-react';
-import GameSection from '@/components/shared/GameSection';
+import GameSection from '@app/components/shared/GameSection';
 
 interface Stock {
     symbol: string;
@@ -17,14 +18,20 @@ interface Stock {
 }
 
 // Metadata for styling, since API doesn't provide colors
-const STOCK_META: Record<string, { color: string }> = {
-    'BNDAQ': { color: '#FAFF00' },
-    'BG': { color: '#00FFA3' }, // Changed to green for distinction
-    'STONK': { color: '#FF0055' } // Fallback
+const STOCK_META: Record<string, { colorVar: string }> = {
+    'BNDAQ': { colorVar: '--banan-primary' },
+    'BG': { colorVar: '--banan-teal' },
+    'STONK': { colorVar: '--banan-red' }
+};
+
+const getCssVar = (name: string, fallback: string) => {
+    if (typeof window === 'undefined') return fallback;
+    return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback;
 };
 
 export default function StockChart() {
     const { gameState, buyStock, sellStock } = useGame();
+    const { theme } = useTheme();
     const chartContainerRef = useRef<HTMLDivElement>(null);
     const chartRef = useRef<IChartApi | null>(null);
     const seriesRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
@@ -35,43 +42,28 @@ export default function StockChart() {
     const lastCloseRef = useRef<number>(0);
     const curTimeRef = useRef<number>(Math.floor(Date.now() / 1000));
 
-    // Initial Fetch & Market Data
+    // Initialize Market Data from GameState
     useEffect(() => {
-        const handleMarketData = (data: any) => {
-            const apiStocks = data.stocks.map((s: any) => ({
-                symbol: s.symbol,
-                name: s.name,
-                basePrice: s.base_price,
-                volatility: s.volatility,
-                color: STOCK_META[s.symbol]?.color || '#FFFFFF',
-                current_price: s.current_price
-            }));
-            setStocks(apiStocks);
-            if (apiStocks.length > 0 && !activeStock) {
-                // Only set active stock if not already set or we want to force default
-                // But better to check if we have one. 
-                // Since this runs on mount, activeStock is null initially.
-                setActiveStock(apiStocks[0]);
-                const initialPrice = apiStocks[0].current_price || apiStocks[0].basePrice;
-                setCurrentPrice(initialPrice);
-                lastCloseRef.current = initialPrice;
-            }
-        };
-
-        socketManager.on('market_data_response', handleMarketData);
-
-        // Request data
-        // Check if ready, if not, wait? 
-        // socketManager.send handles check, but connection might not be ready on initial load immediately if GameContext is connecting.
-        // However, GameContext renders children after isLoading is false (which implies connection).
-        // So we should be safe to send.
-        socketManager.send('get_market_data', {});
-
-        return () => {
-            socketManager.off('market_data_response', handleMarketData);
-        };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []); // Run once on mount
+        if (!gameState.marketData || gameState.marketData.length === 0) return;
+        
+        const apiStocks = gameState.marketData.map((s: any) => ({
+            symbol: s.symbol,
+            name: s.name,
+            basePrice: s.base_price,
+            volatility: s.volatility,
+            color: STOCK_META[s.symbol] ? `var(${STOCK_META[s.symbol].colorVar})` : 'var(--color-banan-white)',
+            current_price: s.current_price
+        }));
+        
+        setStocks(apiStocks);
+        
+        if (apiStocks.length > 0 && !activeStock) {
+            setActiveStock(apiStocks[0]);
+            const initialPrice = apiStocks[0].current_price || apiStocks[0].basePrice;
+            setCurrentPrice(initialPrice);
+            lastCloseRef.current = initialPrice;
+        }
+    }, [gameState.marketData, activeStock]);
 
     // Chart Setup & Listeners
     useEffect(() => {
@@ -85,17 +77,23 @@ export default function StockChart() {
 
         chartContainerRef.current.innerHTML = '';
 
+        const bgColor = getCssVar('--color-banan-carbon', '#000000');
+        const textColor = getCssVar('--color-banan-white', '#ffffff');
+        const gridColor = getCssVar('--color-banan-gray', '#333333');
+        const upColor = getCssVar('--color-stock-up', '#26a69a');
+        const downColor = getCssVar('--color-stock-down', '#ef5350');
+
         const chart = createChart(chartContainerRef.current, {
             layout: {
-                background: { type: ColorType.Solid, color: '#000000' },
-                textColor: '#ffffff',
+                background: { type: ColorType.Solid, color: bgColor },
+                textColor: textColor,
                 attributionLogo: false,
             },
             width: chartContainerRef.current.clientWidth,
             height: 300,
             grid: {
-                vertLines: { color: '#333' },
-                horzLines: { color: '#333' },
+                vertLines: { color: gridColor },
+                horzLines: { color: gridColor },
             },
             timeScale: {
                 timeVisible: true,
@@ -106,11 +104,11 @@ export default function StockChart() {
         });
 
         const newSeries = chart.addSeries(CandlestickSeries, {
-            upColor: '#26a69a',
-            downColor: '#ef5350',
+            upColor: upColor,
+            downColor: downColor,
             borderVisible: false,
-            wickUpColor: '#26a69a',
-            wickDownColor: '#ef5350',
+            wickUpColor: upColor,
+            wickDownColor: downColor,
         });
 
         chartRef.current = chart;
@@ -168,9 +166,6 @@ export default function StockChart() {
                 lastCloseRef.current = candles[candles.length - 1].close;
                 curTimeRef.current = candles[candles.length - 1].time;
             }
-        } else {
-            // Request history if not in context
-            socketManager.send('get_candles', { symbol: activeStock.symbol });
         }
 
         // Socket Listener for Updates
@@ -219,7 +214,7 @@ export default function StockChart() {
         };
 
 
-    }, [activeStock, gameState.marketHistory]);
+    }, [activeStock, gameState.marketHistory, theme]);
 
     const handleBuy = (qty: number) => {
         if (!activeStock) return;
@@ -232,12 +227,12 @@ export default function StockChart() {
     };
 
     if (!activeStock) {
-        return <GameSection title="BANANA_EXCHANGE" icon={ChartCandlestick}><div>Loading market...</div></GameSection>;
+        return <GameSection title="STONKS" icon={ChartCandlestick}><div>Loading market...</div></GameSection>;
     }
 
     return (
         <GameSection
-            title="BANANA_EXCHANGE"
+            title="STONKS"
             icon={ChartCandlestick}
             rightElement={
                 <div className="flex items-center gap-4">
@@ -254,7 +249,7 @@ export default function StockChart() {
                                 style={{
                                     backgroundColor: activeStock.symbol === stock.symbol ? stock.color : 'transparent',
                                     borderColor: activeStock.symbol === stock.symbol ? stock.color : undefined,
-                                    color: activeStock.symbol === stock.symbol ? '#000' : undefined
+                                    color: activeStock.symbol === stock.symbol ? 'var(--color-banan-carbon)' : undefined
                                 }}
                             >
                                 {stock.symbol}

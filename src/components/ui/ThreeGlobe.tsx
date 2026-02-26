@@ -42,8 +42,8 @@ function GlobeMesh() {
             <mesh ref={meshRef}>
                 <sphereGeometry args={[2, 64, 64]} />
                 <meshStandardMaterial
-                    color="#0B0B0B"
-                    emissive="#FAFF00"
+                    color="var(--color-banan-black)"
+                    emissive="var(--color-banan-primary)"
                     emissiveIntensity={0.1}
                     wireframe={true}
                     transparent
@@ -61,7 +61,7 @@ function GlobeMesh() {
                 </bufferGeometry>
                 <pointsMaterial
                     size={0.02}
-                    color="#FAFF00"
+                    color="var(--color-banan-primary)"
                     sizeAttenuation
                     transparent
                     opacity={0.8}
@@ -74,7 +74,7 @@ function GlobeMesh() {
             ].map((pos, i) => (
                 <mesh key={i} position={new THREE.Vector3(...pos)} scale={0.1}>
                     <sphereGeometry args={[1, 16, 16]} />
-                    <meshBasicMaterial color="#4ADE80" />
+                    <meshBasicMaterial color="var(--color-banan-green)" />
                 </mesh>
             ))}
         </group>
@@ -86,7 +86,7 @@ export default function ThreeGlobe() {
         <div className="w-full h-[600px] relative z-10">
             <Canvas camera={{ position: [0, 0, 5], fov: 45 }}>
                 <ambientLight intensity={0.5} />
-                <pointLight position={[10, 10, 10]} intensity={1} color="#FAFF00" />
+                <pointLight position={[10, 10, 10]} intensity={1} color="var(--color-banan-primary)" />
                 <Stars radius={100} depth={50} count={5000} factor={4} saturation={0} fade speed={1} />
                 <GlobeMesh />
                 <OrbitControls enableZoom={false} autoRotate autoRotateSpeed={0.5} />

@@ -1,0 +1,20 @@
+.shiny-text {
+    background-image: linear-gradient(
+        to right,
+        var(--color-banan-primary) 0%,
+        var(--color-banan-white) 25%,
+        var(--color-banan-primary) 50%,
+        var(--color-banan-white) 75%,
+        var(--color-banan-primary) 100%
+    );
+    background-size: 200% auto;
+    background-clip: text;
+    color: transparent;
+    text-shadow: 0 0 60px var(--color-banan-primary);
+    animation: shiny-sweep var(--shiny-speed, 4s) linear infinite;
+}
+
+@keyframes shiny-sweep {
+  0% { background-position: -100% 0; }
+  100% { background-position: 100% 0; }
+}

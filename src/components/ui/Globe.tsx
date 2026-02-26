@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import ThreeGlobe from 'three-globe';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { useTheme } from '@app/hooks/useTheme';
+
 
 // TYPES
 interface ArcData {
@@ -15,20 +17,26 @@ interface ArcData {
 }
 
 // CONFIGURATION & DATA
-const GLOBE_CONFIG = {
+// Helper to get runtime CSS variable values or fallback
+const getCssVar = (name: string, fallback: string) => {
+    if (typeof window === 'undefined') return fallback;
+    return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback;
+};
+
+const getGlobeConfig = () => ({
     pointSize: 4,
-    globeColor: "#050505", // Almost black
+    globeColor: getCssVar('--banan-background', "#050505"),
     showAtmosphere: true,
-    atmosphereColor: "#FAFF00", // BananINT Yellow
+    atmosphereColor: getCssVar('--banan-primary', "#FAFF00"),
     atmosphereAltitude: 0.15,
-    emissive: "#000000",
+    emissive: getCssVar('--banan-carbon', "#000000"),
     emissiveIntensity: 0.1,
     shininess: 0.9,
-    polygonColor: "rgba(250, 255, 0, 0.5)", // Semi-transparent yellow
-    ambientLight: "#ffffff",
-    directionalLeftLight: "#FAFF00", // Yellow tint
-    directionalTopLight: "#ffffff",
-    pointLight: "#ffffff",
+    polygonColor: `rgba(${getCssVar('--banan-primary-rgb', '250, 255, 0')}, 0.5)`, // Semi-transparent yellow
+    ambientLight: getCssVar('--banan-white', "#ffffff"),
+    directionalLeftLight: getCssVar('--banan-primary', "#FAFF00"), // Yellow tint
+    directionalTopLight: getCssVar('--banan-white', "#ffffff"),
+    pointLight: getCssVar('--banan-white', "#ffffff"),
     arcTime: 1000,
     arcLength: 0.9,
     rings: 1,
@@ -36,7 +44,7 @@ const GLOBE_CONFIG = {
     manualRotate: false, // User requested non-interactable
     autoRotate: true,
     autoRotateSpeed: 0.5,
-};
+});
 
 // Less flashy / less saturated colors as requested
 const COLORS = ["#E8E8A6", "#E0E0E0", "#98D6AA"]; // Desaturated Yellow, Off-White, Desaturated Green
@@ -107,6 +115,7 @@ export default function Globe() {
 
     const [geoJson, setGeoJson] = useState<any>(null);
     const [loaded, setLoaded] = useState(false);
+    const { theme } = useTheme();
 
     // Fetch Data
     useEffect(() => {
@@ -121,182 +130,204 @@ export default function Globe() {
     useEffect(() => {
         if (!geoJson || !containerRef.current) return;
 
-        // Cleanup any existing
-        if (rendererRef.current) {
-            containerRef.current.innerHTML = '';
-            rendererRef.current.dispose();
-        }
+        let isMounted = true;
+        let fadeTimeout: ReturnType<typeof setTimeout>;
 
-        const w = containerRef.current.clientWidth;
-        const h = containerRef.current.clientHeight;
+        // Delay the heavy Three.js instantiation to allow the browser to paint
+        // the rest of the page layout and initial animations without hitching.
+        const initTimeout = setTimeout(() => {
+            if (!isMounted || !containerRef.current) return;
 
-        // 1. Setup Scene, Camera, Renderer
-        const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
-        renderer.setPixelRatio(window.devicePixelRatio);
-        renderer.setSize(w, h);
-        containerRef.current.appendChild(renderer.domElement);
-        rendererRef.current = renderer;
-
-        const scene = new THREE.Scene();
-        //scene.fog = new THREE.Fog(0x000000, 400, 2000); // Removed heavy fog to make colors pop
-        sceneRef.current = scene;
-
-        const camera = new THREE.PerspectiveCamera(45, w / h, 1, 4000);
-        camera.position.z = 300;
-        cameraRef.current = camera;
-
-        const controls = new OrbitControls(camera, renderer.domElement);
-        controls.enableDamping = true;
-        controls.dampingFactor = 0.05;
-        controls.enableZoom = false; // Disable Zoom
-        controls.enablePan = false;  // Disable Pan
-        controls.enableRotate = false; // Disable Manual Rotation
-        controls.autoRotate = GLOBE_CONFIG.autoRotate;
-        controls.autoRotateSpeed = GLOBE_CONFIG.autoRotateSpeed;
-        controls.minDistance = 200;
-        controls.maxDistance = 500;
-        controlsRef.current = controls;
-
-        // 2. Setup Lighting
-        const ambientLight = new THREE.AmbientLight(GLOBE_CONFIG.ambientLight, 0.6);
-        scene.add(ambientLight);
-
-        const dLight1 = new THREE.DirectionalLight(GLOBE_CONFIG.directionalLeftLight, 1);
-        dLight1.position.set(-400, 100, 400);
-        scene.add(dLight1);
-
-        const dLight2 = new THREE.DirectionalLight(GLOBE_CONFIG.directionalTopLight, 1);
-        dLight2.position.set(-200, 500, 200);
-        scene.add(dLight2);
-
-        const pLight = new THREE.PointLight(GLOBE_CONFIG.pointLight, 0.8);
-        pLight.position.set(-200, 500, 200);
-        scene.add(pLight);
-
-        // 3. Init Globe
-        const globe = new ThreeGlobe()
-            .hexPolygonsData(geoJson.features)
-            .hexPolygonResolution(3)
-            .hexPolygonMargin(0.7)
-            .showAtmosphere(GLOBE_CONFIG.showAtmosphere)
-            .atmosphereColor(GLOBE_CONFIG.atmosphereColor)
-            .atmosphereAltitude(GLOBE_CONFIG.atmosphereAltitude)
-            .hexPolygonColor(() => GLOBE_CONFIG.polygonColor);
-
-        // Material Config
-        const globeMaterial = globe.globeMaterial() as THREE.MeshPhongMaterial; // Proper casting
-        globeMaterial.color = new THREE.Color(GLOBE_CONFIG.globeColor);
-        globeMaterial.emissive = new THREE.Color(GLOBE_CONFIG.emissive);
-        globeMaterial.emissiveIntensity = GLOBE_CONFIG.emissiveIntensity;
-        globeMaterial.shininess = GLOBE_CONFIG.shininess;
-
-        // Data Building - Points & Arcs
-        const points: Array<ArcData & { size: number, color: string, lat: number, lng: number }> = [];
-        ARC_DATA.forEach(arc => {
-            const color = arc.color || "#ffffff";
-            points.push({ ...arc, lat: arc.startLat, lng: arc.startLng, size: GLOBE_CONFIG.pointSize, color });
-            points.push({ ...arc, lat: arc.endLat, lng: arc.endLng, size: GLOBE_CONFIG.pointSize, color });
-        });
-
-        // Filter unique points
-        const uniquePoints = points.filter((v, i, a) =>
-            a.findIndex(v2 => v2.lat === v.lat && v2.lng === v.lng) === i
-        );
-
-        // Arcs Config
-        globe
-            .arcsData(ARC_DATA)
-            // @ts-ignore - ThreeGlobe types can be loose, casting logic helpers
-            .arcStartLat(d => (d as ArcData).startLat)
-            // @ts-ignore
-            .arcStartLng(d => (d as ArcData).startLng)
-            // @ts-ignore
-            .arcEndLat(d => (d as ArcData).endLat)
-            // @ts-ignore
-            .arcEndLng(d => (d as ArcData).endLng)
-            // @ts-ignore
-            .arcColor(d => (d as ArcData).color)
-            // @ts-ignore
-            .arcAltitude(d => (d as ArcData).arcAlt)
-            .arcStroke(0.5)
-            .arcDashLength(GLOBE_CONFIG.arcLength)
-            .arcDashGap(4)
-            // @ts-ignore
-            .arcDashInitialGap(d => (d as ArcData).order)
-            .arcDashAnimateTime(GLOBE_CONFIG.arcTime);
-
-        // Points Config
-        globe
-            .pointsData(uniquePoints)
-            // @ts-ignore
-            .pointColor(d => d.color)
-            .pointAltitude(0)
-            .pointRadius(2);
-
-        // Rings Config (Dynamic)
-        globe
-            .ringsData([])
-            // @ts-ignore
-            .ringColor(d => (t: number) => d.color)
-            .ringMaxRadius(GLOBE_CONFIG.maxRings)
-            .ringPropagationSpeed(3)
-            .ringRepeatPeriod(GLOBE_CONFIG.arcTime * GLOBE_CONFIG.arcLength / GLOBE_CONFIG.rings);
-
-        scene.add(globe);
-
-        // Animation Loop
-        const animate = () => {
-            animationFrameId.current = requestAnimationFrame(animate);
-            controls.update();
-            renderer.render(scene, camera);
-
-            // Randomly add rings
-            if (Math.random() > 0.97) {
-                const numberOfRings = genRandomNumbers(0, uniquePoints.length, Math.floor(uniquePoints.length * 0.8));
-                globe.ringsData(uniquePoints.filter((_, i) => numberOfRings.includes(i)));
+            // Cleanup any existing
+            if (rendererRef.current) {
+                containerRef.current.innerHTML = '';
+                rendererRef.current.dispose();
             }
-        };
-        animate();
 
-        // Reveal the globe smoothly with a slight delay to ensure opacity-0 is rendered
-        // and to mask any initial frame drops during geometry generation.
-        const fadeTimeout = setTimeout(() => {
-            setLoaded(true);
-        }, 500);
+            const w = containerRef.current.clientWidth;
+            const h = containerRef.current.clientHeight;
 
-        const handleResize = () => {
-            if (!containerRef.current || !cameraRef.current || !rendererRef.current) return;
-            const width = containerRef.current.clientWidth;
-            const height = containerRef.current.clientHeight;
+            // 1. Setup Scene, Camera, Renderer
+            const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+            renderer.setClearColor(0x000000, 0);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.setSize(w, h);
+            containerRef.current.appendChild(renderer.domElement);
+            renderer.domElement.style.background = 'transparent';
+            rendererRef.current = renderer;
 
-            cameraRef.current.aspect = width / height;
-            cameraRef.current.updateProjectionMatrix();
-            rendererRef.current.setSize(width, height);
-            // console.log("Globe resized:", width, height);
-        };
+            const scene = new THREE.Scene();
+            sceneRef.current = scene;
 
-        window.addEventListener('resize', handleResize);
+            const camera = new THREE.PerspectiveCamera(45, w / h, 1, 4000);
+            camera.position.z = 300;
+            cameraRef.current = camera;
+
+            const GLOBE_CONFIG = getGlobeConfig();
+
+            const controls = new OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.enableZoom = false; // Disable Zoom
+            controls.enablePan = false;  // Disable Pan
+            controls.enableRotate = false; // Disable Manual Rotation
+            controls.autoRotate = GLOBE_CONFIG.autoRotate;
+            controls.autoRotateSpeed = GLOBE_CONFIG.autoRotateSpeed;
+            controls.minDistance = 200;
+            controls.maxDistance = 500;
+            controlsRef.current = controls;
+
+            // 2. Setup Lighting
+            const ambientLight = new THREE.AmbientLight(GLOBE_CONFIG.ambientLight, 0.6);
+            scene.add(ambientLight);
+
+            const dLight1 = new THREE.DirectionalLight(GLOBE_CONFIG.directionalLeftLight, 1);
+            dLight1.position.set(-400, 100, 400);
+            scene.add(dLight1);
+
+            const dLight2 = new THREE.DirectionalLight(GLOBE_CONFIG.directionalTopLight, 1);
+            dLight2.position.set(-200, 500, 200);
+            scene.add(dLight2);
+
+            const pLight = new THREE.PointLight(GLOBE_CONFIG.pointLight, 0.8);
+            pLight.position.set(-200, 500, 200);
+            scene.add(pLight);
+
+            // 3. Init Globe - THIS IS THE HEAVY SYNCHRONOUS OPERATION
+            const globe = new ThreeGlobe()
+                .hexPolygonsData(geoJson.features)
+                .hexPolygonResolution(3)
+                .hexPolygonMargin(0.7)
+                .showAtmosphere(GLOBE_CONFIG.showAtmosphere)
+                .atmosphereColor(GLOBE_CONFIG.atmosphereColor)
+                .atmosphereAltitude(GLOBE_CONFIG.atmosphereAltitude)
+                .hexPolygonColor(() => GLOBE_CONFIG.polygonColor);
+
+            // Material Config
+            const globeMaterial = globe.globeMaterial() as THREE.MeshPhongMaterial;
+            globeMaterial.color = new THREE.Color(GLOBE_CONFIG.globeColor);
+            globeMaterial.emissive = new THREE.Color(GLOBE_CONFIG.emissive);
+            globeMaterial.emissiveIntensity = GLOBE_CONFIG.emissiveIntensity;
+            globeMaterial.shininess = GLOBE_CONFIG.shininess;
+
+            // Data Building - Points & Arcs
+            const points: Array<ArcData & { size: number, color: string, lat: number, lng: number }> = [];
+            ARC_DATA.forEach(arc => {
+                const color = arc.color || getCssVar("--color-banan-white", "#ffffff");
+                points.push({ ...arc, lat: arc.startLat, lng: arc.startLng, size: GLOBE_CONFIG.pointSize, color });
+                points.push({ ...arc, lat: arc.endLat, lng: arc.endLng, size: GLOBE_CONFIG.pointSize, color });
+            });
+
+            // Filter unique points
+            const uniquePoints = points.filter((v, i, a) =>
+                a.findIndex(v2 => v2.lat === v.lat && v2.lng === v.lng) === i
+            );
+
+            // Arcs Config
+            globe
+                .arcsData(ARC_DATA)
+                // @ts-ignore
+                .arcStartLat(d => (d as ArcData).startLat)
+                // @ts-ignore
+                .arcStartLng(d => (d as ArcData).startLng)
+                // @ts-ignore
+                .arcEndLat(d => (d as ArcData).endLat)
+                // @ts-ignore
+                .arcEndLng(d => (d as ArcData).endLng)
+                // @ts-ignore
+                .arcColor(d => (d as ArcData).color)
+                // @ts-ignore
+                .arcAltitude(d => (d as ArcData).arcAlt)
+                .arcStroke(0.5)
+                .arcDashLength(GLOBE_CONFIG.arcLength)
+                .arcDashGap(4)
+                // @ts-ignore
+                .arcDashInitialGap(d => (d as ArcData).order)
+                .arcDashAnimateTime(GLOBE_CONFIG.arcTime);
+
+            // Points Config
+            globe
+                .pointsData(uniquePoints)
+                // @ts-ignore
+                .pointColor(d => d.color)
+                .pointAltitude(0)
+                .pointRadius(2);
+
+            // Rings Config (Dynamic)
+            globe
+                .ringsData([])
+                // @ts-ignore
+                .ringColor(d => (t: number) => d.color)
+                .ringMaxRadius(GLOBE_CONFIG.maxRings)
+                .ringPropagationSpeed(3)
+                .ringRepeatPeriod(GLOBE_CONFIG.arcTime * GLOBE_CONFIG.arcLength / GLOBE_CONFIG.rings);
+
+            scene.add(globe);
+
+            // Animation Loop
+            const animate = () => {
+                if (!isMounted) return;
+                animationFrameId.current = requestAnimationFrame(animate);
+                controls.update();
+                renderer.render(scene, camera);
+
+                // Randomly add rings
+                if (Math.random() > 0.97) {
+                    const numberOfRings = genRandomNumbers(0, uniquePoints.length, Math.floor(uniquePoints.length * 0.8));
+                    globe.ringsData(uniquePoints.filter((_, i) => numberOfRings.includes(i)));
+                }
+            };
+            animate();
+
+            // Reveal the globe smoothly
+            fadeTimeout = setTimeout(() => {
+                if (isMounted) setLoaded(true);
+            }, 100);
+
+            const handleResize = () => {
+                if (!containerRef.current || !cameraRef.current || !rendererRef.current) return;
+                const width = containerRef.current.clientWidth;
+                const height = containerRef.current.clientHeight;
+
+                cameraRef.current.aspect = width / height;
+                cameraRef.current.updateProjectionMatrix();
+                rendererRef.current.setSize(width, height);
+            };
+
+            window.addEventListener('resize', handleResize);
+
+            // Attach resize handler to window so we can clean it up
+            (window as any)._globeHandleResize = handleResize;
+
+        }, 1500); // Wait 1.5s for the initial page reveals and split-flap animations to fully finish!
 
         return () => {
-            window.removeEventListener('resize', handleResize);
+            isMounted = false;
+            clearTimeout(initTimeout);
             clearTimeout(fadeTimeout);
+            
+            if ((window as any)._globeHandleResize) {
+                window.removeEventListener('resize', (window as any)._globeHandleResize);
+                delete (window as any)._globeHandleResize;
+            }
+            
             if (animationFrameId.current) cancelAnimationFrame(animationFrameId.current);
             if (rendererRef.current) {
                 rendererRef.current.dispose();
-                // Try to clean up DOM
                 if (containerRef.current && rendererRef.current.domElement) {
-                    containerRef.current.removeChild(rendererRef.current.domElement);
+                    try { containerRef.current.removeChild(rendererRef.current.domElement); } catch (e) {}
                 }
             }
         };
 
-    }, [geoJson]);
+    }, [geoJson, theme]);
+
 
     return (
         <div
             ref={containerRef}
-            className={`w-full h-full min-h-[500px] pointer-events-none transition-opacity duration-1000 ease-in-out ${loaded ? 'opacity-100' : 'opacity-0'}`}
-            style={{ cursor: 'default' }} // Explicitly set default cursor
+            className={`w-full h-full min-h-[500px] pointer-events-none transition-opacity duration-1000 ease-in-out bg-transparent ${loaded ? 'opacity-100' : 'opacity-0'}`}
+            style={{ cursor: 'default', background: 'transparent' }}
         />
     );
 }

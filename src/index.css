@@ -1,29 +1,188 @@
 @import "tailwindcss";
 @import url('https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&family=Syne:wght@400..800&display=swap');
 
+/* Dynamic Theme Variable Registration */
+@property --banan-primary {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #FAFF00;
+}
+
+@property --banan-teal {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #00FFA3;
+}
+
+@property --banan-red {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #FF0055;
+}
+
+@property --banan-green {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #4ADE80;
+}
+
 @theme {
-  --color-banan-primary: #FAFF00;
-  --color-banan-black: #0B0B0B;
-  --color-banan-carbon: #000000;
+  --color-banan-primary: var(--banan-primary);
+  --color-banan-black: var(--banan-black);
+  --color-banan-carbon: var(--banan-carbon);
+  --color-banan-background: var(--banan-background);
+  --color-banan-white: var(--banan-white);
+  --color-banan-green: var(--banan-green);
+  --color-banan-teal: var(--banan-teal);
+  --color-banan-red: var(--banan-red);
+  --color-stock-up: var(--stock-up);
+  --color-stock-down: var(--stock-down);
+  --color-banan-gray: var(--banan-gray);
 
   --font-sans: 'Syne', sans-serif;
   --font-mono: 'Space Mono', monospace;
 }
 
+:root, [data-theme="default"] {
+  /* Default: BananINT Classic */
+  --banan-primary: #FAFF00; --banan-primary-rgb: 250, 255, 0;
+  --banan-black: #050505;
+  --banan-carbon: #000000;
+  --banan-background: #050505;
+  --banan-white: #FFFFFF;
+  --banan-green: #39FF14; --banan-green-rgb: 57, 255, 20;
+  --banan-teal: #39FF14; --banan-teal-rgb: 57, 255, 20;
+  --banan-red: #FF0055; --banan-red-rgb: 255, 0, 85;
+  --stock-up: #26a69a;
+  --stock-down: #ef5350;
+  --banan-gray: #333333;
+}
+
+[data-theme="indigo"] {
+  --banan-primary: #8B5CF6; --banan-primary-rgb: 139, 92, 246;
+  --banan-black: #0F172A;
+  --banan-background: #0F172A;
+  --banan-white: #F8FAFC;
+  --banan-green: #00FF9C; --banan-green-rgb: 0, 255, 156;
+  --banan-teal: #00FF9C; --banan-teal-rgb: 0, 255, 156;
+  --banan-red: #F43F5E;
+  --stock-up: #00FF9C;
+  --stock-down: #F43F5E;
+}
+
+[data-theme="matrix"] {
+  --banan-primary: #00FF41; --banan-primary-rgb: 0, 255, 65;
+  --banan-black: #000F00;
+  --banan-background: #000F00;
+  --banan-white: #D1FFD7;
+  --banan-green: #00FF41; --banan-green-rgb: 0, 255, 65;
+  --banan-teal: #00FF41; --banan-teal-rgb: 0, 255, 65;
+  --banan-red: #FF3131;
+  --stock-up: #00FF41;
+  --stock-down: #FF3131;
+}
+
+[data-theme="solaris"] {
+  --banan-primary: #F97316; --banan-primary-rgb: 249, 115, 22;
+  --banan-black: #1C0F0F;
+  --banan-background: #1C0F0F;
+  --banan-white: #FFF7ED;
+  --banan-green: #FBBF24; --banan-green-rgb: 251, 191, 36;
+  --banan-teal: #FB7185; --banan-teal-rgb: 251, 113, 133;
+  --banan-red: #991B1B;
+  --stock-up: #FBBF24;
+  --stock-down: #991B1B;
+}
+
+[data-theme="rainbow"] {
+  --banan-black: #120024;
+  --banan-background: #120024;
+  --banan-white: #FFFFFF;
+  --stock-up: #00FF00;
+  --stock-down: #FF0000;
+  animation: rainbow-cycle 8s linear infinite;
+}
+
+[data-theme="golden"] {
+  --banan-black: #2D1E0F;
+  --banan-background: #2D1E0F;
+  --banan-white: #FEF3C7;
+  --banan-primary-rgb: 245, 158, 11;
+  --banan-green-rgb: 217, 119, 6;
+  --banan-teal-rgb: 253, 230, 138;
+  --stock-up: #F59E0B;
+  --stock-down: #7F1D1D;
+  animation: golden-radiance 4s ease-in-out infinite alternate;
+}
+
+@keyframes rainbow-cycle {
+  0% { 
+    --banan-primary: hsl(0,100%,50%); 
+    --banan-teal: hsl(180,100%,50%); 
+    --banan-red: hsl(300,100%,50%); 
+    --banan-green: hsl(120,100%,50%); 
+  }
+  25% { 
+    --banan-primary: hsl(90,100%,50%); 
+    --banan-teal: hsl(270,100%,50%); 
+    --banan-red: hsl(30,100%,50%); 
+    --banan-green: hsl(210,100%,50%); 
+  }
+  50% { 
+    --banan-primary: hsl(180,100%,50%); 
+    --banan-teal: hsl(0,100%,50%); 
+    --banan-red: hsl(120,100%,50%); 
+    --banan-green: hsl(300,100%,50%); 
+  }
+  75% { 
+    --banan-primary: hsl(270,100%,50%); 
+    --banan-teal: hsl(90,100%,50%); 
+    --banan-red: hsl(210,100%,50%); 
+    --banan-green: hsl(30,100%,50%); 
+  }
+  100% { 
+    --banan-primary: hsl(360,100%,50%); 
+    --banan-teal: hsl(540,100%,50%); 
+    --banan-red: hsl(660,100%,50%); 
+    --banan-green: hsl(480,100%,50%); 
+  }
+}
+
+@keyframes golden-radiance {
+  0% { 
+    --banan-primary: #F59E0B; 
+    --banan-teal: #FDE68A; 
+    --banan-green: #D97706; 
+    --banan-red: #B45309; 
+  }
+  50% { 
+    --banan-primary: #FCD34D; 
+    --banan-teal: #FEF3C7; 
+    --banan-green: #F59E0B; 
+    --banan-red: #D97706; 
+  }
+  100% { 
+    --banan-primary: #D97706; 
+    --banan-teal: #FBBF24; 
+    --banan-green: #92400E; 
+    --banan-red: #78350F; 
+  }
+}
+
 :root {
   font-family: 'Space Mono', monospace;
-  background-color: #050505;
-  color: #FFFFFF;
+  background-color: var(--color-banan-background);
+  color: var(--color-banan-white);
 }
 
 ::selection {
-  background-color: #FAFF00;
-  color: #000000;
+  background-color: var(--color-banan-primary);
+  color: var(--color-banan-carbon);
 }
 
 /* Scrollbar Customization */
 html {
-  scrollbar-color: #FAFF00 #050505; /* Thumb Track */
+  scrollbar-color: var(--color-banan-primary) var(--color-banan-background); /* Thumb Track */
   scrollbar-width: thin;
 }
 
@@ -33,22 +192,24 @@ html {
 }
 
 ::-webkit-scrollbar-track {
-  background: #050505;
+  background: var(--color-banan-background);
 }
 
 ::-webkit-scrollbar-thumb {
-  background-color: #FAFF00;
+  background-color: var(--color-banan-primary);
   border-radius: 0px; /* Brutalist/Sharp */
-  border: 2px solid #050505; /* Optional spacing */
+  border: 2px solid var(--color-banan-background); /* Optional spacing */
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background-color: #e5e900;
+  background-color: var(--color-banan-primary); /* keeping it same intentionally or picking a new hue */
+  opacity: 0.9;
 }
 
 @layer utilities {
   .banan-grid {
     background-size: 40px 40px;
+    background-position: center center;
     background-image:
       linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
       linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);

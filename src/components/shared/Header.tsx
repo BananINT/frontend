@@ -2,24 +2,35 @@ import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Banana, Home, Calendar, Menu, X, LogIn, LogOut } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { cn } from '@/lib/utils';
-import { useAuth } from '@/context/AuthContext';
+import { cn } from '@app/lib/utils';
+import { useAuth } from '@app/context/AuthContext';
+import { THEMES, setTheme, getCurrentTheme } from '@app/lib/theme';
+import { Palette } from 'lucide-react';
 
 export default function Header() {
     const { authenticated, username, login, logout } = useAuth();
     const location = useLocation();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const [theme, setThemeState] = useState(getCurrentTheme());
+
+    const cycleTheme = () => {
+        const currentIndex = THEMES.indexOf(theme);
+        const nextIndex = (currentIndex + 1) % THEMES.length;
+        const nextTheme = THEMES[nextIndex];
+        setTheme(nextTheme);
+        setThemeState(nextTheme);
+    };
 
     const navItems = [
         { label: 'Accueil', path: '/', icon: Home },
         { label: 'Clicker', path: '/clicker', icon: Banana },
-        { label: 'Bananée', path: 'https://bananee.bananint.fr', icon: Calendar, external: true },
+        { label: 'Bananée', path: '/bananee', icon: Calendar },
     ];
 
     return (
-        <header className="sticky top-0 z-50 w-full text-black border-b border-black">
+        <header className="sticky top-0 z-50 w-full text-banan-background border-b border-banan-background">
             <div className="container z-50 bg-banan-primary flex h-12 items-center justify-between px-4 max-w-[1920px] mx-auto relative">
-                <Link to="/" className="flex items-center gap-2 font-black text-xl font-sans uppercase tracking-tighter hover:opacity-80 transition-opacity">
+                <Link to="/" className="flex items-center gap-2 font-black text-xl font-sans uppercase tracking-tighter hover:opacity-80 transition-opacity text-banan-background">
                     <span>BananINT</span>
                 </Link>
 
@@ -27,20 +38,6 @@ export default function Header() {
                 <nav className="hidden md:flex items-center gap-6">
                     {navItems.map((item) => {
                         const Icon = item.icon;
-                        const isExternal = item.external;
-
-                        if (isExternal) {
-                            return (
-                                <a
-                                    key={item.path}
-                                    href={item.path}
-                                    className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest transition-all duration-200 border-b-2 border-transparent hover:border-black opacity-60 hover:opacity-100"
-                                >
-                                    <Icon className="h-3 w-3" />
-                                    <span>{item.label}</span>
-                                </a>
-                            );
-                        }
 
                         return (
                             <Link
@@ -56,6 +53,16 @@ export default function Header() {
                             </Link>
                         );
                     })}
+                    
+                    {/* Theme Switcher */}
+                    <button 
+                        onClick={cycleTheme}
+                        className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest transition-all duration-200 border-b-2 border-transparent hover:border-black opacity-60 hover:opacity-100"
+                        title={`Cycle Theme (Current: ${theme})`}
+                    >
+                        <Palette className="h-3 w-3" />
+                        <span>Style: {theme}</span>
+                    </button>
 
                     {/* Auth Toggle */}
                     {authenticated ? (
@@ -99,24 +106,6 @@ export default function Header() {
                         <nav className="flex flex-col gap-4">
                             {navItems.map((item, index) => {
                                 const Icon = item.icon;
-                                const isExternal = item.external;
-
-                                if (isExternal) {
-                                    return (
-                                        <motion.a
-                                            key={item.path}
-                                            href={item.path}
-                                            initial={{ x: -20, opacity: 0 }}
-                                            animate={{ x: 0, opacity: 1 }}
-                                            transition={{ delay: 0.1 + index * 0.1 }}
-                                            className="flex items-center gap-4 text-xl font-black uppercase tracking-tighter py-2 border-b border-black/10 text-black hover:opacity-70 transition-opacity"
-                                            onClick={() => setIsMobileMenuOpen(false)}
-                                        >
-                                            <Icon className="h-5 w-5" />
-                                            <span>{item.label}</span>
-                                        </motion.a>
-                                    );
-                                }
 
                                 return (
                                     <motion.div

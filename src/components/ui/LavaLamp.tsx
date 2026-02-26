@@ -1,4 +1,11 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { addThemeListener } from '@app/lib/theme';
+
+// Helper to get runtime CSS variable values or fallback
+const getCssVar = (name: string, fallback: string) => {
+    if (typeof window === 'undefined') return fallback;
+    return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback;
+};
 
 class Blob {
     x: number;
@@ -28,8 +35,14 @@ class Blob {
 
 export default function LavaLamp() {
     const canvasRef = useRef<HTMLCanvasElement>(null);
+    const [_, setThemeTick] = useState(0);
 
     useEffect(() => {
+        // Force re-render when theme changes to pick up new colors
+        const unsubscribe = addThemeListener(() => {
+            setThemeTick(t => t + 1);
+        });
+
         const canvas = canvasRef.current;
         if (!canvas) return;
         const ctx = canvas.getContext('2d');
@@ -50,15 +63,14 @@ export default function LavaLamp() {
             // Update blobs
             blobs.forEach(blob => blob.update());
 
-            // Draw blobs with thresholding for "gooey" effect
-            // We'll use a blurred shadow approach + threshold in compop
-            // Actually, simple gradient blobs works best for 2D lava simulation
+            // Use RGB variable for safer opacity handling
+            const primaryRgb = getCssVar('--banan-primary-rgb', '250, 255, 0');
 
             blobs.forEach(blob => {
                 ctx.beginPath();
                 const gradient = ctx.createRadialGradient(blob.x, blob.y, 0, blob.x, blob.y, blob.r);
-                gradient.addColorStop(0, 'rgba(250, 255, 0, 0.8)'); // BananINT Yellow
-                gradient.addColorStop(1, 'rgba(250, 255, 0, 0)');
+                gradient.addColorStop(0, `rgba(${primaryRgb}, 0.8)`);
+                gradient.addColorStop(1, `rgba(${primaryRgb}, 0)`);
                 ctx.fillStyle = gradient;
                 ctx.arc(blob.x, blob.y, blob.r, 0, Math.PI * 2);
                 ctx.fill();
@@ -74,19 +86,16 @@ export default function LavaLamp() {
         return () => {
             window.removeEventListener('resize', init);
             cancelAnimationFrame(animationId);
+            unsubscribe();
         };
     }, []);
 
     return (
-        <div className="w-full h-full bg-black relative overflow-hidden rounded-3xl filter contrast-[20] bg-black">
-            {/* 
-            Contrast filter does the metaball magic:
-            Blurs (gradients) + High Contrast = Sharp Edges where alpha overlaps
-          */}
+        <div className="w-full h-full bg-banan-background relative overflow-hidden rounded-3xl filter contrast-[20]">
             <canvas
                 ref={canvasRef}
                 className="w-full h-full filter blur-[20px]"
-                style={{ background: '#000' }}
+                style={{ background: 'var(--color-banan-background)' }}
             />
         </div>
     );

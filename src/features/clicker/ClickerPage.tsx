@@ -1,33 +1,32 @@
 
-import { useGame } from '@/context/GameContext';
+import { useGame } from '@app/context/GameContext';
 import { Zap, TrendingUp, Trophy, CircuitBoard, Dna, Banana } from 'lucide-react';
 
 import StockChart from './StockChart';
 import SessionManager from './SessionManager';
-import AchievementsModal from './AchievementsModal';
-import MissionsModal from './MissionsModal';
+import PlayerDossierModal from './PlayerDossierModal';
 import { Medal, Target } from 'lucide-react';
 import { useState } from 'react';
-import GameSection from '@/components/shared/GameSection';
-import { formatNumber } from '@/utils/format';
+import GameSection from '@app/components/shared/GameSection';
+import { formatNumber } from '@app/utils/format';
 
 export default function ClickerPage() {
     const { gameState, clickBanana, buyUpgrade, availableUpgrades } = useGame();
-    const [isAchievementsOpen, setIsAchievementsOpen] = useState(false);
-    const [isMissionsOpen, setIsMissionsOpen] = useState(false);
+    const [isDossierOpen, setIsDossierOpen] = useState(false);
+    const [dossierTab, setDossierTab] = useState<'missions' | 'achievements'>('missions');
     const [activeTab, setActiveTab] = useState<'click' | 'auto' | 'synergy' | 'prestige'>('click');
 
 
 
     return (
         <div className="flex flex-col">
-            <div className="grid grid-cols-1 lg:grid-cols-4 min-h-[calc(100vh-6rem)] border-l border-white/10">
+            <div className="grid grid-cols-1 lg:grid-cols-4 h-auto lg:h-[calc(100vh-6rem)] overflow-hidden">
                 {/* Column 1: ARMORY (Upgrades) */}
-                <div className="order-2 lg:order-1 lg:col-span-1 bg-banan-black border-r border-white/10 flex flex-col">
+                <div className="order-2 lg:order-1 lg:col-span-1 bg-banan-black border-r border-white/10 flex flex-col h-[500px] lg:h-full overflow-hidden">
                     <GameSection
                         title="MARKETPLACE"
                         icon={Zap}
-                        className="h-full border-none p-0"
+                        className="h-full border-x-0 border-b-0 p-0"
                         headerClassName="p-4 mb-0"
                     >
                         {/* Tabs */}
@@ -70,7 +69,7 @@ export default function ClickerPage() {
                                     Aucune amélioration disponible
                                 </div>
                             ) : (
-                                availableUpgrades.filter(u => u.type === activeTab).map((item) => (
+                                availableUpgrades.filter(u => u.type === activeTab).sort((a, b) => a.cost - b.cost).map((item) => (
                                     <button
                                         key={item.id}
                                         onClick={() => buyUpgrade(item.id)}
@@ -99,9 +98,9 @@ export default function ClickerPage() {
                 {/* Column 2: CORE (The Clicker) */}
                 <div className="order-1 lg:order-2 lg:col-span-2 flex flex-col relative w-full">
                     <GameSection
-                        title="CANAL_PRINCIPAL"
+                        title=""
                         rightElement="EN LIGNE"
-                        className="h-full border-none p-0 relative banan-grid flex flex-col"
+                        className="h-full border-x-0 border-b-0 p-0 relative banan-grid flex flex-col"
                         headerClassName="p-4 mb-0 border-b border-white/10 relative z-10 bg-banan-black/80 backdrop-blur-sm"
                     >
                         <div className="flex-1 flex flex-col items-center justify-center p-8 min-h-[500px]">
@@ -119,7 +118,7 @@ export default function ClickerPage() {
                                 onClick={clickBanana}
                                 className="group relative focus:outline-none mb-8"
                             >
-                                <div className="w-64 h-64 border border-banan-primary bg-banan-primary/5 flex items-center justify-center cursor-pointer hover:bg-banan-primary hover:text-black transition-all duration-75 active:scale-95">
+                                <div className="w-[280px] h-[280px] border border-banan-primary bg-banan-primary/5 flex items-center justify-center cursor-pointer hover:bg-banan-primary hover:text-black transition-all duration-75 active:scale-95">
                                     <Banana strokeWidth={1.5} className="w-32 h-32 text-banan-primary group-hover:text-black transition-colors duration-75" />
                                 </div>
                                 {/* Corner accents */}
@@ -132,14 +131,14 @@ export default function ClickerPage() {
                             {/* Control Panel Buttons */}
                             <div className="flex gap-4">
                                 <button
-                                    onClick={() => setIsMissionsOpen(true)}
+                                    onClick={() => { setDossierTab('missions'); setIsDossierOpen(true); }}
                                     className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 hover:border-banan-primary hover:text-banan-primary transition-colors text-xs font-bold uppercase tracking-wider"
                                 >
                                     <Target className="h-4 w-4" />
                                     <span>MISSIONS</span>
                                 </button>
                                 <button
-                                    onClick={() => setIsAchievementsOpen(true)}
+                                    onClick={() => { setDossierTab('achievements'); setIsDossierOpen(true); }}
                                     className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 hover:border-banan-primary hover:text-banan-primary transition-colors text-xs font-bold uppercase tracking-wider"
                                 >
                                     <Medal className="h-4 w-4" />
@@ -167,7 +166,7 @@ export default function ClickerPage() {
                     <GameSection
                         title="LEADERBOARD"
                         icon={Trophy}
-                        className="h-full border-none p-0"
+                        className="h-full border-x-0 border-b-0 p-0"
                         headerClassName="p-4 mb-0"
                     >
                         <div className="flex-1 p-0 overflow-y-auto">
@@ -216,8 +215,7 @@ export default function ClickerPage() {
             <SessionManager />
 
             {/* Modals */}
-            <AchievementsModal isOpen={isAchievementsOpen} onClose={() => setIsAchievementsOpen(false)} />
-            <MissionsModal isOpen={isMissionsOpen} onClose={() => setIsMissionsOpen(false)} />
+            <PlayerDossierModal isOpen={isDossierOpen} onClose={() => setIsDossierOpen(false)} initialTab={dossierTab} />
         </div>
     );
 }

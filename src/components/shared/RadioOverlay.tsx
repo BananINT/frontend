@@ -1,6 +1,10 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, Music, AlertCircle, List, X, Search } from 'lucide-react';
-import audioManifest from '../../audio-manifest.json';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
+import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, Music, AlertCircle, List, Search } from 'lucide-react';
+import Modal from '@app/components/shared/Modal';
+import { motion, useAnimation } from 'framer-motion';
+
+// Use Vite's import.meta.glob to automatically map the public/audio folder
+const rawAudioFiles = import.meta.glob('/public/audio/*.{mp3,wav,ogg,flac,m4a,aac}', { eager: true, as: 'url' }) as Record<string, string>;
 
 export default function RadioOverlay() {
     const [isPlaying, setIsPlaying] = useState(false);
@@ -11,17 +15,34 @@ export default function RadioOverlay() {
     const [isListOpen, setIsListOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const audioRef = useRef<HTMLAudioElement | null>(null);
+    const containerRef = useRef<HTMLDivElement | null>(null);
+    const isInitialMount = useRef(true);
+    const controls = useAnimation();
+
+    const [corner, setCorner] = useState<'TL' | 'TR' | 'BL' | 'BR'>(() => {
+        if (typeof window !== 'undefined') {
+            const saved = localStorage.getItem('radioOverlayCorner');
+            if (saved === 'TL' || saved === 'TR' || saved === 'BL' || saved === 'BR') {
+                return saved;
+            }
+        }
+        return 'BR';
+    });
 
     // Color Constants from BananINT-Design.md
     const COLORS = {
-        primary: '#FAFF00', // Radioactive Banana
-        black: '#0B0B0B',   // Banan Black
-        carbon: '#000000',  // Deep Background
+        primary: 'var(--color-banan-primary)', // Radioactive Banana
+        black: 'var(--color-banan-black)',   // Banan Black
+        carbon: 'var(--color-banan-carbon)',  // Deep Background
         glass: 'rgba(255,255,255,0.05)',
         structure: 'rgba(255,255,255,0.1)'
     };
 
-    const tracks = audioManifest.map(filename => `/audio/${filename}`);
+    const audioManifest = useMemo(() => {
+        return Object.keys(rawAudioFiles).map(filePath => filePath.split('/').pop()!).sort();
+    }, []);
+
+    const tracks = audioManifest.map((filename: string) => `/audio/${encodeURIComponent(filename)}`);
 
     useEffect(() => {
         if (tracks.length > 0) {
@@ -105,100 +126,145 @@ export default function RadioOverlay() {
         if (isMuted) setIsMuted(false);
     };
 
+    const executeSnap = (targetCorner: 'TL' | 'TR' | 'BL' | 'BR', instant = false) => {
+        if (typeof window === 'undefined') return;
+        const width = 320;
+        const height = containerRef.current?.offsetHeight || 150;
+        
+        let targetX = 24; // left-6 -> 6 * 4 = 24px
+        let targetY = 64; // top-16 -> 16 * 4 = 64px
+        
+        if (targetCorner === 'TR') {
+            targetX = window.innerWidth - width - 24;
+        } else if (targetCorner === 'BL') {
+            targetY = window.innerHeight - height - 24;
+        } else if (targetCorner === 'BR') {
+            targetX = window.innerWidth - width - 24;
+            targetY = window.innerHeight - height - 24;
+        }
+        
+        if (instant) {
+            controls.set({ x: targetX, y: targetY });
+        } else {
+            controls.start({ 
+                x: targetX, 
+                y: targetY, 
+                transition: { type: "spring", stiffness: 200, damping: 22, mass: 0.8, bounce: 0.2 } 
+            });
+        }
+    };
+
+    const handleDragEnd = (_e: MouseEvent | TouchEvent | PointerEvent, info: any) => {
+        // info.point gives absolute page coordinates. Subtract scroll to get viewport-relative position.
+        const x = info.point.x - window.scrollX;
+        const y = info.point.y - window.scrollY;
+        const midX = window.innerWidth / 2;
+        const midY = window.innerHeight / 2;
+
+        let newCorner: 'TL' | 'TR' | 'BL' | 'BR' = 'BR';
+        if (x < midX && y < midY) newCorner = 'TL';
+        else if (x >= midX && y < midY) newCorner = 'TR';
+        else if (x < midX && y >= midY) newCorner = 'BL';
+
+        if (corner === newCorner) {
+            executeSnap(newCorner); // force resnap if corner didn't change
+        } else {
+            setCorner(newCorner);
+        }
+    };
+
     if (tracks.length === 0) return null;
 
     const currentTrackName = audioManifest[currentTrackIndex]
-        ?.replace(/\.(mp3|wav|ogg)$/i, '')
+        ?.replace(/\.(mp3|wav|ogg|flac|m4a|aac)$/i, '')
         ?.replace(/[-_]/g, ' ')
         ?.toUpperCase() || 'UNKNOWN UNIT';
 
-    const filteredManifest = audioManifest.map((name, index) => ({ name, index }))
-        .filter(item => item.name.toLowerCase().includes(searchTerm.toLowerCase()));
+    const filteredManifest = audioManifest.map((name: string, index: number) => ({ name, index }))
+        .filter((item: { name: string, index: number }) => item.name.toLowerCase().includes(searchTerm.toLowerCase()));
+
+    useEffect(() => {
+        localStorage.setItem('radioOverlayCorner', corner);
+        
+        const snap = () => executeSnap(corner);
+            
+        if (isInitialMount.current) {
+            executeSnap(corner, true);
+            isInitialMount.current = false;
+        } else {
+            snap();
+        }
+
+        window.addEventListener('resize', snap);
+        return () => window.removeEventListener('resize', snap);
+    }, [corner, controls, tracks.length]);
 
     return (
         <>
             {/* Playlist Modal */}
-            {isListOpen && (
-                <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 backdrop-blur-sm bg-black/60 font-mono">
-                    <div
-                        className="w-full max-w-2xl max-h-[80vh] border border-white/20 shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in duration-200"
-                        style={{ backgroundColor: COLORS.black }}
-                    >
-                        {/* Modal Header */}
-                        <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 bg-white/5">
-                            <div className="flex items-center gap-3">
-                                <List size={20} style={{ color: COLORS.primary }} />
-                                <h2 className="text-sm font-bold tracking-widest uppercase" style={{ color: COLORS.primary }}>
-                                    UNIT DATABASE / AUDIO_FILES
-                                </h2>
-                            </div>
-                            <button
-                                onClick={() => setIsListOpen(false)}
-                                className="p-2 hover:bg-white/10 rounded-full transition-colors text-white/60 hover:text-white"
-                            >
-                                <X size={20} />
-                            </button>
-                        </div>
-
-                        {/* Search Bar */}
-                        <div className="p-4 border-b border-white/5 bg-white/[0.02]">
-                            <div className="relative">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30" size={16} />
-                                <input
-                                    type="text"
-                                    placeholder="SEARCH UNITS..."
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                    className="w-full bg-black border border-white/10 p-2 pl-10 text-xs focus:border-yellow-500 outline-none transition-colors tracking-widest text-white/80"
-                                />
-                            </div>
-                        </div>
-
-                        {/* File List */}
-                        <div className="flex-1 overflow-y-auto p-2 banan-scrollbar custom-scroll">
-                            {filteredManifest.map((item) => (
-                                <button
-                                    key={item.index}
-                                    onClick={() => selectTrack(item.index)}
-                                    className={`w-full flex items-center justify-between p-3 mb-1 text-left text-xs transition-all border ${currentTrackIndex === item.index
-                                            ? 'bg-yellow-500/10 border-yellow-500/50 text-yellow-500'
-                                            : 'bg-white/5 border-transparent hover:border-white/20 text-white/60 hover:text-white hover:bg-white/10'
-                                        }`}
-                                >
-                                    <div className="flex items-center gap-4 flex-1 truncate">
-                                        <span className="text-[10px] opacity-30 font-bold">{String(item.index + 1).padStart(3, '0')}</span>
-                                        <span className="truncate tracking-wider truncate uppercase">
-                                            {item.name.replace(/\.(mp3|wav|ogg)$/i, '').replace(/[-_]/g, ' ')}
-                                        </span>
-                                    </div>
-                                    {currentTrackIndex === item.index && isPlaying && (
-                                        <div className="flex items-end gap-[1px] h-3">
-                                            {[1, 2, 3].map(i => (
-                                                <div key={i} className="w-[2px] bg-yellow-500 animate-pulse" style={{ height: `${Math.random() * 100}%` }}></div>
-                                            ))}
-                                        </div>
-                                    )}
-                                </button>
-                            ))}
-                            {filteredManifest.length === 0 && (
-                                <div className="text-center py-12 text-white/20 text-xs tracking-widest uppercase">
-                                    No entries found in database
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Modal Footer */}
-                        <div className="p-3 bg-white/5 border-t border-white/10 flex justify-between text-[8px] text-white/40 tracking-[0.3em] uppercase">
-                            <span>RECORDS: {audioManifest.length}</span>
-                            <span>DATABASE_SCAN_COMPLETE</span>
-                        </div>
+            <Modal isOpen={isListOpen} onClose={() => setIsListOpen(false)} title="UNIT DATABASE / AUDIO_FILES">
+                {/* Search Bar */}
+                <div className="p-4 border-b border-white/5 bg-white/[0.02]">
+                    <div className="relative">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30" size={16} />
+                        <input
+                            type="text"
+                            placeholder="SEARCH UNITS..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="w-full bg-black border border-white/10 p-2 pl-10 text-xs focus:border-banan-primary outline-none transition-colors tracking-widest text-white/80 uppercase font-mono"
+                        />
                     </div>
                 </div>
-            )}
+
+                {/* File List */}
+                <div className="flex-1 overflow-y-auto p-2 banan-scrollbar custom-scroll max-h-[50vh] min-h-[50vh] font-mono">
+                    {filteredManifest.map((item: { name: string, index: number }) => (
+                        <button
+                            key={item.index}
+                            onClick={() => selectTrack(item.index)}
+                            className={`w-full flex items-center justify-between p-3 mb-1 text-left text-xs transition-all border ${currentTrackIndex === item.index
+                                    ? 'bg-banan-primary/10 border-banan-primary/50 text-banan-primary'
+                                    : 'bg-white/5 border-transparent hover:border-white/20 text-white/60 hover:text-white hover:bg-white/10'
+                                }`}
+                        >
+                            <div className="flex items-center gap-4 flex-1 truncate">
+                                <span className="text-[10px] opacity-30 font-bold">{String(item.index + 1).padStart(3, '0')}</span>
+                                <span className="truncate tracking-wider uppercase">
+                                    {item.name.replace(/\.(mp3|wav|ogg|flac|m4a|aac)$/i, '').replace(/[-_]/g, ' ')}
+                                </span>
+                            </div>
+                            {currentTrackIndex === item.index && isPlaying && (
+                                <div className="flex items-end gap-[1px] h-3">
+                                    {[1, 2, 3].map(i => (
+                                        <div key={i} className="w-[2px] bg-banan-primary animate-pulse" style={{ height: `${Math.random() * 100}%` }}></div>
+                                    ))}
+                                </div>
+                            )}
+                        </button>
+                    ))}
+                    {filteredManifest.length === 0 && (
+                        <div className="text-center py-12 text-white/20 text-xs tracking-widest uppercase font-mono">
+                            No entries found in database
+                        </div>
+                    )}
+                </div>
+
+                {/* Modal Footer */}
+                <div className="p-3 bg-white/5 border-t border-white/10 flex justify-between text-[8px] text-white/40 tracking-[0.3em] uppercase font-mono">
+                    <span>RECORDS: {audioManifest.length}</span>
+                    <span>DATABASE_SCAN_COMPLETE</span>
+                </div>
+            </Modal>
 
             {/* Main Radio Overlay */}
-            <div
-                className="fixed bottom-6 right-6 z-[9999] border-t border-l border-white/10 shadow-2xl flex flex-col min-w-[320px] overflow-hidden select-none"
+            <motion.div
+                ref={containerRef}
+                drag
+                dragMomentum={false}
+                onDragEnd={handleDragEnd}
+                animate={controls}
+                className={`fixed top-0 left-0 z-[9999] border-t border-l border-white/10 shadow-2xl flex flex-col w-[320px] overflow-hidden select-none cursor-move`}
                 style={{ backgroundColor: COLORS.black, fontFamily: "'Space Mono', monospace" }}
             >
                 {/* Header / Brand Bar */}
@@ -211,25 +277,26 @@ export default function RadioOverlay() {
                     </div>
                     <div className="flex gap-1 items-center">
                         <button
+                            onPointerDownCapture={(e) => e.stopPropagation()}
                             onClick={() => setIsListOpen(true)}
-                            className="p-1 hover:bg-white/10 rounded transition-colors mr-1 text-white/50 hover:text-yellow-500"
+                            className="p-1 hover:bg-white/10 rounded transition-colors mr-1 text-white/50 hover:text-banan-primary"
                             title="Open Database"
                         >
                             <List size={14} />
                         </button>
                         {error && <AlertCircle size={10} className="text-red-500 animate-pulse" />}
-                        <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: isPlaying ? '#22C55E' : (error ? '#EF4444' : '#555') }}></div>
+                        <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: isPlaying ? 'var(--color-banan-green)' : (error ? 'var(--color-banan-red)' : 'var(--color-banan-gray)') }}></div>
                     </div>
                 </div>
 
                 <div className="p-4 flex flex-col gap-4">
                     {/* Track Info & Visualizer */}
                     <div className="flex items-center justify-between gap-4 h-12">
-                        <div className="flex-1 overflow-hidden" onClick={() => setIsListOpen(true)}>
-                            <div className="text-[9px] text-white/40 uppercase mb-1 cursor-pointer hover:text-yellow-500/50 transition-colors">
+                        <div className="flex-1 overflow-hidden" onClick={() => setIsListOpen(true)} onPointerDownCapture={(e) => e.stopPropagation()}>
+                            <div className="text-[9px] text-white/40 uppercase mb-1 cursor-pointer hover:text-banan-primary transition-colors">
                                 {error ? <span className="text-red-500 font-bold">SYSTEM ERROR</span> : "UNIT STREAM / CLICK TO SEARCH"}
                             </div>
-                            <div className="text-xs font-bold truncate w-full tracking-wider cursor-pointer transition-all" style={{ color: error ? '#EF4444' : COLORS.primary }}>
+                            <div className="text-xs font-bold truncate w-full tracking-wider cursor-pointer transition-all" style={{ color: error ? 'var(--color-banan-red)' : COLORS.primary }}>
                                 {error ? "RE-INITIALIZATION REQUIRED" : currentTrackName}
                             </div>
                         </div>
@@ -240,7 +307,7 @@ export default function RadioOverlay() {
                                     key={i}
                                     className="flex-1 transition-all duration-300"
                                     style={{
-                                        backgroundColor: error ? '#444' : COLORS.primary,
+                                        backgroundColor: error ? 'var(--color-banan-gray)' : COLORS.primary,
                                         height: isPlaying ? `${Math.random() * 80 + 20}%` : '10%',
                                         animation: isPlaying ? `radio-bounce ${0.3 + Math.random() * 0.5}s infinite alternate` : 'none'
                                     }}
@@ -250,7 +317,7 @@ export default function RadioOverlay() {
                     </div>
 
                     {/* Controls Bar */}
-                    <div className="flex items-center justify-between gap-4">
+                    <div className="flex items-center justify-between gap-4" onPointerDownCapture={(e) => e.stopPropagation()}>
                         <div className="flex items-center gap-1">
                             <button
                                 onClick={handlePrev}
@@ -309,7 +376,7 @@ export default function RadioOverlay() {
                     <span>{isPlaying ? 'STREAMING' : 'STANDBY'}</span>
                     <span>FAC-ID-022</span>
                 </div>
-            </div>
+            </motion.div>
 
             <style>
                 {`

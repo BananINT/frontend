@@ -3,127 +3,127 @@ type WebSocketMessage = {
     data: any;
 };
 
-type WebSocketHandler = (data: any) => void;
-
 class WebSocketManager {
     private socket: WebSocket | null = null;
     private url: string;
-    private handlers: Map<string, WebSocketHandler[]> = new Map();
-    private reconnectInterval: number = 3000;
-    private isConnecting: boolean = false;
-    private isManuallyClosed: boolean = false;
+    private listeners = new Set<(message: WebSocketMessage) => void>();
+    private reconnectInterval = 3000;
     private connectResolvers: (() => void)[] = [];
+    private currentToken: string | null = null;
+    private currentUserId: string | null = null;
+    private sequenceIdx = 0;
 
     constructor() {
-        // Construct WebSocket URL based on current window location
         const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-
-        this.url = `${proto}//${window.location.host}/api/websocket/ws`;
+        this.url = `${proto}//${window.location.host}/api/ws`;
     }
 
-    connect(sessionId: string) {
-        this.isManuallyClosed = false;
-        if (this.socket?.readyState === WebSocket.OPEN) {
-            // Already connected, ensure we resolve pending waiters if any (though usually empty)
-            this.resolveWaiters();
-            return;
+    setToken(token: string | null) {
+        this.currentToken = token;
+    }
+
+    connect(userId: string) {
+        if (this.currentUserId === userId && this.socket) {
+            if (this.socket.readyState === WebSocket.OPEN) this.resolveWaiters();
+            if (this.socket.readyState !== WebSocket.CLOSED) return;
         }
-        if (this.isConnecting) return;
 
-        this.isConnecting = true;
-        const wsUrl = `${this.url}/${sessionId}`;
+        this.currentUserId = userId;
+        this.sequenceIdx = 0; // Reset sequence on new connection
+        this.disconnect(true);
 
-        console.log('Connecting to WebSocket:', wsUrl);
-        const socket = new WebSocket(wsUrl);
+        const wsUrl = `${this.url}/${userId}`;
+        const protocols: string[] = ['bananint'];
+        
+        if (this.currentToken) {
+            protocols.push(`bearer.${btoa(this.currentToken).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '')}`);
+        }
+
+        const socket = new WebSocket(wsUrl, protocols);
         this.socket = socket;
 
+        console.log('[WS] Connecting:', wsUrl);
+
         socket.onopen = () => {
-            if (this.socket !== socket) return;
-            console.log('WebSocket connected');
-            this.isConnecting = false;
+            if (socket !== this.socket) return;
+            console.log('[WS] Connected');
             this.resolveWaiters();
         };
 
         socket.onmessage = (event) => {
-            if (this.socket !== socket) return;
+            if (socket !== this.socket) return;
             try {
                 const message: WebSocketMessage = JSON.parse(event.data);
-                this.handleMessage(message);
+                if (message.type === 'ping') {
+                    socket.send(JSON.stringify({ type: 'pong' }));
+                } else {
+                    this.listeners.forEach(listener => listener(message));
+                }
             } catch (e) {
-                console.error('Failed to parse WebSocket message', e);
+                console.error('[WS] Failed to parse message', e);
             }
         };
 
-        socket.onclose = () => {
-            // Only old socket disconnecting message if mismatched
-            if (this.socket !== socket) return;
-            console.log('WebSocket disconnected');
-            this.isConnecting = false;
+        socket.onclose = (event) => {
+            if (socket !== this.socket) return;
+            console.log(`[WS] Closed (code: ${event.code})`);
             this.socket = null;
-            // Auto reconnect if not manually closed
-            if (!this.isManuallyClosed) {
-                setTimeout(() => this.connect(sessionId), this.reconnectInterval);
+
+            if (event.code === 4003 || event.code === 4001) {
+                console.error('[WS] Fatal close (Duplicate/Auth) — not reconnecting.');
+                return;
             }
+
+            console.log(`[WS] Reconnecting in ${this.reconnectInterval}ms…`);
+            setTimeout(() => {
+                if (!this.socket && this.currentUserId) this.connect(this.currentUserId);
+            }, this.reconnectInterval);
         };
 
         socket.onerror = (error) => {
-            if (this.socket !== socket) return;
-            console.error('WebSocket error:', error);
-            this.isConnecting = false;
+            if (socket !== this.socket) return;
+            console.error('[WS] Error:', error);
         };
     }
 
-    disconnect() {
-        this.isManuallyClosed = true;
-        this.isConnecting = false;
+    disconnect(internal = false) {
         if (this.socket) {
             this.socket.close();
             this.socket = null;
         }
+        if (!internal) {
+            this.connectResolvers = [];
+            this.currentUserId = null;
+            console.log('[WS] Disconnected by caller.');
+        }
     }
 
     private resolveWaiters() {
-        this.connectResolvers.forEach(r => r());
+        this.connectResolvers.forEach(resolve => resolve());
         this.connectResolvers = [];
     }
 
     waitForConnection(): Promise<void> {
-        if (this.socket?.readyState === WebSocket.OPEN) {
-            return Promise.resolve();
-        }
-        return new Promise(resolve => {
-            this.connectResolvers.push(resolve);
-        });
+        if (this.socket?.readyState === WebSocket.OPEN) return Promise.resolve();
+        return new Promise(resolve => this.connectResolvers.push(resolve));
     }
 
     send(type: string, data: any) {
         if (this.socket?.readyState === WebSocket.OPEN) {
-            this.socket.send(JSON.stringify({ type, ...data }));
+            this.sequenceIdx++;
+            this.socket.send(JSON.stringify({ type, seq: this.sequenceIdx, ...data }));
         } else {
-            console.warn('Socket not open, processing send:', type);
-            // Optionally queue? For now just warn.
+            console.warn('[WS] Socket not open, dropping message:', type);
         }
     }
 
-    on(type: string, handler: WebSocketHandler) {
-        if (!this.handlers.has(type)) {
-            this.handlers.set(type, []);
-        }
-        this.handlers.get(type)?.push(handler);
+    subscribe(listener: (message: WebSocketMessage) => void) {
+        this.listeners.add(listener);
+        return () => this.listeners.delete(listener);
     }
 
-    off(type: string, handler: WebSocketHandler) {
-        const typeHandlers = this.handlers.get(type);
-        if (typeHandlers) {
-            this.handlers.set(type, typeHandlers.filter(h => h !== handler));
-        }
-    }
-
-    private handleMessage(message: WebSocketMessage) {
-        const typeHandlers = this.handlers.get(message.type);
-        if (typeHandlers) {
-            typeHandlers.forEach(handler => handler(message.data !== undefined ? message.data : message));
-        }
+    unsubscribe(listener: (message: WebSocketMessage) => void) {
+        this.listeners.delete(listener);
     }
 }
 

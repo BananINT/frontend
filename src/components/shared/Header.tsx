@@ -1,30 +1,21 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Banana, Home, Calendar, Menu, X, LogIn, LogOut } from 'lucide-react';
+import { Banana, Home, Calendar, Menu, X, LogIn, LogOut, Clock, Dices } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@app/lib/utils';
 import { useAuth } from '@app/context/AuthContext';
-import { THEMES, setTheme, getCurrentTheme } from '@app/lib/theme';
-import { Palette } from 'lucide-react';
 
 export default function Header() {
     const { authenticated, username, login, logout } = useAuth();
     const location = useLocation();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-    const [theme, setThemeState] = useState(getCurrentTheme());
-
-    const cycleTheme = () => {
-        const currentIndex = THEMES.indexOf(theme);
-        const nextIndex = (currentIndex + 1) % THEMES.length;
-        const nextTheme = THEMES[nextIndex];
-        setTheme(nextTheme);
-        setThemeState(nextTheme);
-    };
 
     const navItems = [
         { label: 'Accueil', path: '/', icon: Home },
         { label: 'Clicker', path: '/clicker', icon: Banana },
+        { label: 'Casino', path: '/casino', icon: Dices },
         { label: 'Bananée', path: '/bananee', icon: Calendar },
+        { label: 'Timeline', path: '/timeline', icon: Clock },
     ];
 
     return (
@@ -54,15 +45,6 @@ export default function Header() {
                         );
                     })}
                     
-                    {/* Theme Switcher */}
-                    <button 
-                        onClick={cycleTheme}
-                        className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest transition-all duration-200 border-b-2 border-transparent hover:border-black opacity-60 hover:opacity-100"
-                        title={`Cycle Theme (Current: ${theme})`}
-                    >
-                        <Palette className="h-3 w-3" />
-                        <span>Style: {theme}</span>
-                    </button>
 
                     {/* Auth Toggle */}
                     {authenticated ? (

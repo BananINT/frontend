@@ -22,7 +22,7 @@ export default function Aurora({ children, className }: AuroraProps) {
             />
 
             {/* Scanline Effect overlay for texture */}
-            <div className="absolute inset-0 z-0 opacity-10 pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
+            <div className="absolute inset-0 z-0 opacity-10 pointer-events-none bg-[url('/img/noise.svg')]" />
 
             <div className="relative z-10 w-full h-full">
                 {children}

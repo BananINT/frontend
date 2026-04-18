@@ -9,19 +9,19 @@ export default function SessionManager() {
     const [selectedTeam, setSelectedTeam] = useState('ÉQUIPE_ALPHA');
 
     useEffect(() => {
-        if (gameState.session_name) {
-            setLocalName(gameState.session_name);
+        if (gameState.username) {
+            setLocalName(gameState.username);
         } else if (gameState.userId) {
-            setLocalName(`OPERATOR_${gameState.userId.substring(0, 4)}`);
+            setLocalName(`BANANIER_${gameState.userId.substring(0, 4)}`);
         }
         
         if (gameState.team) {
             setSelectedTeam(gameState.team);
         }
-    }, [gameState.session_name, gameState.userId, gameState.team]);
+    }, [gameState.username, gameState.userId, gameState.team]);
 
     const handleSaveName = () => {
-        if (localName && localName !== gameState.session_name) {
+        if (localName && localName !== gameState.username) {
             changeName(localName);
         }
     };
@@ -33,13 +33,13 @@ export default function SessionManager() {
     };
 
     return (
-        <GameSection title="OPERATOR" icon={Users}>
+        <GameSection title="BANANIER" icon={Users}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {/* Session ID Section */}
                 <div className="flex flex-col gap-2">
                     <label className="text-[10px] font-mono text-white/50 uppercase tracking-widest flex items-center gap-2">
                         <Fingerprint className="h-3 w-3" />
-                        IDENTITÉ D'OPÉRATEUR
+                        IDENTITÉ DE BANANIER
                     </label>
                     <div className="flex gap-2">
                         <input
@@ -52,7 +52,7 @@ export default function SessionManager() {
                         />
                         <button
                             onClick={handleSaveName}
-                            disabled={localName === gameState.session_name || localName.trim().length < 3}
+                            disabled={localName === gameState.username || localName.trim().length < 3}
                             className="bg-banan-primary text-black px-4 py-2 text-xs font-bold uppercase tracking-wider hover:bg-white hover:text-black transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                         >
                             <Save className="h-3 w-3" />
@@ -114,7 +114,7 @@ export default function SessionManager() {
                                 {gameState.team_members && gameState.team_members.map((member, i) => (
                                     <div key={member.id} className="flex items-center justify-between text-xs font-mono group">
                                         <div className="flex items-center gap-2">
-                                            <div className={`w-1.5 h-1.5 rounded-full ${i === 0 ? 'bg-banan-primary shadow-[0_0_5px_rgba(250,255,0,0.5)]' : 'bg-green-500 shadow-[0_0_5px_rgba(34,197,94,0.5)]'}`} />
+                                            <div className={`w-1.5 h-1.5 ${i === 0 ? 'bg-banan-primary shadow-[0_0_5px_var(--color-banan-primary)]' : 'bg-banan-green shadow-[0_0_5px_var(--color-banan-green)]'}`} />
                                             <span className="text-white/70 group-hover:text-white transition-colors">
                                                 {member.name} {member.id === gameState.userId && <span className="opacity-50">(VOUS)</span>}
                                             </span>

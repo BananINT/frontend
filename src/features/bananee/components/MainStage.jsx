@@ -1,5 +1,4 @@
 import React, { useEffect, useState, useRef } from 'react'
-import CursorTrail from './CursorTrail'
 import BananaRain from './BananaRain'
 import MonolithCam from './MonolithCam'
 import SlipOMeter from './SlipOMeter'
@@ -248,8 +247,6 @@ export default function MainStage() {
 
   return (
     <>
-      <CursorTrail />
-
       {/* --- MIDNIGHT SEQUENCE --- */}
       {((0 < midnightPhase) && (midnightPhase < 4)) && (
         <div className="absolute inset-0 z-[100] bg-black overflow-hidden flex items-center justify-center select-none touch-none">

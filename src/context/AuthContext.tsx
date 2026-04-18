@@ -1,10 +1,12 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import keycloak from '@app/lib/keycloak';
+import { setTheme } from '@app/lib/theme';
 
 interface AuthContextType {
   authenticated: boolean;
   username: string | null;
   token: string | null;
+  userId: string | null;
   login: () => void;
   logout: () => void;
   loading: boolean;
@@ -18,28 +20,47 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [authenticated, setAuthenticated] = useState(false);
   const [username, setUsername] = useState<string | null>(null);
   const [token, setToken] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (isRun) return;
     isRun = true;
     
+    let refreshInterval: any;
+
     const initKeycloak = async () => {
       // Prevent infinite iframe recursion if check-sso hits the Vite fallback proxy
       if (window !== window.parent) {
+        setLoading(false);
         return; 
       }
 
       try {
-        const authenticated = await keycloak.init({
+        keycloak.onTokenExpired = () => {
+          keycloak.updateToken(30).catch(() => {
+            console.error('Failed to refresh token on expiry');
+            setAuthenticated(false);
+            setToken(null);
+            setTheme('default');
+          });
+        };
+
+        keycloak.onAuthRefreshSuccess = () => {
+          setToken(keycloak.token || null);
+        };
+
+        const auth = await keycloak.init({
           onLoad: 'check-sso',
           silentCheckSsoRedirectUri: window.location.origin + '/silent-check-sso.html',
           pkceMethod: 'S256',
+          checkLoginIframe: false,
         });
 
-        setAuthenticated(authenticated);
-        if (authenticated) {
+        setAuthenticated(auth);
+        if (auth) {
           setToken(keycloak.token || null);
+          setUserId(keycloak.subject || null);
           
           let displayName = keycloak.tokenParsed?.name;
           if (!displayName && (keycloak.tokenParsed?.given_name || keycloak.tokenParsed?.family_name)) {
@@ -50,6 +71,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           }
           
           setUsername(displayName || null);
+
+          // Proactively refresh token every minute
+          refreshInterval = setInterval(() => {
+            keycloak.updateToken(70).then((refreshed) => {
+              if (refreshed) {
+                setToken(keycloak.token || null);
+              }
+            }).catch((err) => {
+              console.error("Token refresh failed", err);
+            });
+          }, 60000);
         }
       } catch (error) {
         console.error('Failed to initialize Keycloak', error);
@@ -60,14 +92,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     initKeycloak();
     
-    // Note: Do not reset isRun = false here because Strict Mode unmounts and remounts instantly
+    return () => {
+      if (refreshInterval) clearInterval(refreshInterval);
+    };
   }, []);
 
   const login = () => keycloak.login();
-  const logout = () => keycloak.logout();
+  const logout = () => {
+    setTheme('default');
+    keycloak.logout();
+  };
 
   return (
-    <AuthContext.Provider value={{ authenticated, username, token, login, logout, loading }}>
+    <AuthContext.Provider value={{ authenticated, username, userId, token, login, logout, loading }}>
       {children}
     </AuthContext.Provider>
   );

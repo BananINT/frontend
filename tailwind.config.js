@@ -7,11 +7,6 @@ export default {
     theme: {
         extend: {
             colors: {
-                banan: {
-                    primary: '#FAFF00', // Hyper Potassium (Fixed)
-                    black: '#0B0B0B',
-                    carbon: '#000000',
-                }
             },
             fontFamily: {
                 sans: ['Syne', 'sans-serif'],

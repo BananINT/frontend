@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { useAuth } from './AuthContext';
 import type { ReactNode } from 'react';
 import { socketManager } from '@app/lib/socket';
+import { api } from '@app/lib/api';
 import Modal from '@app/components/shared/Modal';
 import BananLoader from '@app/components/shared/BananLoader';
 import { useInterval } from '@app/hooks/useInterval';
@@ -20,18 +21,19 @@ export interface GameState {
   autoClickers: number;
   clickValue: number;
   userId: string;
-  session_name: string | null;
+  username: string | null;
   team: string | null;
   team_members?: { id: string; name: string; role: string }[];
   unlockedAchievements: string[];
   missionProgress: Record<string, { progress: number; completed: boolean }>; // Kept for UI compatibility, even if not fully synced
-  stocks: Record<string, number>;
+  stocks: Record<string, { shares: number, averageBuyPrice: number }>;
   prestigeCount: number;
   banana_dna: number; // Added from backend
   leaderboard_rank?: number;
   leaderboard: LeaderboardEntry[];
-  marketHistory: Record<string, any[]>;
   marketData: any[];
+  ownedThemes: string[];
+  missions: any[];
 }
 
 export interface Upgrade {
@@ -40,7 +42,6 @@ export interface Upgrade {
   cost: number;
   value: number;
   type: 'click' | 'auto' | 'synergy' | 'prestige';
-  icon?: any;
   desc?: string;
   owned: number;
 }
@@ -54,9 +55,11 @@ interface GameContextType {
   setUserId: (id: string) => void;
   changeName: (name: string) => void;
   joinTeam: (teamId: string) => void;
-  claimMission: (missionId: string, reward: number) => void;
-  buyStock: (symbol: string, quantity: number) => Promise<boolean>;
-  sellStock: (symbol: string, quantity: number) => Promise<boolean>;
+  claimMission: (missionId: string) => void;
+  buyStock: (symbol: string, quantity: number, maxPrice?: number) => Promise<boolean>;
+  sellStock: (symbol: string, quantity: number, minPrice?: number) => Promise<boolean>;
+  buyTheme: (themeId: string) => Promise<boolean>;
+  getMissions: () => void;
 }
 
 const defaultState: GameState = {
@@ -65,7 +68,7 @@ const defaultState: GameState = {
   autoClickers: 0,
   clickValue: 1,
   userId: '',
-  session_name: null,
+  username: null,
   team: null,
   unlockedAchievements: [],
   missionProgress: {},
@@ -73,8 +76,9 @@ const defaultState: GameState = {
   prestigeCount: 0,
   banana_dna: 0,
   leaderboard: [],
-  marketHistory: {},
-  marketData: []
+  marketData: [],
+  ownedThemes: ['default'],
+  missions: []
 };
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -87,54 +91,56 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
   const pendingClicks = useRef(0);
   const lastServerState = useRef<Partial<GameState>>({});
 
-  const { authenticated, token, loading: authLoading } = useAuth();
+  const { authenticated, token, userId, loading: authLoading } = useAuth();
 
-  // Initialize Game & Handle Auth Sync
+  // Single effect that manages the WebSocket lifecycle.
+  // Rules:
+  //  - Wait until Keycloak has resolved (authLoading === false).
+  //  - Set the token first so it's baked into the handshake subprotocol.
+  //  - Call connect() exactly once per resolved auth state; the manager's
+  //    generation counter absorbs any React Strict-Mode double-invoke.
+  //  - Do NOT call disconnect() in the cleanup — GameProvider wraps the whole
+  //    app and is never unmounted in production, so cleanup only fires during
+  //    Strict-Mode's dev double-invoke and would tear down a healthy socket.
+  const connectedRef = useRef(false);
+
   useEffect(() => {
     if (authLoading) return;
-    let isMounted = true;
+    if (!authenticated || !userId) {
+      setIsLoading(false); // Let the UI decide what to show (e.g., login prompt)
+      return;
+    }
 
-    const initConnection = async () => {
-      let storedId = localStorage.getItem('bananaId');
+    socketManager.setToken(token);
 
-      if (!storedId) {
-        storedId = crypto.randomUUID();
-        localStorage.setItem('bananaId', storedId);
-      }
+    // Guard against Strict-Mode's deliberate double-fire.
+    if (!connectedRef.current) {
+      connectedRef.current = true;
+      socketManager.connect(userId);
+    }
 
-      try {
-        socketManager.connect(storedId);
-        await socketManager.waitForConnection();
-        
-        if (!isMounted) return;
-
-        // If authenticated, we use 'authenticate' which implicitly inits
-        // If not, we use 'init_session'
-        if (authenticated && token) {
-          socketManager.send('authenticate', { token });
-        } else {
-          socketManager.send('init_session', { sessionId: storedId });
-        }
-      } catch (error) {
-        if (!isMounted) return;
-        console.error("Failed to connect socket:", error);
-        setIsLoading(false);
-      }
-    };
-
-    initConnection();
+    // Always send init_game once the socket opens.
+    socketManager.waitForConnection().then(() => {
+      socketManager.send('init_game', { userId: userId });
+    });
 
     return () => {
-      isMounted = false;
-      socketManager.disconnect();
+      socketManager.disconnect(true);
+      connectedRef.current = false;
     };
-  }, [authLoading, authenticated, token]);
+  }, [authLoading, authenticated, userId, token]);
+
+  // When the token rotates (Keycloak silent refresh), keep the manager in sync
+  // so that the next reconnect uses the fresh token.
+  useEffect(() => {
+    if (!authLoading) socketManager.setToken(token);
+  }, [token, authLoading]);
 
   // Socket Listeners
   useEffect(() => {
     const handleInitSuccess = (response: any) => {
       // socket.ts unwraps message.data, so response IS the data object
-      const { sessionId, gameState: serverState, upgrades, achievements, leaderboard } = response;
+      const { userId, gameState: serverState, upgrades, achievements, leaderboard } = response;
 
       // Map backend state to frontend state
       const mappedState: GameState = {
@@ -142,8 +148,8 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
         clickCount: serverState.total_clicks,
         autoClickers: serverState.bananas_per_second,
         clickValue: serverState.bananas_per_click,
-        userId: sessionId,
-        session_name: serverState.session_name || null,
+        userId: userId,
+        username: serverState.username || null,
         team: serverState.team || null,
         unlockedAchievements: achievements.map((a: any) => a.achievement_id),
         missionProgress: {}, // Will implement later with backend
@@ -151,8 +157,8 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
         prestigeCount: serverState.prestige_count || 0,
         banana_dna: serverState.banana_dna || 0,
         leaderboard: leaderboard || [],
-        marketHistory: {}, // Initial synced state
-        marketData: []
+        marketData: [],
+        ownedThemes: serverState.owned_themes?.split(',') || ['default']
       };
 
       lastServerState.current = mappedState;
@@ -173,6 +179,14 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
       // Also trigger an immediate sync to get latest portfolio/passive/etc
       socketManager.send('sync', { pendingClicks: 0 });
 
+      // Fetch initial market data via REST API as requested
+      api.get('/market/stocks').then(res => {
+        setGameState(prev => ({
+          ...prev,
+          marketData: res.data
+        }));
+      }).catch(err => console.error("Failed to fetch initial market data:", err));
+
       setIsLoading(false);
     };
 
@@ -182,15 +196,19 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
       setGameState(prev => {
         const newState = {
           ...prev,
-          bananas: Math.max(prev.bananas, data.bananas),
+          bananas: data.bananas,
           clickValue: data.bananasPerClick,
           autoClickers: data.bananasPerSecond,
-          clickCount: data.totalClicks,
-          session_name: data.session_name || prev.session_name,
-          team: data.team || prev.team,
-          team_members: data.team_members || prev.team_members,
-          stocks: data.stocks || prev.stocks
+          stocks: data.stocks,
+          ownedThemes: data.ownedThemes || prev.ownedThemes,
+          clickCount: data.totalClicks || prev.clickCount
         };
+        
+        if (data.newlyCompletedMissions && data.newlyCompletedMissions.length > 0) {
+          // You could trigger a global notification here if desired
+          console.log("Missions completed!", data.newlyCompletedMissions);
+        }
+
         lastServerState.current = newState;
         return newState;
       });
@@ -203,36 +221,47 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
       }));
     };
 
-    const handleMarketHistory = (response: any) => {
-      if (!response) return;
 
-      setGameState(prev => ({
-        ...prev,
-        marketHistory: {
-          ...prev.marketHistory,
-          ...response
-        }
-      }));
-    };
 
-    const handleMarketData = (data: any) => {
+
+    const handleMarketUpdate = (data: any) => {
       if (!data || !data.stocks) return;
-      setGameState(prev => ({
-        ...prev,
-        marketData: data.stocks
-      }));
+      
+      setGameState(prev => {
+        const updatedStocks = [...prev.marketData];
+        let hasChanges = false;
+
+        data.stocks.forEach((update: any) => {
+          const index = updatedStocks.findIndex(s => s.symbol === update.symbol);
+          if (index !== -1) {
+            updatedStocks[index] = {
+              ...updatedStocks[index],
+              current_price: update.current_price,
+              change_24h: update.change,
+              day_high: update.high,
+              day_low: update.low,
+              // Update with candle if provided (useful for charts)
+              lastCandle: update.candle 
+            };
+            hasChanges = true;
+          }
+        });
+
+        if (!hasChanges) return prev;
+        return { ...prev, marketData: updatedStocks };
+      });
     };
 
-    socketManager.on('init_success', handleInitSuccess);
+    // (Removed direct socketManager.on('init_success') here as it is moved to the switch case below)
 
     const handleAuthSuccess = (response: any) => {
       const { gameState } = response;
-      if (gameState && gameState.sessionId) {
+      if (gameState && gameState.userId) {
         setGameState(prev => ({
           ...prev,
-          userId: gameState.sessionId
+          userId: gameState.userId
         }));
-        localStorage.setItem('bananaId', gameState.sessionId);
+        localStorage.setItem('userId', gameState.userId);
       }
       
       if (gameState) {
@@ -240,7 +269,7 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
       }
     };
     
-    socketManager.on('auth_success', handleAuthSuccess);
+    // (Removed direct socketManager.on('auth_success') here as it is moved to the switch case below)
 
     const handleUpgradeSuccess = (response: any) => {
       const payload = response;
@@ -283,7 +312,10 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
           ...prev,
           stocks: {
             ...prev.stocks,
-            [data.symbol]: data.shares
+            [data.symbol]: {
+                shares: data.shares || 0,
+                averageBuyPrice: data.averageBuyPrice || prev.stocks[data.symbol]?.averageBuyPrice || 0
+            }
           }
         }));
       }
@@ -293,36 +325,72 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
       if (data && data.name) {
         setGameState(prev => ({
           ...prev,
-          session_name: data.name
+          username: data.name
         }));
       }
     };
 
     const handleError = (data: any) => {
-      if (data && data.message) setErrorMessage(data.message);
+      if (data && data.message) {
+        // If it's an auth error, don't show the modal, try to refresh instead
+        if (data.message.toLowerCase().includes('auth failed') || data.message.toLowerCase().includes('token expired')) {
+          console.log("Auth error detected in WebSocket, attempting refresh...");
+          // AuthContext handles renewal via periodic sync and token change listeners,
+          // so we just log it here.
+          return;
+        }
+        setErrorMessage(data.message);
+      }
     };
 
-    socketManager.on('game_update', handleGameUpdate);
-    socketManager.on('purchase_success', handleUpgradeSuccess);
-    socketManager.on('trade_success', handleTradeSuccess);
-    socketManager.on('portfolio_update', handlePortfolioUpdate);
-    socketManager.on('leaderboard_update', handleLeaderboardUpdate);
-    socketManager.on('market_history', handleMarketHistory);
-    socketManager.on('market_data_response', handleMarketData);
-    socketManager.on('name_change_success', handleNameChangeSuccess);
-    socketManager.on('error', handleError);
+    const handleMessage = (message: any) => {
+      if (!message || !message.type) return;
+      const data = message.data !== undefined ? message.data : message;
+
+      switch (message.type) {
+        case 'init_success':
+          handleInitSuccess(data);
+          break;
+        case 'auth_success':
+          handleAuthSuccess(data);
+          break;
+        case 'game_update':
+          handleGameUpdate(data);
+          break;
+        case 'purchase_success':
+          handleUpgradeSuccess(data);
+          break;
+        case 'trade_success':
+          handleTradeSuccess(data);
+          break;
+        case 'portfolio_update':
+          handlePortfolioUpdate(data);
+          break;
+        case 'leaderboard_update':
+          handleLeaderboardUpdate(data);
+          break;
+        case 'market_update':
+          handleMarketUpdate(data);
+          break;
+        case 'name_change_success':
+          handleNameChangeSuccess(data);
+          break;
+        case 'missions_state':
+          setGameState(prev => ({ ...prev, missions: data }));
+          break;
+        case 'mission_claimed':
+          setErrorMessage(`MISSION RÉUSSIE ! +${data.reward} 🍌`);
+          break;
+        case 'error':
+          handleError(data);
+          break;
+      }
+    };
+
+    socketManager.subscribe(handleMessage);
 
     return () => {
-      socketManager.off('game_update', handleGameUpdate);
-      socketManager.off('purchase_success', handleUpgradeSuccess);
-      socketManager.off('trade_success', handleTradeSuccess);
-      socketManager.off('portfolio_update', handlePortfolioUpdate);
-      socketManager.off('leaderboard_update', handleLeaderboardUpdate);
-      socketManager.off('market_history', handleMarketHistory);
-      socketManager.off('market_data_response', handleMarketData);
-      socketManager.off('auth_success', handleAuthSuccess);
-      socketManager.off('name_change_success', handleNameChangeSuccess);
-      socketManager.off('error', handleError);
+      socketManager.unsubscribe(handleMessage);
     };
   }, [authLoading]);
 
@@ -354,7 +422,7 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
 
   const setUserId = (newId: string) => {
     // Reload to re-init with new ID
-    localStorage.setItem('bananaId', newId);
+    localStorage.setItem('userId', newId);
     window.location.reload();
   };
 
@@ -367,17 +435,21 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
     setGameState(prev => ({ ...prev, team: teamId }));
   };
 
-  const claimMission = (missionId: string, reward: number) => {
-    socketManager.send('claim_mission', { missionId, reward });
+  const claimMission = (missionId: string) => {
+    socketManager.send('claim_mission', { missionId });
   };
 
-  const buyStock = async (symbol: string, quantity: number): Promise<boolean> => {
-    socketManager.send('buy_stock', { symbol, shares: quantity });
+  const getMissions = () => {
+    socketManager.send('get_missions', {});
+  };
+
+  const buyStock = async (symbol: string, quantity: number, maxPrice?: number): Promise<boolean> => {
+    socketManager.send('buy_stock', { symbol, shares: quantity, maxPrice });
     return true;
   };
 
-  const sellStock = async (symbol: string, quantity: number): Promise<boolean> => {
-    socketManager.send('sell_stock', { symbol, shares: quantity });
+  const sellStock = async (symbol: string, quantity: number, minPrice?: number): Promise<boolean> => {
+    socketManager.send('sell_stock', { symbol, shares: quantity, minPrice });
     return true;
   };
 
@@ -393,7 +465,12 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
       joinTeam,
       claimMission,
       buyStock,
-      sellStock
+      sellStock,
+      buyTheme: async (themeId: string) => {
+        socketManager.send('buy_theme', { themeId });
+        return true;
+      },
+      getMissions
     }}>
       {isLoading ? (
         <BananLoader message="IMPORTING_GAME..." />

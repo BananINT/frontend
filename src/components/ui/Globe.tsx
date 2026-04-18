@@ -29,7 +29,7 @@ const getGlobeConfig = () => ({
     showAtmosphere: true,
     atmosphereColor: getCssVar('--banan-primary', "#FAFF00"),
     atmosphereAltitude: 0.15,
-    emissive: getCssVar('--banan-carbon', "#000000"),
+    emissive: "#000000",
     emissiveIntensity: 0.1,
     shininess: 0.9,
     polygonColor: `rgba(${getCssVar('--banan-primary-rgb', '250, 255, 0')}, 0.5)`, // Semi-transparent yellow
@@ -47,10 +47,11 @@ const getGlobeConfig = () => ({
 });
 
 // Less flashy / less saturated colors as requested
-const COLORS = ["#E8E8A6", "#E0E0E0", "#98D6AA"]; // Desaturated Yellow, Off-White, Desaturated Green
+// Fallback colors
+const COLORS_BASE = ["#E8E8A6", "#E0E0E0", "#98D6AA"]; // Desaturated Yellow, Off-White, Desaturated Green
 
 // Arc Data
-const ARC_DATA: ArcData[] = [
+const ARC_DATA_BASE: ArcData[] = [
     { order: 1, startLat: -19.885592, startLng: -43.951191, endLat: -22.9068, endLng: -43.1729, arcAlt: 0.1 },
     { order: 1, startLat: 28.6139, startLng: 77.209, endLat: 3.139, endLng: 101.6869, arcAlt: 0.2 },
     { order: 1, startLat: -19.885592, startLng: -43.951191, endLat: -1.303396, endLng: 36.852443, arcAlt: 0.5 },
@@ -91,10 +92,7 @@ const ARC_DATA: ArcData[] = [
     { order: 13, startLat: 11.986597, startLng: 8.571831, endLat: 35.6762, endLng: 139.6503, arcAlt: 0.3 },
     { order: 13, startLat: -22.9068, startLng: -43.1729, endLat: -34.6037, endLng: -58.3816, arcAlt: 0.1 },
     { order: 14, startLat: -33.936138, startLng: 18.436529, endLat: 21.395643, endLng: 39.883798, arcAlt: 0.3 },
-].map(arc => ({
-    ...arc,
-    color: COLORS[Math.floor(Math.random() * COLORS.length)]
-}));
+];
 
 function genRandomNumbers(min: number, max: number, count: number) {
     const arr: number[] = [];
@@ -164,6 +162,18 @@ export default function Globe() {
             cameraRef.current = camera;
 
             const GLOBE_CONFIG = getGlobeConfig();
+
+            // Resolve themed colors for arcs
+            const COLORS = [
+                getCssVar('--banan-primary', COLORS_BASE[0]),
+                getCssVar('--banan-white', COLORS_BASE[1]),
+                getCssVar('--banan-green', COLORS_BASE[2])
+            ];
+
+            const ARC_DATA = ARC_DATA_BASE.map(arc => ({
+                ...arc,
+                color: COLORS[Math.floor(Math.random() * COLORS.length)]
+            }));
 
             const controls = new OrbitControls(camera, renderer.domElement);
             controls.enableDamping = true;

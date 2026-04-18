@@ -5,11 +5,12 @@ import { AnimatePresence, motion } from 'framer-motion';
 interface ModalProps {
     isOpen: boolean;
     onClose: () => void;
-    title: string;
+    title: React.ReactNode;
     children: React.ReactNode;
+    borderColor?: string;
 }
 
-export default function Modal({ isOpen, onClose, title, children }: ModalProps) {
+export default function Modal({ isOpen, onClose, title, children, borderColor = 'border-banan-primary' }: ModalProps) {
     useEffect(() => {
         const handleEsc = (e: KeyboardEvent) => {
             if (e.key === 'Escape') onClose();
@@ -17,6 +18,19 @@ export default function Modal({ isOpen, onClose, title, children }: ModalProps) 
         window.addEventListener('keydown', handleEsc);
         return () => window.removeEventListener('keydown', handleEsc);
     }, [onClose]);
+
+    const textColors: Record<string, string> = {
+        'border-banan-primary': 'text-banan-primary',
+        'border-banan-cyber': 'text-banan-cyber',
+        'border-banan-osint': 'text-banan-osint',
+        'border-banan-algo': 'text-banan-algo',
+        'border-banan-market': 'text-banan-market',
+        'border-banan-warning': 'text-banan-warning',
+        'border-banan-reward': 'text-banan-reward',
+        'border-banan-shop': 'text-banan-shop',
+    };
+
+    const textColor = textColors[borderColor] || 'text-banan-primary';
 
     return (
         <AnimatePresence>
@@ -34,10 +48,10 @@ export default function Modal({ isOpen, onClose, title, children }: ModalProps) 
                             initial={{ scale: 0.95, opacity: 0, y: 20 }}
                             animate={{ scale: 1, opacity: 1, y: 0 }}
                             exit={{ scale: 0.95, opacity: 0, y: 20 }}
-                            className="bg-black border border-banan-primary w-full max-w-lg shadow-2xl pointer-events-auto flex flex-col max-h-[90vh]"
+                            className={`bg-black border ${borderColor} w-full max-w-lg shadow-2xl pointer-events-auto flex flex-col max-h-[90vh]`}
                         >
-                            <div className="flex items-center justify-between p-4 border-b border-banan-primary bg-banan-primary/10">
-                                <h2 className="text-xl font-black text-banan-primary uppercase tracking-tighter">
+                            <div className={`flex items-center justify-between p-4 border-b ${borderColor} bg-banan-primary/5`}>
+                                <h2 className={`text-xl font-black ${textColor} uppercase tracking-tighter`}>
                                     {title}
                                 </h2>
                                 <button

@@ -16,6 +16,9 @@ export function setTheme(theme: Theme) {
     
     // Notify subscribers
     themeEvents.dispatchEvent(new CustomEvent('themechange', { detail: theme }));
+
+    // Trigger a resize event to force UI objects (like Three.js) to refresh
+    window.dispatchEvent(new Event('resize'));
 }
 
 export function getCurrentTheme(): Theme {

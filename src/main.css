@@ -11,7 +11,7 @@
 @property --banan-teal {
   syntax: '<color>';
   inherits: true;
-  initial-value: #00FFA3;
+  initial-value: #008080;
 }
 
 @property --banan-red {
@@ -29,7 +29,6 @@
 @theme {
   --color-banan-primary: var(--banan-primary);
   --color-banan-black: var(--banan-black);
-  --color-banan-carbon: var(--banan-carbon);
   --color-banan-background: var(--banan-background);
   --color-banan-white: var(--banan-white);
   --color-banan-green: var(--banan-green);
@@ -37,31 +36,46 @@
   --color-banan-red: var(--banan-red);
   --color-stock-up: var(--stock-up);
   --color-stock-down: var(--stock-down);
-  --color-banan-gray: var(--banan-gray);
 
   --font-sans: 'Syne', sans-serif;
   --font-mono: 'Space Mono', monospace;
+
+  /* Thematic Game Colors */
+  --color-banan-cyber: var(--banan-cyber);
+  --color-banan-osint: var(--banan-osint);
+  --color-banan-algo: var(--banan-algo);
+  --color-banan-market: var(--banan-market);
+  --color-banan-warning: var(--banan-warning);
+  --color-banan-reward: var(--banan-reward);
+  --color-banan-shop: var(--banan-shop);
 }
 
 :root, [data-theme="default"] {
   /* Default: BananINT Classic */
   --banan-primary: #FAFF00; --banan-primary-rgb: 250, 255, 0;
   --banan-black: #050505;
-  --banan-carbon: #000000;
-  --banan-background: #050505;
+  --banan-background: #111111;
   --banan-white: #FFFFFF;
-  --banan-green: #39FF14; --banan-green-rgb: 57, 255, 20;
-  --banan-teal: #39FF14; --banan-teal-rgb: 57, 255, 20;
-  --banan-red: #FF0055; --banan-red-rgb: 255, 0, 85;
+  --banan-green: #4ADE80; --banan-green-rgb: 74, 222, 128;
+  --banan-teal: #008080; --banan-teal-rgb: 0, 128, 128;
+  --banan-red: #FF0055;
   --stock-up: #26a69a;
   --stock-down: #ef5350;
-  --banan-gray: #333333;
+
+  /* Game Feature Colors */
+  --banan-cyber: #BC00FF;
+  --banan-osint: #00FF41;
+  --banan-algo: #FFD700;
+  --banan-market: #00F0FF;
+  --banan-warning: #FF3131;
+  --banan-reward: #318CFF;
+  --banan-shop: #FF31A9;
 }
 
 [data-theme="indigo"] {
   --banan-primary: #8B5CF6; --banan-primary-rgb: 139, 92, 246;
-  --banan-black: #0F172A;
-  --banan-background: #0F172A;
+  --banan-black: #020617;
+  --banan-background: #0f172a;
   --banan-white: #F8FAFC;
   --banan-green: #00FF9C; --banan-green-rgb: 0, 255, 156;
   --banan-teal: #00FF9C; --banan-teal-rgb: 0, 255, 156;
@@ -72,8 +86,8 @@
 
 [data-theme="matrix"] {
   --banan-primary: #00FF41; --banan-primary-rgb: 0, 255, 65;
-  --banan-black: #000F00;
-  --banan-background: #000F00;
+  --banan-black: #000000;
+  --banan-background: #000d00;
   --banan-white: #D1FFD7;
   --banan-green: #00FF41; --banan-green-rgb: 0, 255, 65;
   --banan-teal: #00FF41; --banan-teal-rgb: 0, 255, 65;
@@ -84,8 +98,8 @@
 
 [data-theme="solaris"] {
   --banan-primary: #F97316; --banan-primary-rgb: 249, 115, 22;
-  --banan-black: #1C0F0F;
-  --banan-background: #1C0F0F;
+  --banan-black: #0c0606;
+  --banan-background: #180e0e;
   --banan-white: #FFF7ED;
   --banan-green: #FBBF24; --banan-green-rgb: 251, 191, 36;
   --banan-teal: #FB7185; --banan-teal-rgb: 251, 113, 133;
@@ -95,21 +109,26 @@
 }
 
 [data-theme="rainbow"] {
-  --banan-black: #120024;
-  --banan-background: #120024;
+  --banan-primary: hsl(0,100%,50%);
+  --banan-black: #050010;
+  --banan-background: #110021;
   --banan-white: #FFFFFF;
+  --banan-teal: hsl(0,100%,50%);
+  --banan-green: hsl(0,100%,50%);
+  --banan-red: hsl(0,100%,50%);
   --stock-up: #00FF00;
   --stock-down: #FF0000;
   animation: rainbow-cycle 8s linear infinite;
 }
 
 [data-theme="golden"] {
-  --banan-black: #2D1E0F;
-  --banan-background: #2D1E0F;
+  --banan-primary: #F59E0B; --banan-primary-rgb: 245, 158, 11;
+  --banan-black: #140d06;
+  --banan-background: #22180d;
   --banan-white: #FEF3C7;
-  --banan-primary-rgb: 245, 158, 11;
-  --banan-green-rgb: 217, 119, 6;
-  --banan-teal-rgb: 253, 230, 138;
+  --banan-green: #D97706; --banan-green-rgb: 217, 119, 6;
+  --banan-teal: #FDE68A; --banan-teal-rgb: 253, 230, 138;
+  --banan-red: #B45309;
   --stock-up: #F59E0B;
   --stock-down: #7F1D1D;
   animation: golden-radiance 4s ease-in-out infinite alternate;
@@ -118,33 +137,33 @@
 @keyframes rainbow-cycle {
   0% { 
     --banan-primary: hsl(0,100%,50%); 
-    --banan-teal: hsl(180,100%,50%); 
-    --banan-red: hsl(300,100%,50%); 
-    --banan-green: hsl(120,100%,50%); 
+    --banan-teal: hsl(0,100%,50%); 
+    --banan-red: hsl(0,100%,50%); 
+    --banan-green: hsl(0,100%,50%); 
   }
   25% { 
     --banan-primary: hsl(90,100%,50%); 
-    --banan-teal: hsl(270,100%,50%); 
-    --banan-red: hsl(30,100%,50%); 
-    --banan-green: hsl(210,100%,50%); 
+    --banan-teal: hsl(90,100%,50%); 
+    --banan-red: hsl(90,100%,50%); 
+    --banan-green: hsl(90,100%,50%); 
   }
   50% { 
     --banan-primary: hsl(180,100%,50%); 
-    --banan-teal: hsl(0,100%,50%); 
-    --banan-red: hsl(120,100%,50%); 
-    --banan-green: hsl(300,100%,50%); 
+    --banan-teal: hsl(180,100%,50%); 
+    --banan-red: hsl(180,100%,50%); 
+    --banan-green: hsl(180,100%,50%); 
   }
   75% { 
     --banan-primary: hsl(270,100%,50%); 
-    --banan-teal: hsl(90,100%,50%); 
-    --banan-red: hsl(210,100%,50%); 
-    --banan-green: hsl(30,100%,50%); 
+    --banan-teal: hsl(270,100%,50%); 
+    --banan-red: hsl(270,100%,50%); 
+    --banan-green: hsl(270,100%,50%); 
   }
   100% { 
     --banan-primary: hsl(360,100%,50%); 
-    --banan-teal: hsl(540,100%,50%); 
-    --banan-red: hsl(660,100%,50%); 
-    --banan-green: hsl(480,100%,50%); 
+    --banan-teal: hsl(360,100%,50%); 
+    --banan-red: hsl(360,100%,50%); 
+    --banan-green: hsl(360,100%,50%); 
   }
 }
 
@@ -177,7 +196,7 @@
 
 ::selection {
   background-color: var(--color-banan-primary);
-  color: var(--color-banan-carbon);
+  color: var(--color-banan-background);
 }
 
 /* Scrollbar Customization */

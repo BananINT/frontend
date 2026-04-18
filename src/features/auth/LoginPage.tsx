@@ -47,7 +47,7 @@ const LoginPage: React.FC = () => {
           <div className="space-y-2 mb-10">
             <div className="flex items-center justify-center gap-2 mb-2">
               <ShieldAlert className="w-4 h-4 text-banan-primary" />
-              <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-banan-primary/60">Protocole de Sécurité v2.5</span>
+              <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-banan-primary/60">Protocole de Sécurité v4.20</span>
             </div>
             <h1 className="text-2xl font-sans font-black uppercase tracking-tighter leading-none text-white">
               Authentification <span className="text-banan-primary">Requise</span>
@@ -63,7 +63,7 @@ const LoginPage: React.FC = () => {
               className="w-full bg-transparent hover:bg-banan-primary border border-banan-primary text-banan-primary hover:text-black font-mono font-bold py-5 px-6 transition-all flex items-center justify-center gap-4 active:scale-[0.98] uppercase tracking-widest text-sm relative"
             >
               <Lock className="w-4 h-4" />
-              Initialiser l'accès
+              S'authentifier
               <div className="absolute top-0 right-0 p-1">
                 <div className="w-1 h-1 bg-banan-primary group-hover:bg-black transition-colors"></div>
               </div>
@@ -83,7 +83,7 @@ const LoginPage: React.FC = () => {
       {/* Decorative Floor Label */}
       <div className="absolute bottom-10 left-10 hidden md:block opacity-20">
         <div className="font-mono text-[10px] uppercase tracking-[0.5em] vertical-text transform -rotate-90 origin-left">
-          BANAN-INT // CONNEXION_INSTALLATION // SECTEUR_7G
+          BANAN-INT // SECTEUR_67 // SIX-SEVEN MDR
         </div>
       </div>
     </div>

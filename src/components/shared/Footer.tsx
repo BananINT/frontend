@@ -24,8 +24,8 @@ export default function Footer() {
                             Le club qui cultive la technologie et la bonne humeur
                             sur le campus de Télécom SudParis.
                         </p>
-                        <div className="flex items-center gap-2 text-xs text-banan-primary font-bold uppercase tracking-widest mt-4">
-                            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                        <div className="flex items-center gap-2 text-xs text-banan-white font-bold uppercase tracking-widest mt-4">
+                            <span className="w-2 h-2 rounded-full bg-banan-green animate-pulse" />
                             System Operational
                         </div>
                     </div>
@@ -53,9 +53,9 @@ export default function Footer() {
                                 </Link>
                             </li>
                             <li>
-                                <a href="/archives" className="text-white/70 hover:text-banan-primary transition-colors flex items-center gap-2 group cursor-not-allowed opacity-50">
+                                <a href="https://wikint.clubcode.fr" target="_blank" rel="noopener noreferrer" className="text-white/70 hover:text-banan-primary transition-colors flex items-center gap-2 group">
                                     <span className="w-1 h-1 bg-white/20 group-hover:bg-banan-primary rounded-full transition-colors" />
-                                    Archives (WIP)
+                                    WikINT
                                 </a>
                             </li>
                         </ul>
@@ -80,7 +80,7 @@ export default function Footer() {
                     <div className="flex items-center gap-4">
                         <span>{new Date().getFullYear()} BananINT©</span>
                         <span className="hidden md:inline text-white/20">|</span>
-                        <span>Fait avec <Heart className="w-3 h-3 inline text-red-500 mx-1 align-sub" /> et des <Banana className="w-3 h-3 inline align-sub text-banan-primary" /> à Evry(-Courcouronnes)</span>
+                        <span>Fait avec <Heart className="w-3 h-3 inline text-banan-red mx-1 align-sub" /> et des <Banana className="w-3 h-3 inline align-sub text-banan-primary" /> à Evry(-Courcouronnes)</span>
                     </div>
                     <div className="flex items-center gap-1 hover:text-banan-primary transition-colors cursor-help group">
                         <span>"Vous voulez un trisou?"</span>

@@ -1,19 +1,22 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, Music, AlertCircle, List, Search } from 'lucide-react';
+import { Play, Pause, SkipBack, SkipForward, Music, AlertCircle, List, Search, ChevronDown, ChevronUp } from 'lucide-react';
 import Modal from '@app/components/shared/Modal';
-import { motion, useAnimation } from 'framer-motion';
+import { motion, useAnimation, AnimatePresence } from 'framer-motion';
 
 // Use Vite's import.meta.glob to automatically map the public/audio folder
 const rawAudioFiles = import.meta.glob('/public/audio/*.{mp3,wav,ogg,flac,m4a,aac}', { eager: true, as: 'url' }) as Record<string, string>;
 
 export default function RadioOverlay() {
     const [isPlaying, setIsPlaying] = useState(false);
-    const [volume, setVolume] = useState(0.5);
-    const [isMuted, setIsMuted] = useState(false);
+    const [volume] = useState(0.5);
+    const [isMuted] = useState(false);
     const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
     const [error, setError] = useState<string | null>(null);
     const [isListOpen, setIsListOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
+    const [isCollapsed, setIsCollapsed] = useState(true);
+    const [currentTime, setCurrentTime] = useState(0);
+    const [duration, setDuration] = useState(0);
     const audioRef = useRef<HTMLAudioElement | null>(null);
     const containerRef = useRef<HTMLDivElement | null>(null);
     const isInitialMount = useRef(true);
@@ -33,20 +36,23 @@ export default function RadioOverlay() {
     const COLORS = {
         primary: 'var(--color-banan-primary)', // Radioactive Banana
         black: 'var(--color-banan-black)',   // Banan Black
-        carbon: 'var(--color-banan-carbon)',  // Deep Background
         glass: 'rgba(255,255,255,0.05)',
         structure: 'rgba(255,255,255,0.1)'
     };
 
     const audioManifest = useMemo(() => {
-        return Object.keys(rawAudioFiles).map(filePath => filePath.split('/').pop()!).sort();
+        return Object.entries(rawAudioFiles).map(([path, url]) => ({
+            filename: path.split('/').pop()!,
+            url: url as string
+        })).sort((a, b) => a.filename.localeCompare(b.filename));
     }, []);
 
-    const tracks = audioManifest.map((filename: string) => `/audio/${encodeURIComponent(filename)}`);
+    const tracks = useMemo(() => audioManifest.map(item => item.url), [audioManifest]);
 
     useEffect(() => {
         if (tracks.length > 0) {
             const audio = new Audio();
+            audio.crossOrigin = "anonymous";
             audio.volume = volume;
             audioRef.current = audio;
 
@@ -60,6 +66,8 @@ export default function RadioOverlay() {
             audio.addEventListener('ended', handleEnded);
             audio.addEventListener('error', handleError);
             audio.addEventListener('canplay', handleCanPlay);
+            audio.addEventListener('timeupdate', () => setCurrentTime(audio.currentTime));
+            audio.addEventListener('loadedmetadata', () => setDuration(audio.duration));
 
             audio.src = tracks[currentTrackIndex];
 
@@ -75,12 +83,20 @@ export default function RadioOverlay() {
 
     useEffect(() => {
         if (audioRef.current && tracks.length > 0) {
-            audioRef.current.src = tracks[currentTrackIndex];
+            // Only update src if it's different to avoid reloads
+            const nextSrc = tracks[currentTrackIndex];
+            if (audioRef.current.src !== window.location.origin + nextSrc) {
+                audioRef.current.src = nextSrc;
+            }
+            
             if (isPlaying) {
-                audioRef.current.play().catch(() => setIsPlaying(false));
+                audioRef.current.play().catch(err => {
+                    console.error("RadioOverlay: Effect play failed", err);
+                    if (err.name === 'NotAllowedError') setError("INTERACTION REQUIRED");
+                });
             }
         }
-    }, [currentTrackIndex]);
+    }, [currentTrackIndex, isPlaying]);
 
     useEffect(() => {
         if (audioRef.current) {
@@ -114,16 +130,35 @@ export default function RadioOverlay() {
     };
 
     const selectTrack = (index: number) => {
-        setCurrentTrackIndex(index);
-        if (!isPlaying) togglePlay();
-        setIsListOpen(false);
+        if (audioRef.current) {
+            setCurrentTrackIndex(index);
+            setIsPlaying(true);
+            setError(null);
+            
+            // Setting src and playing in the same event loop (user gesture)
+            audioRef.current.src = tracks[index];
+            audioRef.current.play().catch(err => {
+                console.error("RadioOverlay: Select play failed", err);
+                setError("INTERACTION REQUIRED");
+            });
+        }
     };
 
-    const toggleMute = () => setIsMuted(!isMuted);
 
-    const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setVolume(parseFloat(e.target.value));
-        if (isMuted) setIsMuted(false);
+
+    const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const time = parseFloat(e.target.value);
+        if (audioRef.current) {
+            audioRef.current.currentTime = time;
+            setCurrentTime(time);
+        }
+    };
+
+    const formatTime = (seconds: number) => {
+        if (!seconds || !isFinite(seconds)) return '0:00';
+        const m = Math.floor(seconds / 60);
+        const s = Math.floor(seconds % 60);
+        return `${m}:${s.toString().padStart(2, '0')}`;
     };
 
     const executeSnap = (targetCorner: 'TL' | 'TR' | 'BL' | 'BR', instant = false) => {
@@ -175,13 +210,13 @@ export default function RadioOverlay() {
 
     if (tracks.length === 0) return null;
 
-    const currentTrackName = audioManifest[currentTrackIndex]
+    const currentTrackName = audioManifest[currentTrackIndex]?.filename
         ?.replace(/\.(mp3|wav|ogg|flac|m4a|aac)$/i, '')
         ?.replace(/[-_]/g, ' ')
-        ?.toUpperCase() || 'UNKNOWN UNIT';
+        ?.toUpperCase() || 'UNKNOWN RECORD';
 
-    const filteredManifest = audioManifest.map((name: string, index: number) => ({ name, index }))
-        .filter((item: { name: string, index: number }) => item.name.toLowerCase().includes(searchTerm.toLowerCase()));
+    const filteredManifest = audioManifest.map((item, index: number) => ({ ...item, index }))
+        .filter((item) => item.filename.toLowerCase().includes(searchTerm.toLowerCase()));
 
     useEffect(() => {
         localStorage.setItem('radioOverlayCorner', corner);
@@ -199,17 +234,31 @@ export default function RadioOverlay() {
         return () => window.removeEventListener('resize', snap);
     }, [corner, controls, tracks.length]);
 
+    // Track height changes (from fold/unfold) and reposition instantly
+    useEffect(() => {
+        if (!containerRef.current) return;
+        const observer = new ResizeObserver(() => {
+            executeSnap(corner, true);
+        });
+        observer.observe(containerRef.current);
+        return () => observer.disconnect();
+    }, [corner]);
+
     return (
         <>
             {/* Playlist Modal */}
-            <Modal isOpen={isListOpen} onClose={() => setIsListOpen(false)} title="UNIT DATABASE / AUDIO_FILES">
+            <Modal 
+                isOpen={isListOpen} 
+                onClose={() => setIsListOpen(false)} 
+                title="RECORDS DATABASE / AUDIO_FILES"
+            >
                 {/* Search Bar */}
                 <div className="p-4 border-b border-white/5 bg-white/[0.02]">
                     <div className="relative">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30" size={16} />
                         <input
                             type="text"
-                            placeholder="SEARCH UNITS..."
+                            placeholder="SEARCHING RECORDS..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="w-full bg-black border border-white/10 p-2 pl-10 text-xs focus:border-banan-primary outline-none transition-colors tracking-widest text-white/80 uppercase font-mono"
@@ -219,7 +268,7 @@ export default function RadioOverlay() {
 
                 {/* File List */}
                 <div className="flex-1 overflow-y-auto p-2 banan-scrollbar custom-scroll max-h-[50vh] min-h-[50vh] font-mono">
-                    {filteredManifest.map((item: { name: string, index: number }) => (
+                    {filteredManifest.map((item) => (
                         <button
                             key={item.index}
                             onClick={() => selectTrack(item.index)}
@@ -231,7 +280,7 @@ export default function RadioOverlay() {
                             <div className="flex items-center gap-4 flex-1 truncate">
                                 <span className="text-[10px] opacity-30 font-bold">{String(item.index + 1).padStart(3, '0')}</span>
                                 <span className="truncate tracking-wider uppercase">
-                                    {item.name.replace(/\.(mp3|wav|ogg|flac|m4a|aac)$/i, '').replace(/[-_]/g, ' ')}
+                                    {item.filename.replace(/\.(mp3|wav|ogg|flac|m4a|aac)$/i, '').replace(/[-_]/g, ' ')}
                                 </span>
                             </div>
                             {currentTrackIndex === item.index && isPlaying && (
@@ -267,12 +316,12 @@ export default function RadioOverlay() {
                 className={`fixed top-0 left-0 z-[9999] border-t border-l border-white/10 shadow-2xl flex flex-col w-[320px] overflow-hidden select-none cursor-move`}
                 style={{ backgroundColor: COLORS.black, fontFamily: "'Space Mono', monospace" }}
             >
-                {/* Header / Brand Bar */}
+                {/* Top Brand Bar (always visible) */}
                 <div className="flex items-center justify-between px-3 py-1 bg-white/5 border-b border-white/10">
                     <div className="flex items-center gap-2 font-mono">
                         <Music size={12} style={{ color: COLORS.primary }} />
                         <span className="text-[10px] font-bold tracking-[0.2em]" style={{ color: COLORS.primary }}>
-                            RADIO-OPERATOR SYSTEM
+                            RADIO SYSTEM
                         </span>
                     </div>
                     <div className="flex gap-1 items-center">
@@ -284,98 +333,115 @@ export default function RadioOverlay() {
                         >
                             <List size={14} />
                         </button>
-                        {error && <AlertCircle size={10} className="text-red-500 animate-pulse" />}
-                        <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: isPlaying ? 'var(--color-banan-green)' : (error ? 'var(--color-banan-red)' : 'var(--color-banan-gray)') }}></div>
+                        {error && <AlertCircle size={10} className="text-banan-red animate-pulse" />}
+                        <button
+                            onPointerDownCapture={(e) => e.stopPropagation()}
+                            onClick={() => setIsCollapsed(!isCollapsed)}
+                            className="p-0.5 hover:bg-white/10 rounded transition-colors text-white/50 hover:text-banan-primary"
+                            title={isCollapsed ? 'Expand' : 'Collapse'}
+                        >
+                            {isCollapsed ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
+                        </button>
                     </div>
                 </div>
 
-                <div className="p-4 flex flex-col gap-4">
-                    {/* Track Info & Visualizer */}
-                    <div className="flex items-center justify-between gap-4 h-12">
-                        <div className="flex-1 overflow-hidden" onClick={() => setIsListOpen(true)} onPointerDownCapture={(e) => e.stopPropagation()}>
-                            <div className="text-[9px] text-white/40 uppercase mb-1 cursor-pointer hover:text-banan-primary transition-colors">
-                                {error ? <span className="text-red-500 font-bold">SYSTEM ERROR</span> : "UNIT STREAM / CLICK TO SEARCH"}
+                {/* Collapsible Content (folds down from bar) */}
+                <AnimatePresence initial={false}>
+                    {!isCollapsed && (
+                        <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: 'auto', opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.2, ease: 'easeInOut' }}
+                            className="overflow-hidden"
+                        >
+                            <div className="p-4 flex flex-col gap-4">
+                                {/* Track Info & Visualizer */}
+                                <div className="flex items-center justify-between gap-4 h-12">
+                                    <div className="flex-1 overflow-hidden" onClick={() => setIsListOpen(true)} onPointerDownCapture={(e) => e.stopPropagation()}>
+                                        <div className="text-[9px] text-white/40 uppercase mb-1 cursor-pointer hover:text-banan-primary transition-colors">
+                                            {error ? <span className="text-banan-red font-bold">SYSTEM ERROR</span> : "RUNNING / CLICK TO SWITCH"}
+                                        </div>
+                                        <div className="text-xs font-bold truncate w-full tracking-wider cursor-pointer transition-all" style={{ color: error ? 'var(--color-banan-red)' : COLORS.primary }}>
+                                            {error ? "RE-INITIALIZATION REQUIRED" : currentTrackName}
+                                        </div>
+                                    </div>
+                                    {/* Visualizer animation */}
+                                    <div className="flex items-end gap-[2px] h-6 w-8 bg-white/5 p-1 border border-white/5">
+                                        {[1, 2, 3, 4, 5, 6].map((i) => (
+                                            <div
+                                                key={i}
+                                                className="flex-1 transition-all duration-300"
+                                                style={{
+                                                    backgroundColor: error ? 'rgba(255, 255, 255, 0.2)' : COLORS.primary,
+                                                    height: isPlaying ? `${Math.random() * 80 + 20}%` : '10%',
+                                                    animation: isPlaying ? `radio-bounce ${0.3 + Math.random() * 0.5}s infinite alternate` : 'none'
+                                                }}
+                                            />
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Controls Bar */}
+                                <div className="flex items-center justify-between gap-4" onPointerDownCapture={(e) => e.stopPropagation()}>
+                                    <div className="flex items-center gap-1">
+                                        <button
+                                            onClick={handlePrev}
+                                            className="p-2 hover:bg-white/5 border border-transparent hover:border-white/10 transition-all text-white/60 hover:text-white"
+                                        >
+                                            <SkipBack size={16} />
+                                        </button>
+
+                                        <button
+                                            onClick={togglePlay}
+                                            className="p-3 border transition-all active:scale-95 flex items-center justify-center"
+                                            style={{
+                                                borderColor: COLORS.primary,
+                                                backgroundColor: isPlaying ? 'transparent' : `${COLORS.primary}10`,
+                                                color: COLORS.primary
+                                            }}
+                                        >
+                                            {isPlaying ? <Pause size={20} fill="currentColor" /> : <Play size={20} fill="currentColor" className="ml-0.5" />}
+                                        </button>
+
+                                        <button
+                                            onClick={handleNext}
+                                            className="p-2 hover:bg-white/5 border border-transparent hover:border-white/10 transition-all text-white/60 hover:text-white"
+                                        >
+                                            <SkipForward size={16} />
+                                        </button>
+                                    </div>
+
+                                    {/* Progress Bar */}
+                                    <div className="flex-1 flex items-center gap-3 bg-white/5 px-3 py-2 border border-white/10">
+                                        <div className="flex-1 relative h-1 bg-white/10 overflow-hidden">
+                                            <div
+                                                className="absolute top-0 left-0 h-full"
+                                                style={{ backgroundColor: COLORS.primary, width: duration > 0 ? `${(currentTime / duration) * 100}%` : '0%' }}
+                                            ></div>
+                                            <input
+                                                type="range"
+                                                min="0"
+                                                max={duration || 0}
+                                                step="0.1"
+                                                value={currentTime}
+                                                onChange={handleSeek}
+                                                className="absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            <div className="text-xs font-bold truncate w-full tracking-wider cursor-pointer transition-all" style={{ color: error ? 'var(--color-banan-red)' : COLORS.primary }}>
-                                {error ? "RE-INITIALIZATION REQUIRED" : currentTrackName}
+
+                            {/* Systematic Footer */}
+                            <div className="px-3 py-1 flex justify-between border-t border-white/5 opacity-30 text-[8px] uppercase tracking-widest text-white">
+                                <span>{formatTime(currentTime)} / {formatTime(duration)}</span>
+                                <span>{isPlaying ? 'STREAMING' : 'STANDBY'}</span>
+                                <span>FAC-ID-022</span>
                             </div>
-                        </div>
-                        {/* Visualizer animation */}
-                        <div className="flex items-end gap-[2px] h-6 w-8 bg-white/5 p-1 border border-white/5">
-                            {[1, 2, 3, 4, 5, 6].map((i) => (
-                                <div
-                                    key={i}
-                                    className="flex-1 transition-all duration-300"
-                                    style={{
-                                        backgroundColor: error ? 'var(--color-banan-gray)' : COLORS.primary,
-                                        height: isPlaying ? `${Math.random() * 80 + 20}%` : '10%',
-                                        animation: isPlaying ? `radio-bounce ${0.3 + Math.random() * 0.5}s infinite alternate` : 'none'
-                                    }}
-                                />
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* Controls Bar */}
-                    <div className="flex items-center justify-between gap-4" onPointerDownCapture={(e) => e.stopPropagation()}>
-                        <div className="flex items-center gap-1">
-                            <button
-                                onClick={handlePrev}
-                                className="p-2 hover:bg-white/5 border border-transparent hover:border-white/10 transition-all text-white/60 hover:text-white"
-                            >
-                                <SkipBack size={16} />
-                            </button>
-
-                            <button
-                                onClick={togglePlay}
-                                className="p-3 border transition-all active:scale-95 flex items-center justify-center"
-                                style={{
-                                    borderColor: COLORS.primary,
-                                    backgroundColor: isPlaying ? 'transparent' : `${COLORS.primary}10`,
-                                    color: COLORS.primary
-                                }}
-                            >
-                                {isPlaying ? <Pause size={20} fill="currentColor" /> : <Play size={20} fill="currentColor" className="ml-0.5" />}
-                            </button>
-
-                            <button
-                                onClick={handleNext}
-                                className="p-2 hover:bg-white/5 border border-transparent hover:border-white/10 transition-all text-white/60 hover:text-white"
-                            >
-                                <SkipForward size={16} />
-                            </button>
-                        </div>
-
-                        {/* Volume Section */}
-                        <div className="flex-1 flex items-center gap-3 bg-white/5 px-3 py-2 border border-white/10">
-                            <button onClick={toggleMute} className="text-white/40 hover:text-white transition-colors">
-                                {isMuted || volume === 0 ? <VolumeX size={14} /> : <Volume2 size={14} />}
-                            </button>
-                            <div className="flex-1 relative h-1 bg-white/10 overflow-hidden">
-                                <div
-                                    className="absolute top-0 left-0 h-full transition-all duration-150"
-                                    style={{ backgroundColor: COLORS.primary, width: `${(isMuted ? 0 : volume) * 100}%` }}
-                                ></div>
-                                <input
-                                    type="range"
-                                    min="0"
-                                    max="1"
-                                    step="0.01"
-                                    value={isMuted ? 0 : volume}
-                                    onChange={handleVolumeChange}
-                                    className="absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer"
-                                />
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Systematic Footer */}
-                <div className="px-3 py-1 flex justify-between border-t border-white/5 opacity-30 text-[8px] uppercase tracking-widest text-white">
-                    <span>VOL: {Math.round(volume * 100)}%</span>
-                    <span>{isPlaying ? 'STREAMING' : 'STANDBY'}</span>
-                    <span>FAC-ID-022</span>
-                </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
             </motion.div>
 
             <style>

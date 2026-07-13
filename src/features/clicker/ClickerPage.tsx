@@ -6,15 +6,15 @@ import StockChart from './components/StockChart';
 import SessionManager from './components/SessionManager';
 import MissionsModal from './components/MissionsModal';
 import AchievementsModal from './components/AchievementsModal';
-import { Medal, Target, Palette, Terminal, Eye, Fingerprint, AlertTriangle } from 'lucide-react';
+import { Medal, Target, Palette, Eye, Fingerprint, AlertTriangle } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import GameSection from '@app/components/shared/GameSection';
 import { formatNumber } from '@app/utils/format';
 import ThemeShopModal from './components/ThemeShopModal';
-import OsintModal from './components/OsintModal';
 import AlgoCultModal from './components/AlgoCultModal';
 import CyberModal from './components/CyberModal';
+import type { AlgoCultState, CyberAttack } from '@app/types/game';
 
 const UPGRADE_ICONS: Record<string, LucideIcon> = {
     click: Zap,
@@ -23,18 +23,25 @@ const UPGRADE_ICONS: Record<string, LucideIcon> = {
     prestige: Dna,
 };
 
+interface LeaderboardEntry {
+    name: string;
+    score: number;
+    prestigeCount: number;
+}
+
+
+
 export default function ClickerPage() {
     const { gameState, clickBanana, buyUpgrade, availableUpgrades } = useGame();
     const [isMissionsOpen, setIsMissionsOpen] = useState(false);
     const [isAchievementsOpen, setIsAchievementsOpen] = useState(false);
     const [activeTab, setActiveTab] = useState<'click' | 'auto' | 'synergy' | 'prestige'>('click');
     const [isStoreOpen, setIsStoreOpen] = useState(false);
-    const [isOsintOpen, setIsOsintOpen] = useState(false);
     const [isAlgoOpen, setIsAlgoOpen] = useState(false);
     const [isCyberOpen, setIsCyberOpen] = useState(false);
-    const [algoState, setAlgoState] = useState<any>(null);
-    const [cyberAttacks, setCyberAttacks] = useState<any[]>([]);
-    const [leaderboard, setLeaderboard] = useState<any[]>([]);
+    const [algoState, setAlgoState] = useState<AlgoCultState | null>(null);
+    const [cyberAttacks, setCyberAttacks] = useState<CyberAttack[]>([]);
+    const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
 
     useEffect(() => {
         const fetchLeaderboard = async () => {
@@ -54,11 +61,11 @@ export default function ClickerPage() {
     }, []);
 
     useEffect(() => {
-        const handleMessage = (msg: any) => {
+        const handleMessage = (msg: { type: string; data: unknown }) => {
             if (msg.type === 'algo_cult_state') {
-                setAlgoState(msg.data);
+                setAlgoState(msg.data as AlgoCultState);
             } else if (msg.type === 'cyber_attacked') {
-                setCyberAttacks(prev => [...prev, msg.data]);
+                setCyberAttacks(prev => [...prev, msg.data as CyberAttack]);
                 setTimeout(() => {
                     setCyberAttacks(prev => prev.slice(1));
                 }, 8000);
@@ -217,7 +224,7 @@ export default function ClickerPage() {
                             </button>
 
                             {/* Control Panel Buttons */}
-                            <div className="flex gap-4">
+                            <div className="flex flex-wrap justify-center gap-2 md:gap-4">
                                 <button
                                     onClick={() => setIsMissionsOpen(true)}
                                     className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 hover:border-banan-primary hover:text-banan-primary transition-colors text-xs font-bold uppercase tracking-wider"
@@ -231,13 +238,6 @@ export default function ClickerPage() {
                                 >
                                     <Medal className="h-4 w-4" />
                                     <span>MÉRITE</span>
-                                </button>
-                                <button
-                                    onClick={() => setIsOsintOpen(true)}
-                                    className="flex items-center gap-2 px-4 py-2 bg-banan-osint/10 border border-banan-osint/30 text-banan-osint hover:bg-banan-osint hover:text-black hover:border-banan-osint transition-all text-xs font-bold uppercase tracking-wider"
-                                >
-                                    <Terminal className="h-4 w-4" />
-                                    <span>OSINT</span>
                                 </button>
                                 <button
                                     onClick={() => setIsStoreOpen(true)}
@@ -261,7 +261,7 @@ export default function ClickerPage() {
                                 </button>
                                 <button
                                     onClick={() => setIsCyberOpen(true)}
-                                    className="flex items-center gap-2 px-4 py-2 bg-black border border-purple-500/50 hover:bg-purple-900/30 hover:text-purple-400 hover:border-purple-400 transition-all text-purple-500 text-xs font-black uppercase tracking-wider relative group overflow-hidden"
+                                    className="flex items-center gap-2 px-4 py-2 bg-black border border-banan-cyber/50 hover:bg-banan-cyber/30 hover:text-banan-cyber/80 hover:border-banan-cyber transition-all text-banan-cyber text-xs font-black uppercase tracking-wider relative group overflow-hidden"
                                 >
                                     <Fingerprint className="h-4 w-4" />
                                     <span>CYBER</span>
@@ -341,8 +341,7 @@ export default function ClickerPage() {
             <MissionsModal isOpen={isMissionsOpen} onClose={() => setIsMissionsOpen(false)} />
             <AchievementsModal isOpen={isAchievementsOpen} onClose={() => setIsAchievementsOpen(false)} />
             <ThemeShopModal isOpen={isStoreOpen} onClose={() => setIsStoreOpen(false)} />
-            <OsintModal isOpen={isOsintOpen} onClose={() => setIsOsintOpen(false)} />
-            <AlgoCultModal isOpen={isAlgoOpen} onClose={() => setIsAlgoOpen(false)} state={algoState} />
+            {algoState && <AlgoCultModal isOpen={isAlgoOpen} onClose={() => setIsAlgoOpen(false)} state={algoState} />}
             <CyberModal isOpen={isCyberOpen} onClose={() => setIsCyberOpen(false)} />
         </div>
     );

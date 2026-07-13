@@ -15,7 +15,7 @@ export default function MissionsModal({ isOpen, onClose }: Props) {
         if (isOpen) {
             getMissions();
         }
-    }, [isOpen]);
+    }, [isOpen, getMissions]);
 
     const handleClaim = (missionId: string) => {
         claimMission(missionId);
@@ -37,7 +37,7 @@ export default function MissionsModal({ isOpen, onClose }: Props) {
                         {(gameState.missions || []).filter(m => m.type === 'personal').map((mission) => {
                             const progress = mission.progress;
                             const completed = mission.completed;
-                            const percent = Math.min(100, Math.floor((progress / mission.goal) * 100));
+                            const percent = Math.min(100, Math.floor((progress / mission.target) * 100));
                             const isClaimed = mission.claimed;
 
                             return (
@@ -46,9 +46,9 @@ export default function MissionsModal({ isOpen, onClose }: Props) {
                                         <div>
                                             <div className="flex items-center gap-2">
                                                 <Target className="h-4 w-4 text-banan-primary" />
-                                                <span className="font-bold font-mono text-sm uppercase text-white">{mission.label}</span>
+                                                <span className="font-bold font-mono text-sm uppercase text-white">{mission.name}</span>
                                             </div>
-                                            <p className="text-xs text-white/50 mt-1 font-mono">{mission.description}</p>
+                                            <p className="text-xs text-white/50 mt-1 font-mono">{mission.desc}</p>
                                         </div>
                                         <div className="text-right">
                                             <span className="text-xs font-bold text-banan-primary flex items-center gap-1">
@@ -60,7 +60,7 @@ export default function MissionsModal({ isOpen, onClose }: Props) {
                                     <div className="mt-4">
                                         <div className="flex justify-between text-[10px] font-mono text-white/70 mb-1">
                                             <span>PROGRESSION</span>
-                                            <span>{progress} / {mission.goal}</span>
+                                            <span>{progress} / {mission.target}</span>
                                         </div>
                                         <div className="h-2 w-full bg-banan-black border border-white/10 overflow-hidden">
                                             <div
@@ -97,7 +97,7 @@ export default function MissionsModal({ isOpen, onClose }: Props) {
                     <div className="space-y-4">
                         {(gameState.missions || []).filter(m => m.type === 'team').map((mission) => {
                             const progress = mission.progress;
-                            const percent = Math.min(100, Math.floor((progress / mission.goal) * 100));
+                            const percent = Math.min(100, Math.floor((progress / mission.target) * 100));
 
                             return (
                                 <div key={mission.id} className="p-4 bg-banan-primary/5 border border-banan-primary/20 relative overflow-hidden">
@@ -108,10 +108,10 @@ export default function MissionsModal({ isOpen, onClose }: Props) {
                                         <div className="flex justify-between items-start mb-2">
                                             <div>
                                                 <div className="flex items-center gap-2">
-                                                    <span className="font-bold font-mono text-sm uppercase text-white">{mission.label}</span>
+                                                    <span className="font-bold font-mono text-sm uppercase text-white">{mission.name}</span>
                                                     <span className="text-[10px] bg-banan-primary text-black px-1 font-bold">CO-OP</span>
                                                 </div>
-                                                <p className="text-xs text-white/50 mt-1 font-mono">{mission.description}</p>
+                                                <p className="text-xs text-white/50 mt-1 font-mono">{mission.desc}</p>
                                             </div>
                                             <span className="text-xs font-bold text-banan-primary flex items-center gap-1">
                                                 +{mission.reward} <Banana className="h-3 w-3" />
@@ -120,7 +120,7 @@ export default function MissionsModal({ isOpen, onClose }: Props) {
                                         <div className="mt-4">
                                             <div className="flex justify-between text-[10px] font-mono text-white/70 mb-1">
                                                 <span>PROGRESSION GLOBALE</span>
-                                                <span>{(progress / 1000).toFixed(1)}k / {(mission.goal / 1000).toFixed(0)}k</span>
+                                                <span>{(progress / 1000).toFixed(1)}k / {(mission.target / 1000).toFixed(0)}k</span>
                                             </div>
                                             <div className="h-2 w-full bg-banan-black border border-white/10 overflow-hidden">
                                                 <div

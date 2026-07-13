@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Banana, Dices, Skull, Bell, Cherry, Gem, Bug } from 'lucide-react';
+import { Banana, Dices, Skull, Bell, Cherry, Gem, Bug, type LucideIcon } from 'lucide-react';
 import Modal from '@app/components/shared/Modal';
 import { socketManager } from '@app/lib/socket';
 import { useGame } from '@app/context/GameContext';
@@ -8,7 +8,7 @@ import { formatNumber } from '@app/utils/format';
 
 type SymbolType = 'diamond' | 'banana' | 'cherry' | 'bell' | 'skull' | 'bug' | 'empty';
 
-const SYMBOL_MAP: Record<SymbolType, { icon: any, color: string }> = {
+const SYMBOL_MAP: Record<SymbolType, { icon: LucideIcon, color: string }> = {
     'diamond': { icon: Gem, color: 'text-cyan-400' },
     'banana': { icon: Banana, color: 'text-banan-primary' },
     'cherry': { icon: Cherry, color: 'text-red-500' },
@@ -28,13 +28,23 @@ export default function SlotsModal({ isOpen, onClose }: { isOpen: boolean, onClo
         ['empty', 'empty', 'empty', 'empty', 'empty'],
         ['empty', 'empty', 'empty', 'empty', 'empty']
     ]);
-    const [resultData, setResultData] = useState<any>(null);
+    const [resultData, setResultData] = useState<{
+        grid: SymbolType[][];
+        payout: number;
+        win_lines: string[];
+        skulls_hit: number;
+    } | null>(null);
     const [showResult, setShowResult] = useState(false);
 
     useEffect(() => {
-        const handleSlotsResult = (msg: any) => {
+        const handleSlotsResult = (msg: { type: string; data: unknown }) => {
             if (msg.type === 'slots_machine_result') {
-                const data = msg.data;
+                const data = msg.data as {
+                    grid: SymbolType[][];
+                    payout: number;
+                    win_lines: string[];
+                    skulls_hit: number;
+                };
                 setGrid(data.grid);
                 setResultData(data);
                 

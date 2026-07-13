@@ -1,5 +1,5 @@
 
-import { FileCode2, Lock } from 'lucide-react';
+import { FileCode2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import ShowcaseSection from './ShowcaseSection';
 

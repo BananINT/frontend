@@ -35,7 +35,7 @@ class Blob {
 
 export default function LavaLamp() {
     const canvasRef = useRef<HTMLCanvasElement>(null);
-    const [_, setThemeTick] = useState(0);
+    const [, setThemeTick] = useState(0);
 
     useEffect(() => {
         // Force re-render when theme changes to pick up new colors

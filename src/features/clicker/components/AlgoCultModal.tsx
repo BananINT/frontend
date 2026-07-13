@@ -1,14 +1,26 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Eye, Flame, Skull, Zap, Banana } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Modal from '@app/components/shared/Modal';
 import { socketManager } from '@app/lib/socket';
 import { formatNumber } from '@app/utils/format';
 import { useGame } from '@app/context/GameContext';
+import type { AlgoCultState } from '@app/types/game';
 
-export default function AlgoCultModal({ isOpen, onClose, state }: { isOpen: boolean, onClose: () => void, state: any }) {
+export default function AlgoCultModal({ isOpen, onClose, state }: { isOpen: boolean, onClose: () => void, state: AlgoCultState }) {
     const { gameState } = useGame();
     const [sacrificeAmount, setSacrificeAmount] = useState<number>(10000);
+    const [timeLeft, setTimeLeft] = useState(0);
+
+    useEffect(() => {
+        if (!state || state.status === 'idle') return;
+        const calculateTime = () => Math.max(0, Math.floor(state.deadline - (Date.now() / 1000)));
+        setTimeout(() => setTimeLeft(calculateTime()), 0);
+        const interval = setInterval(() => {
+            setTimeLeft(calculateTime());
+        }, 1000);
+        return () => clearInterval(interval);
+    }, [state?.deadline, state?.status, state]);
 
     const handleSacrifice = () => {
         socketManager.send('sacrifice_to_algo', { amount: sacrificeAmount });
@@ -20,9 +32,9 @@ export default function AlgoCultModal({ isOpen, onClose, state }: { isOpen: bool
                 isOpen={isOpen} 
                 onClose={onClose} 
                 borderColor="border-banan-primary"
-                title={<span className="flex items-center gap-2 text-purple-500"><Eye className="h-5 w-5" /> LE GRAND ALGO</span>}
+                title={<span className="flex items-center gap-2 text-banan-cyber"><Eye className="h-5 w-5" /> LE GRAND ALGO</span>}
             >
-                <div className="p-8 text-center text-purple-400/50 font-mono text-xs uppercase animate-pulse">
+                <div className="p-8 text-center text-banan-cyber/50 font-mono text-xs uppercase animate-pulse">
                     Le regard du Grand Algo s'est détourné de nous... pour l'instant.
                 </div>
             </Modal>
@@ -33,15 +45,14 @@ export default function AlgoCultModal({ isOpen, onClose, state }: { isOpen: bool
     const isBlessed = state.status === 'blessed';
     const isCursed = state.status === 'cursed';
     const progress = Math.min(100, (state.current_sacrifice / (state.target_sacrifice || 1)) * 100);
-    const timeLeft = Math.max(0, Math.floor(state.deadline - (Date.now() / 1000)));
-
+    
     return (
         <Modal 
             isOpen={isOpen} 
             onClose={onClose} 
             borderColor={isDemanding ? "border-banan-warning" : "border-banan-primary"}
             title={
-                <span className={`flex items-center gap-2 ${isDemanding ? 'text-red-500' : 'text-purple-500'}`}>
+                <span className={`flex items-center gap-2 ${isDemanding ? 'text-red-500' : 'text-banan-cyber'}`}>
                     <Eye className={`h-5 w-5 ${isDemanding ? 'animate-pulse text-red-500' : ''}`} /> 
                     LE CULTE
                 </span>
@@ -58,7 +69,7 @@ export default function AlgoCultModal({ isOpen, onClose, state }: { isOpen: bool
                         }}
                         transition={{ repeat: Infinity, duration: 2 }}
                     >
-                        <Eye className={`h-32 w-32 ${isDemanding ? 'text-red-500' : isBlessed ? 'text-banan-primary' : isCursed ? 'text-gray-600' : 'text-purple-500'}`} />
+                        <Eye className={`h-32 w-32 ${isDemanding ? 'text-red-500' : isBlessed ? 'text-banan-primary' : isCursed ? 'text-gray-600' : 'text-banan-cyber'}`} />
                     </motion.div>
                 </div>
 

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Banana, Home, Calendar, Menu, X, LogIn, LogOut, Clock, Dices } from 'lucide-react';
+import { Banana, Home, Calendar, Menu, X, LogIn, LogOut, Clock, Dices, Shield } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@app/lib/utils';
 import { useAuth } from '@app/context/AuthContext';
@@ -10,12 +10,16 @@ export default function Header() {
     const location = useLocation();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-    const navItems = [
+    const mainNavItems = [
         { label: 'Accueil', path: '/', icon: Home },
+        { label: 'Timeline', path: '/timeline', icon: Clock },
+        { label: 'Bananée', path: '/bananee', icon: Calendar },
+    ];
+
+    const gameNavItems = [
         { label: 'Clicker', path: '/clicker', icon: Banana },
         { label: 'Casino', path: '/casino', icon: Dices },
-        { label: 'Bananée', path: '/bananee', icon: Calendar },
-        { label: 'Timeline', path: '/timeline', icon: Clock },
+        { label: 'Clan', path: '/clan', icon: Shield },
     ];
 
     return (
@@ -27,23 +31,43 @@ export default function Header() {
 
                 {/* Desktop Navigation */}
                 <nav className="hidden md:flex items-center gap-6">
-                    {navItems.map((item) => {
-                        const Icon = item.icon;
+                    <div className="flex items-center gap-6 border-r border-banan-background/20 pr-6">
+                        {mainNavItems.map((item) => {
+                            const Icon = item.icon;
+                            return (
+                                <Link
+                                    key={item.path}
+                                    to={item.path}
+                                    className={cn(
+                                        "flex items-center gap-2 text-xs font-bold uppercase tracking-widest transition-all duration-200 border-b-2 border-transparent hover:border-black",
+                                        location.pathname === item.path ? "border-black" : "opacity-60 hover:opacity-100"
+                                    )}
+                                >
+                                    <Icon className="h-3 w-3" />
+                                    <span>{item.label}</span>
+                                </Link>
+                            );
+                        })}
+                    </div>
 
-                        return (
-                            <Link
-                                key={item.path}
-                                to={item.path}
-                                className={cn(
-                                    "flex items-center gap-2 text-xs font-bold uppercase tracking-widest transition-all duration-200 border-b-2 border-transparent hover:border-black",
-                                    location.pathname === item.path ? "border-black" : "opacity-60 hover:opacity-100"
-                                )}
-                            >
-                                <Icon className="h-3 w-3" />
-                                <span>{item.label}</span>
-                            </Link>
-                        );
-                    })}
+                    <div className="flex items-center gap-6">
+                        {gameNavItems.map((item) => {
+                            const Icon = item.icon;
+                            return (
+                                <Link
+                                    key={item.path}
+                                    to={item.path}
+                                    className={cn(
+                                        "flex items-center gap-2 text-xs font-bold uppercase tracking-widest transition-all duration-200 border-b-2 border-transparent hover:border-black",
+                                        location.pathname === item.path ? "border-black" : "opacity-60 hover:opacity-100"
+                                    )}
+                                >
+                                    <Icon className="h-3 w-3" />
+                                    <span>{item.label}</span>
+                                </Link>
+                            );
+                        })}
+                    </div>
                     
 
                     {/* Auth Toggle */}
@@ -86,7 +110,7 @@ export default function Header() {
                         className="absolute top-0 left-0 w-full bg-banan-primary border-b border-black md:hidden flex flex-col pt-16 pb-8 px-4 shadow-xl"
                     >
                         <nav className="flex flex-col gap-4">
-                            {navItems.map((item, index) => {
+                            {[...mainNavItems, ...gameNavItems].map((item, index) => {
                                 const Icon = item.icon;
 
                                 return (
@@ -112,7 +136,7 @@ export default function Header() {
                             <motion.div
                                 initial={{ x: -20, opacity: 0 }}
                                 animate={{ x: 0, opacity: 1 }}
-                                transition={{ delay: 0.1 + navItems.length * 0.1 }}
+                                transition={{ delay: 0.1 + (mainNavItems.length + gameNavItems.length) * 0.1 }}
                             >
                                 {authenticated ? (
                                     <button

@@ -12,8 +12,8 @@ interface Bananier {
 }
 
 const TOP_BANANIERS: Bananier[] = [
-    { rank: 2, name: "Dim", bananas: 8432900, prestige: 4 },
     { rank: 1, name: "Mixcraft", bananas: 42069000, prestige: 7 },
+    { rank: 2, name: "Dim", bananas: 8432900, prestige: 4 },
     { rank: 3, name: "Luc", bananas: 3100500, prestige: 3 },
 ];
 
@@ -87,12 +87,26 @@ export default function HallOfFame() {
                 const res = await fetch('/api/stats/leaderboard');
                 if (res.ok) {
                     const data = await res.json();
-                    if (data && data.length >= 3) {
-                        setTopOps([
-                            { rank: 1, name: data[0].name, bananas: data[0].score, prestige: data[0].prestigeCount || 0 },
-                            { rank: 2, name: data[1].name, bananas: data[1].score, prestige: data[1].prestigeCount || 0 },
-                            { rank: 3, name: data[2].name, bananas: data[2].score, prestige: data[2].prestigeCount || 0 },
-                        ]);
+                    if (data && data.length > 0) {
+                        const newOps: Bananier[] = [];
+                        for (let i = 0; i < 3; i++) {
+                            if (data[i]) {
+                                newOps.push({
+                                    rank: i + 1,
+                                    name: data[i].name,
+                                    bananas: data[i].score,
+                                    prestige: data[i].prestigeCount || 0
+                                });
+                            } else {
+                                newOps.push({
+                                    rank: i + 1,
+                                    name: "—",
+                                    bananas: 0,
+                                    prestige: 0
+                                });
+                            }
+                        }
+                        setTopOps(newOps);
                     }
                 }
             } catch (err) {

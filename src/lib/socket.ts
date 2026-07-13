@@ -1,6 +1,6 @@
-type WebSocketMessage = {
+type WebSocketMessage<T = unknown> = {
     type: string;
-    data: any;
+    data: T;
 };
 
 class WebSocketManager {
@@ -42,9 +42,18 @@ class WebSocketManager {
         const socket = new WebSocket(wsUrl, protocols);
         this.socket = socket;
 
-        console.log('[WS] Connecting:', wsUrl);
+        let connectionTimeout: ReturnType<typeof setTimeout> | null = null;
+        
+        // Timeout connection attempt if not opened in 5 seconds
+        connectionTimeout = setTimeout(() => {
+            if (socket.readyState === WebSocket.CONNECTING) {
+                console.warn('[WS] Connection attempt timed out. Retrying...');
+                socket.close();
+            }
+        }, 5000);
 
         socket.onopen = () => {
+            if (connectionTimeout) clearTimeout(connectionTimeout);
             if (socket !== this.socket) return;
             console.log('[WS] Connected');
             this.resolveWaiters();
@@ -65,6 +74,7 @@ class WebSocketManager {
         };
 
         socket.onclose = (event) => {
+            if (connectionTimeout) clearTimeout(connectionTimeout);
             if (socket !== this.socket) return;
             console.log(`[WS] Closed (code: ${event.code})`);
             this.socket = null;
@@ -81,8 +91,9 @@ class WebSocketManager {
         };
 
         socket.onerror = (error) => {
+            if (connectionTimeout) clearTimeout(connectionTimeout);
             if (socket !== this.socket) return;
-            console.error('[WS] Error:', error);
+            console.warn('[WS] Connexion impossible ou interrompue. Tentative de reconnexion automatique...');
         };
     }
 
@@ -98,9 +109,17 @@ class WebSocketManager {
         }
     }
 
+    private messageQueue: { type: string; data: Record<string, unknown> }[] = [];
+
     private resolveWaiters() {
         this.connectResolvers.forEach(resolve => resolve());
         this.connectResolvers = [];
+        
+        // Flush queued messages
+        while (this.messageQueue.length > 0) {
+            const msg = this.messageQueue.shift();
+            if (msg) this.send(msg.type, msg.data);
+        }
     }
 
     waitForConnection(): Promise<void> {
@@ -108,12 +127,13 @@ class WebSocketManager {
         return new Promise(resolve => this.connectResolvers.push(resolve));
     }
 
-    send(type: string, data: any) {
+    send(type: string, data: Record<string, unknown>) {
         if (this.socket?.readyState === WebSocket.OPEN) {
             this.sequenceIdx++;
             this.socket.send(JSON.stringify({ type, seq: this.sequenceIdx, ...data }));
         } else {
-            console.warn('[WS] Socket not open, dropping message:', type);
+            console.log('[WS] Socket not open, queuing message:', type);
+            this.messageQueue.push({ type, data });
         }
     }
 

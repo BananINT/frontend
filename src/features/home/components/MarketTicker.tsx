@@ -149,12 +149,12 @@ export default function MarketTicker() {
             const limitedStocks = stocksData.slice(0, 6);
 
             // Fetch history for these stocks
-            const withHistory = await Promise.all(limitedStocks.map(async (s: any) => {
+            const withHistory = await Promise.all(limitedStocks.map(async (s: Stock) => {
                 try {
                     const hRes = await api.get(`/market/history/${s.symbol}?timeframe=1M`);
                     return {
                         ...s,
-                        history: hRes.data.candles.slice(-15).map((c: any) => c.close)
+                        history: hRes.data.candles.slice(-15).map((c: { close: number }) => c.close)
                     };
                 } catch {
                     return { ...s, history: [] };

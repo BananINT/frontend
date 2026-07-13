@@ -111,7 +111,7 @@ export default function Globe() {
     const controlsRef = useRef<OrbitControls | null>(null);
     const animationFrameId = useRef<number | null>(null);
 
-    const [geoJson, setGeoJson] = useState<any>(null);
+    const [geoJson, setGeoJson] = useState<{ features: { geometry: unknown, properties: unknown }[] } | null>(null);
     const [loaded, setLoaded] = useState(false);
     const { theme } = useTheme();
 
@@ -126,7 +126,8 @@ export default function Globe() {
 
     // Initialize
     useEffect(() => {
-        if (!geoJson || !containerRef.current) return;
+        const currentContainer = containerRef.current;
+        if (!geoJson || !currentContainer) return;
 
         let isMounted = true;
         let fadeTimeout: ReturnType<typeof setTimeout>;
@@ -134,23 +135,23 @@ export default function Globe() {
         // Delay the heavy Three.js instantiation to allow the browser to paint
         // the rest of the page layout and initial animations without hitching.
         const initTimeout = setTimeout(() => {
-            if (!isMounted || !containerRef.current) return;
+            if (!isMounted || !currentContainer) return;
 
             // Cleanup any existing
             if (rendererRef.current) {
-                containerRef.current.innerHTML = '';
+                currentContainer.innerHTML = '';
                 rendererRef.current.dispose();
             }
 
-            const w = containerRef.current.clientWidth;
-            const h = containerRef.current.clientHeight;
+            const w = currentContainer.clientWidth;
+            const h = currentContainer.clientHeight;
 
             // 1. Setup Scene, Camera, Renderer
             const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
             renderer.setClearColor(0x000000, 0);
             renderer.setPixelRatio(window.devicePixelRatio);
             renderer.setSize(w, h);
-            containerRef.current.appendChild(renderer.domElement);
+            currentContainer.appendChild(renderer.domElement);
             renderer.domElement.style.background = 'transparent';
             rendererRef.current = renderer;
 
@@ -236,38 +237,30 @@ export default function Globe() {
             // Arcs Config
             globe
                 .arcsData(ARC_DATA)
-                // @ts-ignore
                 .arcStartLat(d => (d as ArcData).startLat)
-                // @ts-ignore
                 .arcStartLng(d => (d as ArcData).startLng)
-                // @ts-ignore
                 .arcEndLat(d => (d as ArcData).endLat)
-                // @ts-ignore
                 .arcEndLng(d => (d as ArcData).endLng)
-                // @ts-ignore
-                .arcColor(d => (d as ArcData).color)
-                // @ts-ignore
+                .arcColor((d: object) => (d as ArcData).color || '#ffffff')
                 .arcAltitude(d => (d as ArcData).arcAlt)
                 .arcStroke(0.5)
                 .arcDashLength(GLOBE_CONFIG.arcLength)
                 .arcDashGap(4)
-                // @ts-ignore
                 .arcDashInitialGap(d => (d as ArcData).order)
                 .arcDashAnimateTime(GLOBE_CONFIG.arcTime);
 
             // Points Config
             globe
                 .pointsData(uniquePoints)
-                // @ts-ignore
-                .pointColor(d => d.color)
+                .pointColor(d => (d as { color: string }).color)
                 .pointAltitude(0)
                 .pointRadius(2);
 
             // Rings Config (Dynamic)
             globe
                 .ringsData([])
-                // @ts-ignore
-                .ringColor(d => (t: number) => d.color)
+                // @ts-expect-error - three-globe types are often incomplete
+                .ringColor(d => () => (d as { color: string }).color)
                 .ringMaxRadius(GLOBE_CONFIG.maxRings)
                 .ringPropagationSpeed(3)
                 .ringRepeatPeriod(GLOBE_CONFIG.arcTime * GLOBE_CONFIG.arcLength / GLOBE_CONFIG.rings);
@@ -295,9 +288,9 @@ export default function Globe() {
             }, 100);
 
             const handleResize = () => {
-                if (!containerRef.current || !cameraRef.current || !rendererRef.current) return;
-                const width = containerRef.current.clientWidth;
-                const height = containerRef.current.clientHeight;
+                if (!currentContainer || !cameraRef.current || !rendererRef.current) return;
+                const width = currentContainer.clientWidth;
+                const height = currentContainer.clientHeight;
 
                 cameraRef.current.aspect = width / height;
                 cameraRef.current.updateProjectionMatrix();
@@ -307,7 +300,7 @@ export default function Globe() {
             window.addEventListener('resize', handleResize);
 
             // Attach resize handler to window so we can clean it up
-            (window as any)._globeHandleResize = handleResize;
+            (window as Window & { _globeHandleResize?: () => void })._globeHandleResize = handleResize;
 
         }, 1500); // Wait 1.5s for the initial page reveals and split-flap animations to fully finish!
 
@@ -316,16 +309,21 @@ export default function Globe() {
             clearTimeout(initTimeout);
             clearTimeout(fadeTimeout);
             
-            if ((window as any)._globeHandleResize) {
-                window.removeEventListener('resize', (window as any)._globeHandleResize);
-                delete (window as any)._globeHandleResize;
+            const win = window as Window & { _globeHandleResize?: () => void };
+            if (win._globeHandleResize) {
+                window.removeEventListener('resize', win._globeHandleResize);
+                delete win._globeHandleResize;
             }
             
             if (animationFrameId.current) cancelAnimationFrame(animationFrameId.current);
-            if (rendererRef.current) {
-                rendererRef.current.dispose();
-                if (containerRef.current && rendererRef.current.domElement) {
-                    try { containerRef.current.removeChild(rendererRef.current.domElement); } catch (e) {}
+            const currentRenderer = rendererRef.current;
+            if (currentRenderer) {
+                currentRenderer.dispose();
+                const domElement = currentRenderer.domElement;
+                if (currentContainer && domElement) {
+                    try { currentContainer.removeChild(domElement); } catch (err) {
+                        console.warn("Failed to remove globe canvas", err);
+                    }
                 }
             }
         };

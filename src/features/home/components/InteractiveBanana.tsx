@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { Banana, MousePointer2 } from 'lucide-react';
 import { motion, useAnimation } from 'framer-motion';
 import ShowcaseSection from './ShowcaseSection';

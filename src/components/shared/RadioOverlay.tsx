@@ -4,7 +4,7 @@ import Modal from '@app/components/shared/Modal';
 import { motion, useAnimation, AnimatePresence } from 'framer-motion';
 
 // Use Vite's import.meta.glob to automatically map the public/audio folder
-const rawAudioFiles = import.meta.glob('/public/audio/*.{mp3,wav,ogg,flac,m4a,aac}', { eager: true, as: 'url' }) as Record<string, string>;
+const rawAudioFiles = import.meta.glob('../../../public/audio/*.{mp3,wav,ogg,flac,m4a,aac}', { eager: true, query: '?url', import: 'default' }) as Record<string, string>;
 
 export default function RadioOverlay() {
     const [isPlaying, setIsPlaying] = useState(false);
@@ -41,13 +41,33 @@ export default function RadioOverlay() {
     };
 
     const audioManifest = useMemo(() => {
-        return Object.entries(rawAudioFiles).map(([path, url]) => ({
-            filename: path.split('/').pop()!,
-            url: url as string
-        })).sort((a, b) => a.filename.localeCompare(b.filename));
+        return Object.entries(rawAudioFiles).map(([path, url]) => {
+            let cleanUrl = url as string;
+            if (cleanUrl.startsWith('/public/')) {
+                cleanUrl = cleanUrl.replace(/^\/public/, '');
+            }
+            return {
+                filename: path.split('/').pop()!,
+                url: cleanUrl
+            };
+        }).sort((a, b) => a.filename.localeCompare(b.filename));
     }, []);
 
     const tracks = useMemo(() => audioManifest.map(item => item.url), [audioManifest]);
+
+    useEffect(() => {
+        if (audioRef.current) {
+            audioRef.current.volume = isMuted ? 0 : volume;
+        }
+    }, [volume, isMuted]);
+
+    const handleNext = React.useCallback(() => {
+        setCurrentTrackIndex((prev) => (prev + 1) % (tracks.length || 1));
+    }, [tracks.length]);
+
+    const handlePrev = React.useCallback(() => {
+        setCurrentTrackIndex((prev) => (prev - 1 + (tracks.length || 1)) % (tracks.length || 1));
+    }, [tracks.length]);
 
     useEffect(() => {
         if (tracks.length > 0) {
@@ -56,16 +76,16 @@ export default function RadioOverlay() {
             audio.volume = volume;
             audioRef.current = audio;
 
-            const handleEnded = () => handleNext();
-            const handleError = () => {
-                setError(`LOAD ERROR: ${audioManifest[currentTrackIndex]}`);
+            const onEnded = () => handleNext();
+            const onErr = () => {
+                setError(`LOAD ERROR: ${audioManifest[currentTrackIndex]?.filename || 'UNKNOWN'}`);
                 setIsPlaying(false);
             };
-            const handleCanPlay = () => setError(null);
+            const onCanPlay = () => setError(null);
 
-            audio.addEventListener('ended', handleEnded);
-            audio.addEventListener('error', handleError);
-            audio.addEventListener('canplay', handleCanPlay);
+            audio.addEventListener('ended', onEnded);
+            audio.addEventListener('error', onErr);
+            audio.addEventListener('canplay', onCanPlay);
             audio.addEventListener('timeupdate', () => setCurrentTime(audio.currentTime));
             audio.addEventListener('loadedmetadata', () => setDuration(audio.duration));
 
@@ -73,13 +93,13 @@ export default function RadioOverlay() {
 
             return () => {
                 audio.pause();
-                audio.removeEventListener('ended', handleEnded);
-                audio.removeEventListener('error', handleError);
-                audio.removeEventListener('canplay', handleCanPlay);
+                audio.removeEventListener('ended', onEnded);
+                audio.removeEventListener('error', onErr);
+                audio.removeEventListener('canplay', onCanPlay);
                 audioRef.current = null;
             };
         }
-    }, []);
+    }, [audioManifest, currentTrackIndex, handleNext, tracks, volume]);
 
     useEffect(() => {
         if (audioRef.current && tracks.length > 0) {
@@ -96,15 +116,9 @@ export default function RadioOverlay() {
                 });
             }
         }
-    }, [currentTrackIndex, isPlaying]);
+    }, [currentTrackIndex, isPlaying, tracks]);
 
-    useEffect(() => {
-        if (audioRef.current) {
-            audioRef.current.volume = isMuted ? 0 : volume;
-        }
-    }, [volume, isMuted]);
-
-    const togglePlay = () => {
+    const togglePlay = React.useCallback(() => {
         if (audioRef.current) {
             if (isPlaying) {
                 audioRef.current.pause();
@@ -119,15 +133,7 @@ export default function RadioOverlay() {
                 });
             }
         }
-    };
-
-    const handleNext = () => {
-        setCurrentTrackIndex((prev) => (prev + 1) % tracks.length);
-    };
-
-    const handlePrev = () => {
-        setCurrentTrackIndex((prev) => (prev - 1 + tracks.length) % tracks.length);
-    };
+    }, [isPlaying]);
 
     const selectTrack = (index: number) => {
         if (audioRef.current) {
@@ -161,7 +167,7 @@ export default function RadioOverlay() {
         return `${m}:${s.toString().padStart(2, '0')}`;
     };
 
-    const executeSnap = (targetCorner: 'TL' | 'TR' | 'BL' | 'BR', instant = false) => {
+    const executeSnap = React.useCallback((targetCorner: 'TL' | 'TR' | 'BL' | 'BR', instant = false) => {
         if (typeof window === 'undefined') return;
         const width = 320;
         const height = containerRef.current?.offsetHeight || 150;
@@ -187,9 +193,52 @@ export default function RadioOverlay() {
                 transition: { type: "spring", stiffness: 200, damping: 22, mass: 0.8, bounce: 0.2 } 
             });
         }
-    };
+    }, [controls]);
 
-    const handleDragEnd = (_e: MouseEvent | TouchEvent | PointerEvent, info: any) => {
+    const [visualizerData, setVisualizerData] = useState<{ delay: number, duration: number }[]>([]);
+
+    useEffect(() => {
+        setTimeout(() => {
+            setVisualizerData(Array.from({ length: 6 }, () => ({
+                delay: Math.random() * 0.5,
+                duration: 0.3 + Math.random() * 0.5
+            })));
+        }, 0);
+    }, []);
+
+    const filteredManifest = useMemo(() => {
+        return audioManifest.map((item, index: number) => ({ ...item, index }))
+            .filter((item) => item.filename.toLowerCase().includes(searchTerm.toLowerCase()));
+    }, [audioManifest, searchTerm]);
+
+    useEffect(() => {
+        if (tracks.length === 0) return;
+        localStorage.setItem('radioOverlayCorner', corner);
+        
+        const snap = () => executeSnap(corner);
+            
+        if (isInitialMount.current) {
+            executeSnap(corner, true);
+            isInitialMount.current = false;
+        } else {
+            snap();
+        }
+
+        window.addEventListener('resize', snap);
+        return () => window.removeEventListener('resize', snap);
+    }, [corner, controls, tracks.length, executeSnap]);
+
+    // Track height changes (from fold/unfold) and reposition instantly
+    useEffect(() => {
+        if (!containerRef.current || tracks.length === 0) return;
+        const observer = new ResizeObserver(() => {
+            executeSnap(corner, true);
+        });
+        observer.observe(containerRef.current);
+        return () => observer.disconnect();
+    }, [corner, tracks.length, executeSnap]);
+
+    const handleDragEnd = (_e: MouseEvent | TouchEvent | PointerEvent, info: { point: { x: number, y: number } }) => {
         // info.point gives absolute page coordinates. Subtract scroll to get viewport-relative position.
         const x = info.point.x - window.scrollX;
         const y = info.point.y - window.scrollY;
@@ -208,45 +257,16 @@ export default function RadioOverlay() {
         }
     };
 
-    if (tracks.length === 0) return null;
-
     const currentTrackName = audioManifest[currentTrackIndex]?.filename
         ?.replace(/\.(mp3|wav|ogg|flac|m4a|aac)$/i, '')
         ?.replace(/[-_]/g, ' ')
         ?.toUpperCase() || 'UNKNOWN RECORD';
 
-    const filteredManifest = audioManifest.map((item, index: number) => ({ ...item, index }))
-        .filter((item) => item.filename.toLowerCase().includes(searchTerm.toLowerCase()));
-
-    useEffect(() => {
-        localStorage.setItem('radioOverlayCorner', corner);
-        
-        const snap = () => executeSnap(corner);
-            
-        if (isInitialMount.current) {
-            executeSnap(corner, true);
-            isInitialMount.current = false;
-        } else {
-            snap();
-        }
-
-        window.addEventListener('resize', snap);
-        return () => window.removeEventListener('resize', snap);
-    }, [corner, controls, tracks.length]);
-
-    // Track height changes (from fold/unfold) and reposition instantly
-    useEffect(() => {
-        if (!containerRef.current) return;
-        const observer = new ResizeObserver(() => {
-            executeSnap(corner, true);
-        });
-        observer.observe(containerRef.current);
-        return () => observer.disconnect();
-    }, [corner]);
-
     return (
         <>
-            {/* Playlist Modal */}
+            {tracks.length > 0 && (
+                <>
+                    {/* Playlist Modal */}
             <Modal 
                 isOpen={isListOpen} 
                 onClose={() => setIsListOpen(false)} 
@@ -368,14 +388,14 @@ export default function RadioOverlay() {
                                     </div>
                                     {/* Visualizer animation */}
                                     <div className="flex items-end gap-[2px] h-6 w-8 bg-white/5 p-1 border border-white/5">
-                                        {[1, 2, 3, 4, 5, 6].map((i) => (
+                                        {visualizerData.map((data, i) => (
                                             <div
                                                 key={i}
                                                 className="flex-1 transition-all duration-300"
                                                 style={{
                                                     backgroundColor: error ? 'rgba(255, 255, 255, 0.2)' : COLORS.primary,
-                                                    height: isPlaying ? `${Math.random() * 80 + 20}%` : '10%',
-                                                    animation: isPlaying ? `radio-bounce ${0.3 + Math.random() * 0.5}s infinite alternate` : 'none'
+                                                    height: isPlaying ? '100%' : '10%',
+                                                    animation: isPlaying ? `radio-bounce ${data.duration}s infinite alternate ${data.delay}s` : 'none'
                                                 }}
                                             />
                                         ))}
@@ -465,6 +485,8 @@ export default function RadioOverlay() {
                 }
                 `}
             </style>
+                </>
+            )}
         </>
     );
 }

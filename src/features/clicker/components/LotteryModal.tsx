@@ -20,6 +20,12 @@ interface DrawHistory {
     drawn_at: string | null;
 }
 
+interface DrawResult {
+    draw_number: number;
+    winning_number: number;
+    winner: { name: string; prize: number } | null;
+}
+
 interface LotteryState {
     current_draw: {
         draw_number: number;
@@ -43,7 +49,7 @@ export default function LotteryModal({ isOpen, onClose }: LotteryModalProps) {
     const { gameState } = useGame();
     const [lotteryState, setLotteryState] = useState<LotteryState | null>(null);
     const [selectedNumber, setSelectedNumber] = useState<number | null>(null);
-    const [showResult, setShowResult] = useState<any>(null);
+    const [showResult, setShowResult] = useState<DrawResult | null>(null);
     const [isSpinning, setIsSpinning] = useState(false);
     const [countdown, setCountdown] = useState<number>(0);
 
@@ -56,9 +62,9 @@ export default function LotteryModal({ isOpen, onClose }: LotteryModalProps) {
 
     // Listen for lottery messages
     useEffect(() => {
-        const handleMessage = (message: any) => {
+        const handleMessage = (message: { type: string; data: unknown }) => {
             if (message.type === 'lottery_state') {
-                setLotteryState(message.data);
+                setLotteryState(message.data as LotteryState);
             } else if (message.type === 'lottery_ticket_success') {
                 // Refresh state after ticket purchase
                 socketManager.send('get_lottery_state', {});
@@ -66,7 +72,7 @@ export default function LotteryModal({ isOpen, onClose }: LotteryModalProps) {
             } else if (message.type === 'lottery_draw_result') {
                 setIsSpinning(true);
                 setTimeout(() => {
-                    setShowResult(message.data);
+                    setShowResult(message.data as DrawResult);
                     setIsSpinning(false);
                     // Refresh state
                     socketManager.send('get_lottery_state', {});

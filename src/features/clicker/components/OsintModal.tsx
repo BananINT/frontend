@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Terminal, ShieldAlert, Cpu, Network, Skull, Banana, StopCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Modal from '@app/components/shared/Modal';
@@ -33,40 +33,47 @@ interface OsintModalProps {
 
 export default function OsintModal({ isOpen, onClose }: OsintModalProps) {
     const [state, setState] = useState<OsintState | null>(null);
-    const [result, setResult] = useState<any>(null);
+    const [result, setResult] = useState<{ reward: number } | null>(null);
     const [terminalLines, setTerminalLines] = useState<string[]>([]);
-    
     const terminalRef = useRef<HTMLDivElement>(null);
+    
+    const addLog = useCallback((line: string) => {
+        setTerminalLines(prev => [...prev.slice(-20), `> ${line}`]);
+    }, []);
 
     // Initial load
     useEffect(() => {
         if (isOpen) {
             socketManager.send('get_osint_state', {});
-            addLog("Connexion établie au terminal BananINT v1.0.4...");
-            addLog("Initialisation du module OSINT...");
+            setTimeout(() => {
+                addLog("Connexion établie au terminal BananINT v1.0.4...");
+                addLog("Initialisation du module OSINT...");
+            }, 0);
         } else {
-            setTerminalLines([]);
-            setResult(null);
+            setTimeout(() => {
+                setTerminalLines([]);
+                setResult(null);
+            }, 0);
         }
-    }, [isOpen]);
+    }, [isOpen, addLog]);
 
     // Setup socket listeners
     useEffect(() => {
-        const handleMessage = (msg: any) => {
+        const handleMessage = (msg: { type: string, data: unknown, message?: string }) => {
             if (msg.type === 'osint_state') {
-                setState(msg.data);
+                setState(msg.data as OsintState);
             } else if (msg.type === 'osint_scan') {
-                addLog(`[RESEAU] Nouveau scan terminé (${msg.data.targets.length} nœuds découverts).`);
+                addLog(`[RESEAU] Nouveau scan terminé (${(msg.data as { targets: unknown[] }).targets.length} nœuds découverts).`);
             } else if (msg.type === 'osint_hack_complete') {
-                setResult(msg.data);
-                addLog(`[SUCCES] Infiltration terminée. +${formatNumber(msg.data.reward)} bananes.`);
+                setResult(msg.data as { reward: number });
+                addLog(`[SUCCES] Infiltration terminée. +${formatNumber((msg.data as { reward: number }).reward)} bananes.`);
             } else if (msg.type === 'error') {
                 addLog(`[ERREUR] ${msg.message}`);
             }
         };
         socketManager.subscribe(handleMessage);
         return () => socketManager.unsubscribe(handleMessage);
-    }, []);
+    }, [addLog]);
 
     // Local tick for active hack progression without waiting for server except at the end
     useEffect(() => {
@@ -106,7 +113,7 @@ export default function OsintModal({ isOpen, onClose }: OsintModalProps) {
         }, 1000);
 
         return () => clearInterval(interval);
-    }, [state?.active_hack?.target?.id, state?.active_hack?.completed]);
+    }, [state?.active_hack, addLog]);
 
     // Scroll to bottom of terminal
     useEffect(() => {
@@ -115,9 +122,7 @@ export default function OsintModal({ isOpen, onClose }: OsintModalProps) {
         }
     }, [terminalLines]);
 
-    const addLog = (line: string) => {
-        setTerminalLines(prev => [...prev.slice(-20), `> ${line}`]);
-    };
+
 
     const handleScan = () => {
         addLog("Lancement du scanner de réseau global...");

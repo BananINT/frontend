@@ -1,17 +1,16 @@
 import { useState } from 'react';
-import { Ticket, Gamepad2, Dices, Banana } from 'lucide-react';
+import { Ticket, Dices, Banana, Skull } from 'lucide-react';
 import { useGame } from '@app/context/GameContext';
 import { formatNumber } from '@app/utils/format';
-import SessionManager from '../clicker/components/SessionManager';
 import LotteryModal from '../clicker/components/LotteryModal';
-import MinigamesModal from '../clicker/components/MinigamesModal';
 import SlotsModal from './components/SlotsModal';
+import ApeRouletteModal from './components/ApeRouletteModal';
 
 export default function CasinoPage() {
     const { gameState } = useGame();
     const [isLotteryOpen, setIsLotteryOpen] = useState(false);
-    const [isMinigamesOpen, setIsMinigamesOpen] = useState(false);
     const [isSlotsOpen, setIsSlotsOpen] = useState(false);
+    const [isRouletteOpen, setIsRouletteOpen] = useState(false);
 
     return (
         <div className="flex flex-col h-full bg-black/50 overflow-y-auto">
@@ -37,8 +36,8 @@ export default function CasinoPage() {
                 </div>
             </div>
 
-            <div className="flex-1 p-8">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto mt-8">
+            <div className="flex-1 p-8 flex flex-col justify-center">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
                     
                     {/* Lottery Card */}
                     <button
@@ -85,36 +84,36 @@ export default function CasinoPage() {
                             Miser <span className="text-lg">→</span>
                         </div>
                     </button>
-
-                    {/* Arcade Card */}
+                    {/* Ape Roulette Card */}
                     <button
-                        onClick={() => setIsMinigamesOpen(true)}
+                        onClick={() => setIsRouletteOpen(true)}
                         className="group relative p-8 border border-white/10 hover:border-banan-primary hover:bg-banan-primary/5 transition-all text-left overflow-hidden flex flex-col justify-between min-h-[300px]"
+                        style={{
+                            borderColor: isRouletteOpen ? 'var(--banan-primary)' : 'rgba(255,255,255,0.1)'
+                        }}
                     >
-                        <Gamepad2 className="absolute -right-8 -bottom-8 h-48 w-48 text-white/5 group-hover:text-banan-primary/10 transition-colors transform group-hover:scale-110 duration-500" />
+                        <Skull className="absolute -right-8 -bottom-8 h-48 w-48 text-white/5 group-hover:text-banan-primary/10 transition-colors transform group-hover:scale-110 group-hover:rotate-12 duration-500" />
                         <div>
                             <div className="flex items-center gap-3 mb-4">
-                                <Gamepad2 className="h-8 w-8 text-banan-primary" />
-                                <h2 className="text-2xl font-black text-white uppercase tracking-wider group-hover:text-banan-primary transition-colors">Arcade Potassium</h2>
+                                <Skull className="h-8 w-8 text-banan-primary" />
+                                <h2 className="text-2xl font-black text-white uppercase tracking-wider group-hover:text-banan-primary transition-colors">Ape Roulette</h2>
                             </div>
                             <p className="font-mono text-sm text-white/50 mt-4 leading-relaxed max-w-sm">
-                                Testez votre habileté et gagnez des bananes en direct ! Memory Peel, Banana Catch, Banana Pong...
+                                5 bananes saines, 1 pourrie. Le barillet de 6 chambres est partagé par votre clan. Serez-vous le prochain à exploser ?
                             </p>
                         </div>
                         <div className="mt-8 font-mono text-xs text-banan-primary uppercase font-bold flex items-center gap-2">
-                            Jouer maintenant <span className="text-lg">→</span>
+                            Presser la détente <span className="text-lg">→</span>
                         </div>
                     </button>
 
                 </div>
             </div>
 
-            <SessionManager />
-            
             {/* Modals */}
             <LotteryModal isOpen={isLotteryOpen} onClose={() => setIsLotteryOpen(false)} />
-            <MinigamesModal isOpen={isMinigamesOpen} onClose={() => setIsMinigamesOpen(false)} />
             <SlotsModal isOpen={isSlotsOpen} onClose={() => setIsSlotsOpen(false)} />
+            <ApeRouletteModal isOpen={isRouletteOpen} onClose={() => setIsRouletteOpen(false)} />
         </div>
     );
 }

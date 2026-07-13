@@ -31,7 +31,7 @@ export default function AchievementsModal({ isOpen, onClose }: Props) {
                             switch (achievement.id) {
                                 case 'first_click': isUnlocked = gameState.clickCount >= 1; break;
                                 case 'automation_start': isUnlocked = gameState.autoClickers > 0; break;
-                                case 'team_player': isUnlocked = !!gameState.team; break;
+                                case 'team_player': isUnlocked = !!gameState.clan_id; break;
                             }
                         }
                     }

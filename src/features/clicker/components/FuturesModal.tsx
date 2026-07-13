@@ -31,10 +31,15 @@ interface FuturesState {
     fee_rate: number;
 }
 
+interface Stock {
+    symbol: string;
+    current_price: number;
+}
+
 interface FuturesModalProps {
     isOpen: boolean;
     onClose: () => void;
-    stocks: any[];
+    stocks: Stock[];
 }
 
 export default function FuturesModal({ isOpen, onClose, stocks }: FuturesModalProps) {
@@ -44,26 +49,27 @@ export default function FuturesModal({ isOpen, onClose, stocks }: FuturesModalPr
     const [direction, setDirection] = useState<'long' | 'short'>('long');
     const [leverage, setLeverage] = useState(2);
     const [marginInput, setMarginInput] = useState('');
-    const [liquidationAlert, setLiquidationAlert] = useState<any>(null);
+    const [liquidationAlert, setLiquidationAlert] = useState<{ symbol: string; margin_lost: number } | null>(null);
     const [tab, setTab] = useState<'open' | 'trade' | 'history' | 'hacks'>('trade');
 
     useEffect(() => {
         if (isOpen) {
             socketManager.send('get_futures_positions', {});
             if (stocks.length > 0 && !selectedSymbol) {
-                setSelectedSymbol(stocks[0].symbol);
+                const initialSymbol = stocks[0].symbol;
+                setTimeout(() => setSelectedSymbol(initialSymbol), 0);
             }
         }
-    }, [isOpen, stocks]);
+    }, [isOpen, stocks, selectedSymbol]);
 
     useEffect(() => {
-        const handleMessage = (message: any) => {
+        const handleMessage = (message: { type: string; data: unknown }) => {
             if (message.type === 'futures_positions') {
-                setFuturesState(message.data);
+                setFuturesState(message.data as FuturesState);
             } else if (message.type === 'futures_opened' || message.type === 'futures_closed') {
                 socketManager.send('get_futures_positions', {});
             } else if (message.type === 'futures_liquidated') {
-                setLiquidationAlert(message.data);
+                setLiquidationAlert(message.data as { symbol: string; margin_lost: number });
                 socketManager.send('get_futures_positions', {});
                 setTimeout(() => setLiquidationAlert(null), 8000);
             }
@@ -104,9 +110,6 @@ export default function FuturesModal({ isOpen, onClose, stocks }: FuturesModalPr
     const estimatedFee = Math.floor(margin * (futuresState?.fee_rate || 0.005));
     const effectiveMargin = margin - estimatedFee;
     const positionValue = effectiveMargin * leverage;
-    const estimatedShares = selectedStock ? Math.max(1, Math.floor(positionValue / selectedStock.current_price)) : 0;
-    // @ts-ignore
-    estimatedShares;
 
     return (
         <Modal 

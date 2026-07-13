@@ -7,7 +7,7 @@ import { motion } from 'framer-motion';
 const LoginPage: React.FC = () => {
   const { authenticated, login, loading } = useAuth();
   const location = useLocation();
-  const from = (location.state as any)?.from?.pathname || '/clicker';
+  const from = (location.state as { from?: { pathname: string } })?.from?.pathname || '/clicker';
 
   if (loading) return null;
 

@@ -21,7 +21,7 @@ export default function CyberModal({ isOpen, onClose }: CyberModalProps) {
     const { gameState } = useGame();
     const [state, setState] = useState<CyberState | null>(null);
     const [tab, setTab] = useState<'warfare' | 'darknet'>('warfare');
-    const [raidAlert, setRaidAlert] = useState<any>(null);
+    const [raidAlert, setRaidAlert] = useState<number | null>(null);
 
     useEffect(() => {
         if (isOpen) {
@@ -30,12 +30,13 @@ export default function CyberModal({ isOpen, onClose }: CyberModalProps) {
     }, [isOpen]);
 
     useEffect(() => {
-        const handleMessage = (msg: any) => {
+        const handleMessage = (msg: { type: string, data: unknown }) => {
             if (msg.type === 'cyber_state') {
-                setState(msg.data);
+                setState(msg.data as CyberState);
             } else if (msg.type === 'darknet_result') {
-                if (msg.data.raid) {
-                    setRaidAlert(msg.data.loss);
+                const data = msg.data as { raid: boolean, loss: number };
+                if (data.raid) {
+                    setRaidAlert(data.loss);
                     setTimeout(() => setRaidAlert(null), 8000);
                 }
             } else if (msg.type === 'cyber_attacked') {
@@ -149,41 +150,41 @@ export default function CyberModal({ isOpen, onClose }: CyberModalProps) {
                     <div className="border border-purple-500/30 bg-purple-900/10 p-4">
                         <div className="flex items-center justify-center mb-4">
                             <div className="relative">
-                                <Skull className="h-12 w-12 text-purple-500" />
-                                <Activity className="h-4 w-4 text-banan-primary absolute bottom-0 right-0 animate-pulse" />
+                                    <Skull className="h-12 w-12 text-banan-cyber" />
+                                    <Activity className="h-4 w-4 text-banan-primary absolute bottom-0 right-0 animate-pulse" />
+                                </div>
                             </div>
-                        </div>
-                        <h3 className="font-bold text-center font-mono text-purple-400 uppercase text-lg tracking-widest mb-2">
-                            Darknet Potassium
-                        </h3>
-                        <p className="text-center font-mono text-xs text-purple-300/60 mb-6">
-                            Bienvenue sur TorBanana. Achetez des artefacts de contrebande. Attention aux descentes de la Cyber-Police (20% de risque).
-                        </p>
+                            <h3 className="font-bold text-center font-mono text-banan-cyber uppercase text-lg tracking-widest mb-2">
+                                Darknet Potassium
+                            </h3>
+                            <p className="text-center font-mono text-xs text-banan-cyber/60 mb-6">
+                                Bienvenue sur TorBanana. Achetez des artefacts de contrebande. Attention aux descentes de la Cyber-Police (20% de risque).
+                            </p>
 
-                        <div className="border border-white/10 bg-black p-4 flex items-center justify-between">
-                            <div>
-                                <div className="font-bold text-banan-primary flex items-center gap-2">
-                                    <Banana className="h-4 w-4" /> Bananes OGM
+                            <div className="border border-white/10 bg-black p-4 flex items-center justify-between">
+                                <div>
+                                    <div className="font-bold text-banan-primary flex items-center gap-2">
+                                        <Banana className="h-4 w-4" /> Bananes OGM
+                                    </div>
+                                    <div className="text-[10px] font-mono text-white/50 mt-1">
+                                        Une souche génétiquement modifiée ultra-illégale.<br/>
+                                        <span className="text-green-400 font-bold">+10,000 BPC (Bananes Par Clic) de manière permanente.</span>
+                                    </div>
                                 </div>
-                                <div className="text-[10px] font-mono text-white/50 mt-1">
-                                    Une souche génétiquement modifiée ultra-illégale.<br/>
-                                    <span className="text-green-400 font-bold">+10,000 BPC (Bananes Par Clic) de manière permanente.</span>
-                                </div>
-                            </div>
-                            
-                            {state?.ogm_active ? (
-                                <div className="text-xs font-mono font-bold text-purple-500 uppercase px-4 py-2 border border-purple-500 bg-purple-900/20">
-                                    Possédé
-                                </div>
-                            ) : (
-                                <button
-                                    onClick={() => socketManager.send('buy_darknet_item', { item_id: 'ogm_banana' })}
-                                    disabled={gameState.bananas < 1000000}
-                                    className="text-xs font-mono font-bold text-black bg-purple-500 hover:bg-purple-400 uppercase px-4 py-2 transition-colors disabled:opacity-30 flex items-center gap-1"
-                                >
-                                    Acheter (1M <Banana className="h-3 w-3"/>)
-                                </button>
-                            )}
+                                
+                                {state?.ogm_active ? (
+                                    <div className="text-xs font-mono font-bold text-banan-cyber uppercase px-4 py-2 border border-banan-cyber bg-banan-cyber/20">
+                                        Possédé
+                                    </div>
+                                ) : (
+                                    <button
+                                        onClick={() => socketManager.send('buy_darknet_item', { item_id: 'ogm_banana' })}
+                                        disabled={gameState.bananas < 1000000}
+                                        className="text-xs font-mono font-bold text-black bg-banan-cyber hover:bg-banan-cyber/80 uppercase px-4 py-2 transition-colors disabled:opacity-30 flex items-center gap-1"
+                                    >
+                                        Acheter (1M <Banana className="h-3 w-3"/>)
+                                    </button>
+                                )}
                         </div>
                     </div>
                 </div>

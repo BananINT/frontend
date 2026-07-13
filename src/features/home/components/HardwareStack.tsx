@@ -2,7 +2,14 @@ import { Cpu, Server, Database, LayoutTemplate, Activity, Globe, ShieldCheck, Wa
 import { motion } from 'framer-motion';
 import ShowcaseSection from './ShowcaseSection';
 
-const NODES = {
+interface Node {
+    title: string;
+    stack: string;
+    icon: React.ElementType;
+    color: string;
+}
+
+const NODES: Record<string, Node> = {
     internet: {
         title: "Internet",
         stack: "World Wide Web",
@@ -17,7 +24,7 @@ const NODES = {
     },
     frontend: {
         title: "Frontend",
-        stack: "React 19 / Vite",
+        stack: "React / Vite",
         icon: LayoutTemplate,
         color: "var(--color-banan-teal)",
     },
@@ -47,7 +54,7 @@ const NODES = {
     }
 };
 
-const NodeCard = ({ node, delay }: { node: any, delay: number }) => {
+const NodeCard = ({ node, delay }: { node: Node, delay: number }) => {
     const Icon = node.icon;
     return (
         <motion.div 

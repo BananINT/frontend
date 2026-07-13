@@ -11,8 +11,9 @@ const ClickerPage = lazy(() => import('@app/features/clicker/ClickerPage'));
 const CasinoPage = lazy(() => import('@app/features/casino/CasinoPage'));
 const LoginPage = lazy(() => import('@app/features/auth/LoginPage'));
 const EventsPage = lazy(() => import('@app/features/events/EventsPage'));
-//@ts-ignore
+//@ts-expect-error - External feature might have type issues during lazy load
 const BananeeApp = lazy(() => import('@app/features/bananee/App'));
+const ClanPage = lazy(() => import('@app/features/clans/ClanPage'));
 
 function App() {
   return (
@@ -26,6 +27,7 @@ function App() {
             <Route element={<GameLayout />}>
               <Route path="/clicker" element={<ClickerPage />} />
               <Route path="/casino" element={<CasinoPage />} />
+              <Route path="/clan" element={<ClanPage />} />
             </Route>
             <Route 
               path="/bananee" 

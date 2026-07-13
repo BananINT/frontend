@@ -1,9 +1,11 @@
 
+import type { LucideIcon } from 'lucide-react';
+
 export interface Achievement {
     id: string;
     label: string;
     description: string;
-    icon?: any; // Lucide icon
+    icon?: LucideIcon; // Lucide icon
     unlocked: boolean;
 }
 

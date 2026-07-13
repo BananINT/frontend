@@ -27,7 +27,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (isRun) return;
     isRun = true;
     
-    let refreshInterval: any;
+    let refreshInterval: ReturnType<typeof setInterval> | undefined;
 
     const initKeycloak = async () => {
       // Prevent infinite iframe recursion if check-sso hits the Vite fallback proxy
@@ -110,6 +110,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {

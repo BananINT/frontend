@@ -23,10 +23,17 @@ export default function LiveHub() {
                 if (response.ok) {
                     const data = await response.json();
                     
+                    interface RawLog {
+                        id: number;
+                        timestamp: string;
+                        type: string;
+                        message: string;
+                    }
+
                     // Filter out already existing logs to prevent duplicates
                     setLogs(prev => {
                         const existingIds = new Set(prev.map(l => l.id));
-                        const newEntries = data.filter((d: any) => !existingIds.has(d.id)).map((d: any) => ({
+                        const newEntries = (data as RawLog[]).filter((d: RawLog) => !existingIds.has(d.id)).map((d: RawLog) => ({
                             id: d.id,
                             timestamp: d.timestamp.substring(11, 19),
                             level: d.type as 'INFO' | 'WARN' | 'CRITICAL',

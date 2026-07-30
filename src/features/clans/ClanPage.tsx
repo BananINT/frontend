@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Shield, Users, Landmark, Vote, Plus, Info, Banana, TrendingUp, UserPlus, LogOut, Terminal, Cpu, StopCircle, Zap, Skull, Send, Gift } from 'lucide-react';
+import { Shield, Users, Landmark, Vote, Plus, Info, Banana, TrendingUp, UserPlus, LogOut, Terminal, Cpu, StopCircle, Zap, Skull, Send, Gift, Target, Globe } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useGame } from '@app/context/GameContext';
 import { useAuth } from '@app/context/AuthContext';
@@ -35,6 +35,41 @@ interface OsintState {
 interface OsintResult {
     reward: number;
     message?: string;
+}
+
+interface EliteContract {
+    id?: number;
+    contract_key: string;
+    name: string;
+    description: string;
+    goal_type: string;
+    goal_amount: number;
+    progress?: number;
+    reward: number;
+    deadline?: string;
+    completed?: boolean;
+    duration_hours?: number;
+}
+
+interface EliteContractsState {
+    active_contract: EliteContract | null;
+    available_contracts: EliteContract[];
+    error?: string;
+}
+
+interface MassHackClanContribution {
+    clan_id: string;
+    name: string;
+    amount: number;
+}
+
+interface MassHackState {
+    status: 'active' | 'success' | 'cooldown';
+    target_name: string;
+    required_cpu: number;
+    current_cpu: number;
+    deadline: number;
+    top_clans: MassHackClanContribution[];
 }
 
 const getGroupMultiplier = (balance: number) => {
@@ -78,6 +113,13 @@ export default function ClanPage() {
     const [terminalLines, setTerminalLines] = useState<string[]>([]);
     const terminalRef = useRef<HTMLDivElement>(null);
 
+    // Elite Contracts State
+    const [contractsState, setContractsState] = useState<EliteContractsState | null>(null);
+
+    // Mass OSINT Hacking (global) State
+    const [massHackState, setMassHackState] = useState<MassHackState | null>(null);
+    const [cpuInjectAmount, setCpuInjectAmount] = useState(10000000);
+
     // Ape Roulette State
     const [rouletteState, setRouletteState] = useState<{ remaining_chambers: number, dud_chance: number } | null>(null);
     const [rouletteSpinning, setRouletteSpinning] = useState(false);
@@ -101,10 +143,12 @@ export default function ClanPage() {
             fetchPublicClans(),
             fetchMyInvites()
         ]);
+        socketManager.send('get_mass_hack_state', {});
         if (gameState.clan_id) {
             await fetchClanDetails(gameState.clan_id);
             socketManager.send('get_osint_state', {});
             socketManager.send('get_ape_roulette_state', {});
+            socketManager.send('get_elite_contracts', {});
         } else {
             setLoading(false);
         }
@@ -167,6 +211,14 @@ export default function ClanPage() {
                 const data = msg.data as { sender_username: string, clan_name: string };
                 alert(`🎁 Félicitations ! L'agent ${data.sender_username} vous a offert un Pack Nouveau de l'unité ${data.clan_name} ! Vos upgrades initiales ont augmenté de +5 niveaux.`);
                 window.location.reload();
+            } else if (msg.type === 'elite_contracts_state') {
+                setContractsState(msg.data as EliteContractsState);
+            } else if (msg.type === 'mass_hack_state') {
+                setMassHackState(msg.data as MassHackState);
+            } else if (msg.type === 'error' && msg.message?.includes('contrat')) {
+                addLog(`[ERREUR] ${msg.message}`);
+            } else if (msg.type === 'error' && msg.message?.includes('CPU')) {
+                addLog(`[ERREUR] ${msg.message}`);
             }
         };
         socketManager.subscribe(handleMessage);
@@ -454,6 +506,24 @@ export default function ClanPage() {
     const handleCancelOsint = () => {
         addLog("Abandon de l'opération...");
         socketManager.send('cancel_osint_hack', {});
+    };
+
+    // Elite Contracts Actions
+    const handleAcceptContract = (contractKey: string) => {
+        addLog("Négociation du contrat d'élite...");
+        socketManager.send('accept_elite_contract', { contract_key: contractKey });
+    };
+
+    const handleClaimContract = () => {
+        addLog("Réclamation de la récompense du contrat...");
+        socketManager.send('claim_elite_contract', {});
+    };
+
+    // Mass OSINT Hacking Actions
+    const handleInjectCpu = () => {
+        if (cpuInjectAmount <= 0) return;
+        addLog(`Injection de ${formatNumber(cpuInjectAmount)} 🍌 de puissance CPU dans la cible mondiale...`);
+        socketManager.send('inject_mass_hack_cpu', { amount: cpuInjectAmount });
     };
 
     if (loading) {
@@ -784,6 +854,110 @@ export default function ClanPage() {
                                         </AnimatePresence>
                                     </div>
                                 </div>
+                            </GameSection>
+
+                            {/* Elite Contracts */}
+                            <GameSection title="CONTRATS D'ÉLITE" icon={Target}>
+                                <div className="space-y-2">
+                                    {contractsState?.active_contract ? (
+                                        <div className="p-3 border border-banan-primary/40 bg-banan-primary/5 space-y-2">
+                                            <div className="flex items-center justify-between">
+                                                <div className="text-[11px] font-bold text-banan-primary uppercase">{contractsState.active_contract.name}</div>
+                                                <div className="text-[9px] font-mono text-white/40">+{formatNumber(contractsState.active_contract.reward)} 🍌</div>
+                                            </div>
+                                            <div className="text-[9px] font-mono text-white/50">{contractsState.active_contract.description}</div>
+                                            <div className="w-full h-2 bg-black border border-white/10 relative overflow-hidden">
+                                                <div
+                                                    className="absolute top-0 left-0 h-full bg-banan-primary transition-all duration-500"
+                                                    style={{ width: `${Math.min(100, ((contractsState.active_contract.progress ?? 0) / contractsState.active_contract.goal_amount) * 100)}%` }}
+                                                />
+                                            </div>
+                                            <div className="flex items-center justify-between text-[9px] font-mono text-white/40">
+                                                <span>{formatNumber(contractsState.active_contract.progress ?? 0)} / {formatNumber(contractsState.active_contract.goal_amount)}</span>
+                                                {contractsState.active_contract.deadline && (
+                                                    <span>Échéance: {new Date(contractsState.active_contract.deadline).toLocaleString()}</span>
+                                                )}
+                                            </div>
+                                            {contractsState.active_contract.completed && (
+                                                <button
+                                                    onClick={handleClaimContract}
+                                                    className="w-full py-2 bg-banan-primary/20 border border-banan-primary text-banan-primary text-[10px] font-bold uppercase hover:bg-banan-primary hover:text-black transition-all"
+                                                >
+                                                    RÉCLAMER {formatNumber(contractsState.active_contract.reward)} 🍌
+                                                </button>
+                                            )}
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-2 max-h-[260px] overflow-y-auto pr-2">
+                                            {contractsState?.available_contracts.map(c => (
+                                                <div key={c.contract_key} className="p-2 border border-white/5 bg-white/5 flex items-center justify-between hover:border-banan-primary transition-colors group">
+                                                    <div>
+                                                        <div className="text-[10px] font-mono text-white/80 group-hover:text-banan-primary">{c.name}</div>
+                                                        <div className="text-[8px] font-mono text-white/30">{c.description} · +{formatNumber(c.reward)} 🍌</div>
+                                                    </div>
+                                                    <button
+                                                        onClick={() => handleAcceptContract(c.contract_key)}
+                                                        className="px-2 py-1 bg-banan-primary/20 border border-banan-primary text-banan-primary text-[9px] font-bold uppercase hover:bg-banan-primary hover:text-black shrink-0"
+                                                    >
+                                                        ACCEPTER
+                                                    </button>
+                                                </div>
+                                            ))}
+                                            {!contractsState?.available_contracts.length && (
+                                                <div className="p-4 border border-white/5 bg-white/5 text-center text-[10px] font-mono text-white/30 uppercase">
+                                                    Aucun contrat disponible
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                            </GameSection>
+
+                            {/* Mass OSINT Hacking (Global, cross-clan) */}
+                            <GameSection title="HACKING DE MASSE (MONDIAL)" icon={Globe}>
+                                {massHackState ? (
+                                    <div className="space-y-3">
+                                        <div className="text-[11px] font-mono text-banan-osint uppercase">CIBLE: {massHackState.target_name}</div>
+                                        <div className="w-full h-3 bg-black border border-white/10 relative overflow-hidden">
+                                            <div
+                                                className="absolute top-0 left-0 h-full bg-banan-osint transition-all duration-500"
+                                                style={{ width: `${Math.min(100, (massHackState.current_cpu / massHackState.required_cpu) * 100)}%` }}
+                                            />
+                                        </div>
+                                        <div className="flex items-center justify-between text-[9px] font-mono text-white/40">
+                                            <span>{formatNumber(massHackState.current_cpu)} / {formatNumber(massHackState.required_cpu)} CPU</span>
+                                            <span>Échéance: {new Date(massHackState.deadline * 1000).toLocaleDateString()}</span>
+                                        </div>
+                                        {gameState.clan_id && massHackState.status === 'active' && (
+                                            <div className="flex items-center gap-2">
+                                                <input
+                                                    type="number"
+                                                    value={cpuInjectAmount}
+                                                    onChange={(e) => setCpuInjectAmount(Math.max(0, parseInt(e.target.value) || 0))}
+                                                    className="flex-1 bg-black border border-white/10 text-white text-[10px] font-mono px-2 py-1"
+                                                />
+                                                <button
+                                                    onClick={handleInjectCpu}
+                                                    className="px-3 py-1 bg-banan-osint/20 border border-banan-osint text-banan-osint text-[9px] font-bold uppercase hover:bg-banan-osint hover:text-black flex items-center gap-1"
+                                                >
+                                                    <Cpu className="h-3 w-3" /> INJECTER
+                                                </button>
+                                            </div>
+                                        )}
+                                        {massHackState.top_clans.length > 0 && (
+                                            <div className="space-y-1 pt-2 border-t border-white/5">
+                                                {massHackState.top_clans.slice(0, 5).map((c, i) => (
+                                                    <div key={c.clan_id} className="flex items-center justify-between text-[9px] font-mono text-white/50">
+                                                        <span>#{i + 1} {c.name}</span>
+                                                        <span>{formatNumber(c.amount)} 🍌</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                ) : (
+                                    <div className="p-4 text-center text-[10px] font-mono text-white/30 uppercase">Chargement de la cible mondiale...</div>
+                                )}
                             </GameSection>
 
                             {/* Governance / Votes */}

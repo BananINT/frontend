@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Shield, Users, Landmark, Vote, Plus, Info, Banana, TrendingUp, UserPlus, LogOut, Terminal, Cpu, StopCircle, Zap, Skull, Send } from 'lucide-react';
+import { Shield, Users, Landmark, Vote, Plus, Info, Banana, TrendingUp, UserPlus, LogOut, Terminal, Cpu, StopCircle, Zap, Skull, Send, Gift } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useGame } from '@app/context/GameContext';
 import { useAuth } from '@app/context/AuthContext';
@@ -7,7 +7,7 @@ import { formatNumber } from '@app/utils/format';
 import GameSection from '@app/components/shared/GameSection';
 import { api } from '@app/lib/api';
 import { socketManager } from '@app/lib/socket';
-import type { Clan, ClanMember, ClanVote, ClanInvite } from '@app/types/clan';
+import type { Clan, ClanMember, ClanVote, ClanInvite, ClanPerk } from '@app/types/clan';
 
 interface OsintTarget {
     id: string;
@@ -87,6 +87,9 @@ export default function ClanPage() {
     const [transferModalOpen, setTransferModalOpen] = useState(false);
     const [selectedTransferRecipient, setSelectedTransferRecipient] = useState<ClanMember | null>(null);
     const [transferAmount, setTransferAmount] = useState(0);
+    const [perks, setPerks] = useState<ClanPerk[]>([]);
+    const [dividendsModalOpen, setDividendsModalOpen] = useState(false);
+    const [transactions, setTransactions] = useState<any[]>([]);
 
     const addLog = useCallback((line: string) => {
         setTerminalLines(prev => [...prev.slice(-20), `> ${line}`]);
@@ -145,6 +148,25 @@ export default function ClanPage() {
                     }
                     refreshData();
                 }, 1500);
+            } else if (msg.type === 'clan_upgrade_success') {
+                const data = msg.data as { perk_id: string, new_level: number, treasury_balance: number };
+                setPerks(prev => prev.map(p => p.id === data.perk_id ? { 
+                    ...p, 
+                    level: data.new_level,
+                    cost: p.cost ? p.cost * 2 : null
+                } : p));
+                setClanData(prev => prev ? { ...prev, treasury_balance: data.treasury_balance } : null);
+                addLog(`[CLAN] Le perk '${data.perk_id}' a été amélioré au niveau ${data.new_level}.`);
+                refreshData();
+            } else if (msg.type === 'clan_starter_pack_success') {
+                const data = msg.data as { recipient_username: string, treasury_balance: number };
+                setClanData(prev => prev ? { ...prev, treasury_balance: data.treasury_balance } : null);
+                addLog(`[CLAN] Pack Nouveau financé pour ${data.recipient_username}.`);
+                refreshData();
+            } else if (msg.type === 'starter_pack_received') {
+                const data = msg.data as { sender_username: string, clan_name: string };
+                alert(`🎁 Félicitations ! L'agent ${data.sender_username} vous a offert un Pack Nouveau de l'unité ${data.clan_name} ! Vos upgrades initiales ont augmenté de +5 niveaux.`);
+                window.location.reload();
             }
         };
         socketManager.subscribe(handleMessage);
@@ -218,10 +240,11 @@ export default function ClanPage() {
 
     const fetchClanDetails = async (clanId: string) => {
         try {
-            const [clanRes, membersRes, votesRes] = await Promise.all([
+            const [clanRes, membersRes, votesRes, perksRes] = await Promise.all([
                 fetch(`/api/clan/${clanId}`),
                 fetch(`/api/clan/${clanId}/members`),
-                fetch(`/api/clan/${clanId}/votes`)
+                fetch(`/api/clan/${clanId}/votes`),
+                api.get('/clan/perks')
             ]);
             
             const [clan, membersData, votesData] = await Promise.all([
@@ -233,10 +256,49 @@ export default function ClanPage() {
             setClanData(clan);
             setMembers(membersData);
             setVotes(votesData);
+            setPerks(perksRes.data);
         } catch (e) {
             console.error("Error fetching clan details", e);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleUpgradePerk = async (perkId: string) => {
+        try {
+            const res = await api.post('/clan/perks/upgrade', { perk_id: perkId });
+            if (res.data.success) {
+                refreshData();
+            }
+        } catch (e: unknown) {
+            const err = e as { response?: { data?: { detail?: string } } };
+            alert(err.response?.data?.detail || "Erreur lors de l'amélioration");
+        }
+    };
+
+    const handleBuyStarterPack = async (recipientId: string, recipientName: string) => {
+        if (!window.confirm(`Voulez-vous financer un Pack Nouveau (5B 🍌 de la trésorerie) pour aider ${recipientName} à rattraper le niveau ?`)) {
+            return;
+        }
+        try {
+            const res = await api.post('/clan/starter-pack', { recipient_id: recipientId });
+            if (res.data.success) {
+                alert(`Succès : Un Pack Nouveau a été financé pour ${recipientName} !`);
+                refreshData();
+            }
+        } catch (e: unknown) {
+            const err = e as { response?: { data?: { detail?: string } } };
+            alert(err.response?.data?.detail || "Erreur lors de l'achat du pack");
+        }
+    };
+
+    const openDividendsModal = async () => {
+        setDividendsModalOpen(true);
+        try {
+            const res = await api.get('/clan/transactions');
+            setTransactions(res.data);
+        } catch (e) {
+            console.error("Error fetching transactions", e);
         }
     };
 
@@ -563,7 +625,10 @@ export default function ClanPage() {
                                             </button>
                                         </div>
                                         <div className="flex gap-2">
-                                            <button className="flex-1 p-2 border border-white/10 text-white/50 text-[10px] font-bold uppercase hover:border-white hover:text-white transition-colors flex items-center justify-center gap-2">
+                                            <button 
+                                                onClick={openDividendsModal}
+                                                className="flex-1 p-2 border border-white/10 text-white/50 text-[10px] font-bold uppercase hover:border-white hover:text-white transition-colors flex items-center justify-center gap-2"
+                                            >
                                                 <TrendingUp className="h-3 w-3" /> DIVIDENDES (1%/JOUR)
                                             </button>
                                         </div>
@@ -876,6 +941,98 @@ export default function ClanPage() {
                                     </div>
                                 </div>
                             </GameSection>
+
+                            {/* Skills Tree / Perks */}
+                            <GameSection title="COMPÉTENCES DE L'UNITÉ" icon={Cpu}>
+                                <div className="p-4 bg-white/5 border border-white/10 space-y-4 h-full flex flex-col justify-between font-mono text-xs">
+                                    <p className="text-[10px] text-white/40 uppercase tracking-widest mb-2 font-mono">
+                                        Améliorations collectives financées par la trésorerie.
+                                    </p>
+                                    <div className="space-y-4 flex-1 overflow-y-auto max-h-[350px] pr-1 custom-scrollbar">
+                                        {perks && perks.map((perk) => {
+                                            const isMax = perk.level >= perk.max_level;
+                                            const canAfford = clanData && perk.cost !== null && clanData.treasury_balance >= perk.cost;
+                                            
+                                            // Format current and next effects
+                                            let currentEffect = "0%";
+                                            let nextEffect = "0%";
+                                            if (perk.id === 'turbo_murissement') {
+                                                currentEffect = `-${perk.level * 5}%`;
+                                                nextEffect = `-${(perk.level + 1) * 5}%`;
+                                            } else if (perk.id === 'bouclier_cyber') {
+                                                currentEffect = `-${perk.level * 10}%`;
+                                                nextEffect = `-${(perk.level + 1) * 10}%`;
+                                            } else if (perk.id === 'extracteur_potassium') {
+                                                currentEffect = `+${perk.level * 3}%`;
+                                                nextEffect = `+${(perk.level + 1) * 3}%`;
+                                            }
+
+                                            return (
+                                                <div key={perk.id} className="border border-white/5 bg-black/35 p-3 rounded-sm space-y-2 hover:border-white/10 transition-colors">
+                                                    <div className="flex justify-between items-start">
+                                                        <div>
+                                                            <h4 className="text-xs font-bold uppercase text-banan-primary tracking-tight font-sans">
+                                                                {perk.name}
+                                                            </h4>
+                                                            <p className="text-[9px] text-white/50 leading-relaxed mt-1 font-mono">
+                                                                {perk.description}
+                                                            </p>
+                                                        </div>
+                                                        <span className="text-[10px] text-white/80 font-bold bg-white/10 px-1.5 py-0.5 rounded-sm">
+                                                            Lvl {perk.level}/{perk.max_level}
+                                                        </span>
+                                                    </div>
+
+                                                    {/* Level blocks indicator */}
+                                                    <div className="flex gap-1 py-1">
+                                                        {Array.from({ length: perk.max_level }).map((_, i) => (
+                                                            <div 
+                                                                key={i} 
+                                                                className={`h-1.5 flex-1 rounded-sm border ${
+                                                                    i < perk.level 
+                                                                        ? 'bg-banan-primary border-banan-primary shadow-[0_0_4px_rgba(250,255,0,0.4)]' 
+                                                                        : 'border-white/10 bg-transparent'
+                                                                }`}
+                                                            />
+                                                        ))}
+                                                    </div>
+
+                                                    <div className="flex justify-between items-center text-[10px] mt-1 pt-1 border-t border-white/5 font-mono">
+                                                        <div>
+                                                            <span className="text-white/40">EFFET : </span>
+                                                            <span className="text-white font-bold">{currentEffect}</span>
+                                                            {!isMax && (
+                                                                <>
+                                                                    <span className="text-white/40"> → </span>
+                                                                    <span className="text-banan-primary font-bold">{nextEffect}</span>
+                                                                </>
+                                                            )}
+                                                        </div>
+                                                        
+                                                        {!isMax && perk.cost !== null ? (
+                                                            <button
+                                                                onClick={() => handleUpgradePerk(perk.id)}
+                                                                disabled={!canAfford}
+                                                                className={`px-3 py-1 font-black uppercase text-[9px] tracking-wider transition-all rounded-sm border ${
+                                                                    canAfford 
+                                                                        ? 'bg-banan-primary text-black border-banan-primary hover:bg-white hover:border-white cursor-pointer' 
+                                                                        : 'text-red-500 border-red-500/20 bg-red-500/5 opacity-55 cursor-not-allowed'
+                                                                }`}
+                                                            >
+                                                                AMÉLIORER ({formatNumber(perk.cost)})
+                                                            </button>
+                                                        ) : (
+                                                            <span className="text-banan-primary font-black uppercase tracking-widest text-[9px] py-1 px-3 bg-banan-primary/10 border border-banan-primary/20 rounded-sm">
+                                                                MAXIMUM
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            </GameSection>
                         </div>
 
                         {/* Member List */}
@@ -933,6 +1090,13 @@ export default function ClanPage() {
                                                         className="opacity-0 group-hover:opacity-100 p-2 text-banan-primary hover:bg-banan-primary/10 transition-all rounded animate-pulse"
                                                     >
                                                         <Send className="h-4 w-4" />
+                                                    </button>
+                                                    <button 
+                                                        onClick={() => handleBuyStarterPack(m.user_id, m.username)}
+                                                        title="Acheter un Pack Nouveau (5B 🍌)"
+                                                        className="opacity-0 group-hover:opacity-100 p-2 text-banan-primary hover:bg-banan-primary/10 transition-all rounded"
+                                                    >
+                                                        <Gift className="h-4 w-4" />
                                                     </button>
                                                     <button 
                                                         onClick={() => startVote('KICK', m.user_id)}
@@ -1044,6 +1208,125 @@ export default function ClanPage() {
                                     ANNULER
                                 </button>
                             </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+
+            {/* Dividends & Transactions Modal */}
+            <AnimatePresence>
+                {dividendsModalOpen && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+                        <motion.div 
+                            initial={{ scale: 0.95, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.95, opacity: 0 }}
+                            className="bg-[#0B0B0B] border border-banan-primary p-6 max-w-lg w-full space-y-6 max-h-[85vh] flex flex-col justify-between"
+                        >
+                            <div className="flex justify-between items-center border-b border-white/10 pb-4">
+                                <h3 className="text-lg font-black text-banan-primary uppercase tracking-tighter flex items-center gap-2">
+                                    <TrendingUp className="h-5 w-5" />
+                                    DIVIDENDES & TRANSACTIONS
+                                </h3>
+                                <button 
+                                    onClick={() => setDividendsModalOpen(false)}
+                                    className="text-white/50 hover:text-white"
+                                >
+                                    ✕
+                                </button>
+                            </div>
+                            
+                            {/* Stats Grid */}
+                            <div className="grid grid-cols-2 gap-4 border border-white/10 bg-black/40 p-4 font-mono text-[10px]">
+                                <div className="space-y-1">
+                                    <p className="text-white/40 uppercase">Trésor Total</p>
+                                    <p className="text-xs font-bold text-white">
+                                        {formatNumber(clanData?.treasury_balance || 0)} 🍌
+                                    </p>
+                                </div>
+                                <div className="space-y-1">
+                                    <p className="text-white/40 uppercase">Intérêt Quotidien (1%)</p>
+                                    <p className="text-xs font-bold text-banan-primary">
+                                        +{formatNumber(Math.floor((clanData?.treasury_balance || 0) * 0.01))} 🍌
+                                    </p>
+                                </div>
+                                <div className="space-y-1 pt-2 border-t border-white/10">
+                                    <p className="text-white/40 uppercase">Votre Part de Dons</p>
+                                    <p className="text-xs font-bold text-white">
+                                        {(() => {
+                                            const totalDonated = members.reduce((acc, m) => acc + m.total_donated, 0);
+                                            const me = members.find(m => m.user_id === gameState.userId);
+                                            return totalDonated > 0 ? `${((me?.total_donated || 0) / totalDonated * 100).toFixed(2)}%` : '0.00%';
+                                        })()}
+                                    </p>
+                                </div>
+                                <div className="space-y-1 pt-2 border-t border-white/10">
+                                    <p className="text-white/40 uppercase">Dividende Estimé / Jour</p>
+                                    <p className="text-xs font-bold text-green-500">
+                                        +{(() => {
+                                            const totalDonated = members.reduce((acc, m) => acc + m.total_donated, 0);
+                                            const me = members.find(m => m.user_id === gameState.userId);
+                                            const totalInterest = Math.floor((clanData?.treasury_balance || 0) * 0.01);
+                                            if (totalDonated > 0) {
+                                                return formatNumber(Math.floor(totalInterest * ((me?.total_donated || 0) / totalDonated)));
+                                            } else {
+                                                return members.length > 0 ? formatNumber(Math.floor(totalInterest / members.length)) : '0';
+                                            }
+                                        })()} 🍌
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="text-[9px] font-mono text-white/50 bg-white/5 p-2.5 border border-white/10 leading-relaxed rounded-sm">
+                                💡 <span className="text-banan-primary font-bold">FONCTIONNEMENT :</span> Les dividendes de 1% d'intérêt sont calculés et distribués automatiquement toutes les 24 heures à minuit. Votre versement est proportionnel à votre contribution globale au Trésor.
+                            </div>
+
+                            {/* Transactions History */}
+                            <div className="flex-1 overflow-y-auto space-y-2 pr-1 custom-scrollbar min-h-[150px]">
+                                <h4 className="text-[10px] font-mono font-bold uppercase text-white/40 tracking-wider mb-2">
+                                    HISTORIQUE DES MOUVEMENTS DE L'UNITÉ
+                                </h4>
+                                {transactions.length === 0 ? (
+                                    <p className="text-[10px] font-mono text-white/30 text-center py-6">Aucune transaction enregistrée.</p>
+                                ) : (
+                                    transactions.map((tx) => {
+                                        const isPositive = ['DEPOSIT', 'OSINT_REWARD', 'DIVIDEND'].includes(tx.type);
+                                        let typeLabel = tx.type;
+                                        if (tx.type === 'DEPOSIT') typeLabel = 'Dépôt';
+                                        if (tx.type === 'DIVIDEND') typeLabel = 'Dividendes';
+                                        if (tx.type === 'UPGRADE') typeLabel = 'Perk Acheté';
+                                        if (tx.type === 'OSINT_REWARD') typeLabel = 'Opération OSINT';
+
+                                        return (
+                                            <div key={tx.id} className="flex justify-between items-center bg-black/20 border border-white/5 p-2 rounded-sm font-mono text-[9px]">
+                                                <div className="space-y-0.5">
+                                                    <div className="flex items-center gap-1.5">
+                                                        <span className={`font-bold px-1 py-0.2 rounded-sm text-[8px] ${
+                                                            isPositive ? 'text-green-500 bg-green-500/10' : 'text-red-500 bg-red-500/10'
+                                                        }`}>
+                                                            {typeLabel.toUpperCase()}
+                                                        </span>
+                                                        <span className="text-white/60">par {tx.username}</span>
+                                                    </div>
+                                                    <p className="text-white/30 text-[8px]">
+                                                        {new Date(tx.timestamp).toLocaleString()}
+                                                    </p>
+                                                </div>
+                                                <span className={`text-[10px] font-bold ${isPositive ? 'text-green-500' : 'text-red-500'}`}>
+                                                    {isPositive ? '+' : '-'}{formatNumber(tx.amount)} 🍌
+                                                </span>
+                                            </div>
+                                        );
+                                    })
+                                )}
+                            </div>
+                            
+                            <button 
+                                onClick={() => setDividendsModalOpen(false)}
+                                className="w-full border border-white/10 text-white/50 py-3 uppercase text-xs hover:text-white hover:border-white transition-colors"
+                            >
+                                FERMER
+                            </button>
                         </motion.div>
                     </div>
                 )}

@@ -15,7 +15,7 @@ export default function ApeRouletteModal({ isOpen, onClose }: Props) {
     const { gameState } = useGame();
     const [rouletteState, setRouletteState] = useState<{ remaining_chambers: number, dud_chance: number } | null>(null);
     const [rouletteSpinning, setRouletteSpinning] = useState(false);
-    const [rouletteOutcome, setRouletteOutcome] = useState<{ outcome: string, payout: number } | null>(null);
+    const [rouletteOutcome, setRouletteOutcome] = useState<{ outcome: string, payout: number, global_jackpot_won?: number } | null>(null);
     const [recentPulls, setRecentPulls] = useState<string[]>([]);
 
     useEffect(() => {
@@ -36,7 +36,7 @@ export default function ApeRouletteModal({ isOpen, onClose }: Props) {
                     ...prev.slice(0, 4)
                 ]);
             } else if (msg.type === 'ape_roulette_result') {
-                const result = msg.data as { outcome: string, payout: number };
+                const result = msg.data as { outcome: string, payout: number, global_jackpot_won?: number };
                 setRouletteSpinning(true);
                 setRouletteOutcome(null);
                 setTimeout(() => {
@@ -151,7 +151,9 @@ export default function ApeRouletteModal({ isOpen, onClose }: Props) {
                                         animate={{ scale: 1, opacity: 1 }}
                                         className={`p-4 border text-center font-mono text-xs uppercase ${
                                             rouletteOutcome.outcome === 'SAFE' 
-                                                ? 'border-green-500/40 bg-green-950/20 text-green-400' 
+                                                ? rouletteOutcome.global_jackpot_won && rouletteOutcome.global_jackpot_won > 0
+                                                    ? 'border-cyan-500 bg-cyan-950/40 text-cyan-400 shadow-[0_0_15px_rgba(34,211,238,0.2)] font-black'
+                                                    : 'border-green-500/40 bg-green-950/20 text-green-400' 
                                                 : 'border-red-500/40 bg-red-950/20 text-red-400'
                                         }`}
                                     >
@@ -160,6 +162,11 @@ export default function ApeRouletteModal({ isOpen, onClose }: Props) {
                                                 ? `SAIN ! +${formatNumber(rouletteOutcome.payout)} 🍌` 
                                                 : '💥 BOOM ! Le pistolet a explosé !'}
                                         </div>
+                                        {rouletteOutcome.outcome === 'SAFE' && rouletteOutcome.global_jackpot_won && rouletteOutcome.global_jackpot_won > 0 && (
+                                            <div className="text-[9px] text-cyan-300 font-extrabold animate-pulse mt-1">
+                                                ⚡ SURGE DE POTASSIUM ACTIVER ! +{formatNumber(rouletteOutcome.global_jackpot_won)} 🍌 DU JACKPOT ⚡
+                                            </div>
+                                        )}
                                         {rouletteOutcome.outcome === 'DUD' && (
                                             <p className="text-[9px] text-red-400/50 mt-1">Vous êtes couvert de suie</p>
                                         )}

@@ -18,6 +18,14 @@ const SYMBOL_MAP: Record<SymbolType, { icon: LucideIcon, color: string }> = {
     'empty': { icon: Dices, color: 'text-white/10' } // for initial state
 };
 
+interface SlotsResult {
+    grid: SymbolType[][];
+    payout: number;
+    win_lines: string[];
+    skulls_hit: number;
+    global_jackpot_won?: number;
+}
+
 export default function SlotsModal({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) {
     const { gameState } = useGame();
     
@@ -28,23 +36,13 @@ export default function SlotsModal({ isOpen, onClose }: { isOpen: boolean, onClo
         ['empty', 'empty', 'empty', 'empty', 'empty'],
         ['empty', 'empty', 'empty', 'empty', 'empty']
     ]);
-    const [resultData, setResultData] = useState<{
-        grid: SymbolType[][];
-        payout: number;
-        win_lines: string[];
-        skulls_hit: number;
-    } | null>(null);
+    const [resultData, setResultData] = useState<SlotsResult | null>(null);
     const [showResult, setShowResult] = useState(false);
 
     useEffect(() => {
         const handleSlotsResult = (msg: { type: string; data: unknown }) => {
             if (msg.type === 'slots_machine_result') {
-                const data = msg.data as {
-                    grid: SymbolType[][];
-                    payout: number;
-                    win_lines: string[];
-                    skulls_hit: number;
-                };
+                const data = msg.data as SlotsResult;
                 setGrid(data.grid);
                 setResultData(data);
                 
@@ -144,16 +142,33 @@ export default function SlotsModal({ isOpen, onClose }: { isOpen: boolean, onClo
                                 animate={{ scale: [1, 1.2, 1], rotate: [0, 5, -5, 0], y: 0 }}
                                 exit={{ scale: 0, opacity: 0 }}
                                 transition={{ type: "spring", stiffness: 200, damping: 10 }}
-                                className="bg-green-500/20 border-2 border-green-500 p-4 w-full text-center shadow-[0_0_30px_rgba(34,197,94,0.6)]"
+                                className={`p-4 w-full text-center shadow-lg ${
+                                    resultData?.global_jackpot_won && resultData.global_jackpot_won > 0
+                                        ? 'bg-cyan-950/80 border-2 border-cyan-400 shadow-[0_0_30px_rgba(34,211,238,0.5)]'
+                                        : 'bg-green-500/20 border-2 border-green-500 shadow-[0_0_30px_rgba(34,197,94,0.6)]'
+                                }`}
                             >
                                 <motion.h3 
                                     animate={{ scale: [1, 1.1, 1] }} 
                                     transition={{ repeat: Infinity, duration: 0.5 }}
-                                    className="text-2xl font-black text-green-400 uppercase tracking-widest whitespace-nowrap"
+                                    className={`text-2xl font-black uppercase tracking-widest whitespace-nowrap ${
+                                        resultData?.global_jackpot_won && resultData.global_jackpot_won > 0
+                                            ? 'text-cyan-400 font-extrabold'
+                                            : 'text-green-400'
+                                    }`}
                                 >
                                     + {formatNumber(resultData.payout)} 🍌
                                 </motion.h3>
-                                <p className="text-xs font-mono text-green-300/70 mt-1">Lignes gagnantes: {resultData.win_lines.join(', ')}</p>
+                                {resultData?.global_jackpot_won && resultData.global_jackpot_won > 0 && (
+                                    <div className="text-[9px] font-mono text-cyan-300 font-black uppercase tracking-widest animate-pulse mt-0.5">
+                                        ⚡ MEGA JACKPOT GLOBAL ACCORDÉ ! ⚡
+                                    </div>
+                                )}
+                                <p className={`text-xs font-mono mt-1 ${
+                                    resultData?.global_jackpot_won && resultData.global_jackpot_won > 0
+                                        ? 'text-cyan-300/70'
+                                        : 'text-green-300/70'
+                                }`}>Lignes gagnantes: {resultData.win_lines.join(', ')}</p>
                             </motion.div>
                         )}
 

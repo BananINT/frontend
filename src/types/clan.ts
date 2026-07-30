@@ -39,3 +39,14 @@ export interface ClanInvite {
     inviter_username: string;
     created_at: string;
 }
+
+export interface ClanPerk {
+    id: string;
+    name: string;
+    description: string;
+    level: number;
+    max_level: number;
+    cost: number | null;
+    effect_per_level: number;
+}
+

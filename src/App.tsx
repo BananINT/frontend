@@ -14,6 +14,9 @@ const EventsPage = lazy(() => import('@app/features/events/EventsPage'));
 //@ts-expect-error - External feature might have type issues during lazy load
 const BananeeApp = lazy(() => import('@app/features/bananee/App'));
 const ClanPage = lazy(() => import('@app/features/clans/ClanPage'));
+// Nostalgia easter egg: original pre-BananINT clicker prototype, intentionally
+// disconnected from the real backend economy (own localStorage state only).
+const LegacyApp = lazy(() => import('@app/features/legacy/App'));
 
 function App() {
   return (
@@ -29,12 +32,13 @@ function App() {
               <Route path="/casino" element={<CasinoPage />} />
               <Route path="/clan" element={<ClanPage />} />
             </Route>
-            <Route 
-              path="/bananee" 
+            <Route
+              path="/bananee"
               element={
                 <BananeeApp />
-              } 
+              }
             />
+            <Route path="/legacy" element={<LegacyApp />} />
           </Route>
         </Routes>
       </Router>

@@ -1,4 +1,4 @@
-import { Navigate, useLocation } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router';
 import { useAuth } from '@app/context/AuthContext';
 import BananLoader from '@app/components/shared/BananLoader';
 

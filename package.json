@@ -23,7 +23,7 @@
     "ogl": "^1.0.11",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
-    "react-router-dom": "^7.12.0",
+    "react-router": "^8.3.0",
     "tailwind-merge": "^3.4.0",
     "three": "^0.183.0",
     "three-globe": "^2.45.0"

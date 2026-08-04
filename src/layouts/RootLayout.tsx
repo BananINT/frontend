@@ -1,5 +1,5 @@
 
-import { Outlet, useLocation } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router';
 import { Suspense } from 'react';
 import Header from '@app/components/shared/Header';
 import Footer from '@app/components/shared/Footer';

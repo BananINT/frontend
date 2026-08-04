@@ -1,6 +1,6 @@
 import React from 'react';
 import { useAuth } from '@app/context/AuthContext';
-import { Navigate, useLocation } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router';
 import { ShieldAlert, Fingerprint, Lock } from 'lucide-react';
 import { motion } from 'framer-motion';
 

@@ -1,6 +1,6 @@
 
 import { Banana, Github, Heart } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 
 const InstagramIcon = ({ className }: { className?: string }) => (
     <svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="currentColor" className={className}>
@@ -78,7 +78,9 @@ export default function Footer() {
                 {/* Bottom Bar */}
                 <div className="pt-8 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-4 text-[10px] uppercase font-bold tracking-widest text-white/40">
                     <div className="flex items-center gap-4">
-                        <span>{new Date().getFullYear()} BananINT©</span>
+                        <Link to="/legacy" className="hover:text-white/40 transition-colors">
+                            {new Date().getFullYear()} BananINT©
+                        </Link>
                         <span className="hidden md:inline text-white/20">|</span>
                         <span>Fait avec <Heart className="w-3 h-3 inline text-banan-red mx-1 align-sub" /> et des <Banana className="w-3 h-3 inline align-sub text-banan-primary" /> à Evry(-Courcouronnes)</span>
                     </div>

@@ -3,7 +3,7 @@ import ShinyText from '@app/components/ui/ShinyText';
 import Aurora from '@app/components/ui/Aurora';
 import LavaLamp from '@app/components/ui/LavaLamp';
 import { Banana, Users, Calendar, Gamepad, ArrowDown, Rocket, Heart } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { useEffect, useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import SplitFlapDisplay from '@app/components/ui/SplitFlap';

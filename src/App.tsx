@@ -1,5 +1,5 @@
 
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router';
 import { AuthProvider } from '@app/context/AuthContext';
 import RootLayout from '@app/layouts/RootLayout';
 import GameLayout from '@app/layouts/GameLayout';

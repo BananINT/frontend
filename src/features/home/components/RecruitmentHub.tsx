@@ -1,6 +1,6 @@
 
 import { AlertOctagon, ArrowRight } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import ShowcaseSection from './ShowcaseSection';
 
 export default function RecruitmentHub() {

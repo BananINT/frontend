@@ -1,4 +1,4 @@
-import { Outlet } from 'react-router-dom';
+import { Outlet } from 'react-router';
 import { GameProvider } from '@app/context/GameContext';
 import ProtectedRoute from '@app/components/ProtectedRoute';
 

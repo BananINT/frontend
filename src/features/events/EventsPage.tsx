@@ -27,6 +27,12 @@ export default function EventsPage() {
                 <div className="w-full max-w-7xl mx-auto px-4 pb-20">
                     <FallenBananiers />
                 </div>
+
+                <div className="w-full pb-8 select-none">
+                    <p className="text-center font-mono text-[10px] text-white/10 hover:text-white/30 transition-colors duration-700 tracking-widest cursor-default">
+                        palantint sait déjà que vous lisez ceci.
+                    </p>
+                </div>
             </div>
         </div>
     );

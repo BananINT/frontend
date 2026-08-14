@@ -246,25 +246,25 @@ export default function HomePage() {
                         <TeamCardsGroup>
                             <TeamCard glowColor="rgba(var(--banan-green-rgb), 0.15)">
                                 <div className="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-banan-green to-banan-green/50 rounded-full flex items-center justify-center text-white shadow-[0_0_30px_rgba(var(--banan-green-rgb),0.3)] overflow-hidden">
-                                    <img src="/img/team/dim.webp" alt="Dimitri Fajal" className="w-full h-full object-cover" />
+                                    <img src="/img/team/luc.webp" alt="Lucas Thuries" className="w-full h-full object-cover" />
                                 </div>
                                 <div className="text-center">
-                                    <h3 className="text-2xl font-black text-white uppercase mb-1">Dimitri Fajal</h3>
-                                    <p className="text-banan-green font-mono text-sm tracking-widest uppercase mb-4">Tech Lead / Singe du code</p>
+                                    <h3 className="text-2xl font-black text-white uppercase mb-1">Lucas Thuries</h3>
+                                    <p className="text-banan-green font-mono text-sm tracking-widest uppercase mb-4">Banana Advocate / M. Grosse Banane</p>
                                     <div className="w-full h-px bg-white/10 mb-4"></div>
-                                    <p className="text-white/60 text-sm">"Transforme la caféine en algorithmes enrichis en potassium."</p>
+                                    <p className="text-white/60 text-sm">"Mène la révolution banane, une réunion à la fois."</p>
                                 </div>
                             </TeamCard>
 
                             <TeamCard className="border-banan-primary/30" glowColor="rgba(var(--banan-primary-rgb), 0.15)">
                                 <div className="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-banan-primary to-banan-primary/50 rounded-full flex items-center justify-center text-black shadow-[0_0_30px_rgba(var(--banan-primary-rgb),0.3)] overflow-hidden">
-                                    <img src="/img/team/luc.webp" alt="Lucas Thuries" className="w-full h-full object-cover" />
+                                    <img src="/img/team/dim.webp" alt="Dimitri Fajal" className="w-full h-full object-cover" />
                                 </div>
                                 <div className="text-center">
-                                    <h3 className="text-2xl font-black text-white uppercase mb-1">Lucas Thuries</h3>
-                                    <p className="text-banan-primary font-mono text-sm tracking-widest uppercase mb-4">Président / M. Grosse Banane</p>
+                                    <h3 className="text-2xl font-black text-white uppercase mb-1">Dimitri Fajal</h3>
+                                    <p className="text-banan-primary font-mono text-sm tracking-widest uppercase mb-4">Président / Singe du code</p>
                                     <div className="w-full h-px bg-white/10 mb-4"></div>
-                                    <p className="text-white/60 text-sm">"Mène la révolution banane, une réunion à la fois."</p>
+                                    <p className="text-white/60 text-sm">"Transforme la caféine en algorithmes enrichis en potassium."</p>
                                 </div>
                             </TeamCard>
 

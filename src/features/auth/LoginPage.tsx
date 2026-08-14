@@ -3,13 +3,14 @@ import { useAuth } from '@app/context/AuthContext';
 import { Navigate, useLocation } from 'react-router';
 import { ShieldAlert, Fingerprint, Lock } from 'lucide-react';
 import { motion } from 'framer-motion';
+import BananLoader from '@app/components/shared/BananLoader';
 
 const LoginPage: React.FC = () => {
   const { authenticated, login, loading } = useAuth();
   const location = useLocation();
   const from = (location.state as { from?: { pathname: string } })?.from?.pathname || '/clicker';
 
-  if (loading) return null;
+  if (loading) return <BananLoader message="AUTHENTIFICATION..." />;
 
   if (authenticated) {
     return <Navigate to={from} replace />;

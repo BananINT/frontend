@@ -50,12 +50,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setToken(keycloak.token || null);
         };
 
-        const auth = await keycloak.init({
+        const initPromise = keycloak.init({
           onLoad: 'check-sso',
           silentCheckSsoRedirectUri: window.location.origin + '/silent-check-sso.html',
           pkceMethod: 'S256',
           checkLoginIframe: false,
         });
+
+        // keycloak.init() never settles if the silent-check-sso iframe can't
+        // post back (e.g. misconfigured redirect URI), so bail out instead of
+        // leaving the app stuck on the auth spinner forever.
+        const timeoutPromise = new Promise<boolean>((_, reject) => {
+          setTimeout(() => reject(new Error('Keycloak init timed out')), 8000);
+        });
+
+        const auth = await Promise.race([initPromise, timeoutPromise]);
 
         setAuthenticated(auth);
         if (auth) {

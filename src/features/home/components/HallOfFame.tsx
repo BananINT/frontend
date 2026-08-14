@@ -12,9 +12,9 @@ interface Bananier {
 }
 
 const TOP_BANANIERS: Bananier[] = [
-    { rank: 1, name: "Mixcraft", bananas: 42069000, prestige: 7 },
-    { rank: 2, name: "Dim", bananas: 8432900, prestige: 4 },
-    { rank: 3, name: "Luc", bananas: 3100500, prestige: 3 },
+    { rank: 1, name: "À pourvoir", bananas: 0, prestige: 0 },
+    { rank: 2, name: "À pourvoir", bananas: 0, prestige: 0 },
+    { rank: 3, name: "À pourvoir", bananas: 0, prestige: 0 },
 ];
 
 const PodiumCard = ({ op }: { op: Bananier }) => {
@@ -87,7 +87,7 @@ export default function HallOfFame() {
                 const res = await fetch('/api/stats/leaderboard');
                 if (res.ok) {
                     const data = await res.json();
-                    if (data && data.length > 0) {
+                    if (data) {
                         const newOps: Bananier[] = [];
                         for (let i = 0; i < 3; i++) {
                             if (data[i]) {
@@ -100,7 +100,7 @@ export default function HallOfFame() {
                             } else {
                                 newOps.push({
                                     rank: i + 1,
-                                    name: "—",
+                                    name: "À pourvoir",
                                     bananas: 0,
                                     prestige: 0
                                 });

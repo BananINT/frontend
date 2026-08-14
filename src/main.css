@@ -194,6 +194,20 @@
   color: var(--color-banan-white);
 }
 
+/* The document is the page's only scroller. Disabling the elastic overscroll
+   stops the whole layout — sticky header included — from being dragged past
+   the top of the page, and stops nested scrollers from chaining into it. */
+html {
+  overscroll-behavior-y: none;
+  background-color: var(--color-banan-background);
+}
+
+body {
+  overscroll-behavior-y: none;
+  /* dvh so the mobile URL bar cannot leave a gap under the footer. */
+  min-height: 100dvh;
+}
+
 ::selection {
   background-color: var(--color-banan-primary);
   color: var(--color-banan-background);
@@ -233,4 +247,40 @@ html {
       linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
       linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
   }
+}
+
+/* Casino "juice": chasing marquee-light border for hero cards/buttons */
+@property --marquee-angle {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+
+@keyframes marquee-spin {
+  to { --marquee-angle: 360deg; }
+}
+
+.marquee-border {
+  position: relative;
+  isolation: isolate;
+}
+
+.marquee-border::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  padding: 2px;
+  background: conic-gradient(from var(--marquee-angle), transparent 0%, var(--marquee-color, var(--color-banan-primary)) 12%, transparent 24%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: marquee-spin 2.4s linear infinite;
+  pointer-events: none;
+  z-index: 1;
+}
+
+@keyframes float-bob {
+  0%, 100% { transform: translateY(0) rotate(var(--float-rot, 0deg)); }
+  50% { transform: translateY(-22px) rotate(calc(var(--float-rot, 0deg) * -1)); }
 }

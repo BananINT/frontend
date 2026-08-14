@@ -90,7 +90,7 @@ class WebSocketManager {
             }, this.reconnectInterval);
         };
 
-        socket.onerror = (error) => {
+        socket.onerror = () => {
             if (connectionTimeout) clearTimeout(connectionTimeout);
             if (socket !== this.socket) return;
             console.warn('[WS] Connexion impossible ou interrompue. Tentative de reconnexion automatique...');

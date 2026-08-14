@@ -11,7 +11,7 @@ export default function RootLayout() {
     const isHome = location.pathname === '/';
 
     return (
-        <div className="min-h-screen bg-banan-background text-white font-mono flex flex-col relative">
+        <div className="min-h-[100dvh] bg-banan-background text-white font-mono flex flex-col relative">
             {/* Header */}
             <Header />
 

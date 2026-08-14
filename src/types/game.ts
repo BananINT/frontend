@@ -58,6 +58,7 @@ export interface GameState {
   sootRemaining?: number;
   taxRate?: number;
   totalDonated?: number;
+  totalBananasEarned: number;
 }
 
 export interface Upgrade {

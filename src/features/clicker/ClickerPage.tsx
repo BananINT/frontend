@@ -6,14 +6,18 @@ import StockChart from './components/StockChart';
 import SessionManager from './components/SessionManager';
 import MissionsModal from './components/MissionsModal';
 import AchievementsModal from './components/AchievementsModal';
-import { Medal, Target, Palette, Eye, Fingerprint, AlertTriangle } from 'lucide-react';
+import ThemeShopModal from './components/ThemeShopModal';
+import { Medal, Target, Palette, Eye, AlertTriangle } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import GameSection from '@app/components/shared/GameSection';
 import { formatNumber } from '@app/utils/format';
-import ThemeShopModal from './components/ThemeShopModal';
 import AlgoCultModal from './components/AlgoCultModal';
-import CyberModal from './components/CyberModal';
+import OsintSection from './components/OsintSection';
+import CyberSection from './components/CyberSection';
+import GoldenBanana from './components/GoldenBanana';
+import PrestigeRitual from './components/PrestigeRitual';
+import { PRESTIGE_REQUIREMENT } from '@app/config/gameConstants';
 import type { AlgoCultState, CyberAttack } from '@app/types/game';
 
 const UPGRADE_ICONS: Record<string, LucideIcon> = {
@@ -35,10 +39,11 @@ export default function ClickerPage() {
     const { gameState, clickBanana, buyUpgrade, availableUpgrades } = useGame();
     const [isMissionsOpen, setIsMissionsOpen] = useState(false);
     const [isAchievementsOpen, setIsAchievementsOpen] = useState(false);
-    const [activeTab, setActiveTab] = useState<'click' | 'auto' | 'synergy' | 'prestige'>('click');
     const [isStoreOpen, setIsStoreOpen] = useState(false);
+    const [activeTab, setActiveTab] = useState<'click' | 'auto' | 'synergy' | 'prestige'>('click');
     const [isAlgoOpen, setIsAlgoOpen] = useState(false);
-    const [isCyberOpen, setIsCyberOpen] = useState(false);
+    const [isPrestigeOpen, setIsPrestigeOpen] = useState(false);
+    const canAscend = gameState.totalBananasEarned >= PRESTIGE_REQUIREMENT;
     const [algoState, setAlgoState] = useState<AlgoCultState | null>(null);
     const [cyberAttacks, setCyberAttacks] = useState<CyberAttack[]>([]);
     const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
@@ -198,7 +203,9 @@ export default function ClickerPage() {
                         className="h-full border-x-0 border-b-0 p-0 relative banan-grid flex flex-col"
                         headerClassName="p-4 mb-0 border-b border-white/10 relative z-10 backdrop-blur-sm"
                     >
-                        <div className="flex-1 flex flex-col items-center justify-center p-8 min-h-[500px]">
+                        <div className="flex-1 flex flex-col items-center justify-center p-8 min-h-[500px] relative">
+                            <GoldenBanana />
+
                             <div className="mb-12 text-center">
                                 <div className="text-8xl md:text-9xl font-black font-sans text-banan-primary tracking-tighter leading-none select-none">
                                     {formatNumber(gameState.bananas)}
@@ -209,19 +216,35 @@ export default function ClickerPage() {
                             </div>
 
                             {/* The Big Banana Button */}
-                            <button
-                                onClick={clickBanana}
-                                className="group relative focus:outline-none mb-8"
-                            >
-                                <div className="w-[280px] h-[280px] border border-banan-primary bg-banan-primary/5 flex items-center justify-center cursor-pointer hover:bg-banan-primary hover:text-black transition-all duration-75 active:scale-95">
-                                    <Banana strokeWidth={1.5} className="w-32 h-32 text-banan-primary group-hover:text-black transition-colors duration-75" />
-                                </div>
-                                {/* Corner accents */}
-                                <div className="absolute top-0 left-0 w-2 h-2 border-t-2 border-l-2 border-banan-primary" />
-                                <div className="absolute top-0 right-0 w-2 h-2 border-t-2 border-r-2 border-banan-primary" />
-                                <div className="absolute bottom-0 left-0 w-2 h-2 border-b-2 border-l-2 border-banan-primary" />
-                                <div className="absolute bottom-0 right-0 w-2 h-2 border-b-2 border-r-2 border-banan-primary" />
-                            </button>
+                            <div className="relative mb-8">
+                                <button
+                                    onClick={clickBanana}
+                                    className="group relative focus:outline-none"
+                                >
+                                    <div className="w-[280px] h-[280px] border border-banan-primary bg-banan-primary/5 flex items-center justify-center cursor-pointer hover:bg-banan-primary hover:text-black transition-all duration-75 active:scale-95">
+                                        <Banana strokeWidth={1.5} className="w-32 h-32 text-banan-primary group-hover:text-black transition-colors duration-75" />
+                                    </div>
+                                    {/* Corner accents */}
+                                    <div className="absolute top-0 left-0 w-2 h-2 border-t-2 border-l-2 border-banan-primary" />
+                                    <div className="absolute top-0 right-0 w-2 h-2 border-t-2 border-r-2 border-banan-primary" />
+                                    <div className="absolute bottom-0 left-0 w-2 h-2 border-b-2 border-l-2 border-banan-primary" />
+                                    <div className="absolute bottom-0 right-0 w-2 h-2 border-b-2 border-r-2 border-banan-primary" />
+                                </button>
+
+                                {/* Subtle Ascension cue — only appears once eligible */}
+                                {canAscend && (
+                                    <motion.button
+                                        onClick={() => setIsPrestigeOpen(true)}
+                                        initial={{ opacity: 0, scale: 0.6 }}
+                                        animate={{ opacity: 1, scale: [1, 1.12, 1] }}
+                                        transition={{ opacity: { duration: 0.6 }, scale: { repeat: Infinity, duration: 2.2 } }}
+                                        className="absolute -top-3 -right-3 p-2.5 rounded-full bg-black border border-banan-primary/60 shadow-[0_0_16px_rgba(250,222,0,0.4)] hover:scale-110 transition-transform"
+                                        title="Ascension disponible"
+                                    >
+                                        <Dna className="w-5 h-5 text-banan-primary" />
+                                    </motion.button>
+                                )}
+                            </div>
 
                             {/* Control Panel Buttons */}
                             <div className="flex flex-wrap justify-center gap-2 md:gap-4">
@@ -258,14 +281,6 @@ export default function ClickerPage() {
                                 >
                                     <Eye className="h-4 w-4" />
                                     <span>{algoState?.status === 'demanding' ? 'SACRIFICE REQUIS' : 'CULTE'}</span>
-                                </button>
-                                <button
-                                    onClick={() => setIsCyberOpen(true)}
-                                    className="flex items-center gap-2 px-4 py-2 bg-black border border-banan-cyber/50 hover:bg-banan-cyber/30 hover:text-banan-cyber/80 hover:border-banan-cyber transition-all text-banan-cyber text-xs font-black uppercase tracking-wider relative group overflow-hidden"
-                                >
-                                    <Fingerprint className="h-4 w-4" />
-                                    <span>CYBER</span>
-                                    <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4IiBoZWlnaHQ9IjgiPgo8cmVjdCB3aWR0aD0iOCIgaGVpZ2h0PSI4IiBmaWxsPSIjZmZmIiBmaWxsLW9wYWNpdHk9IjAuMSI+PC9yZWN0Pgo8cGF0aCBkPSJNMCAwbDhfOHptOCAwTDBfOHoiIHN0cm9rZT0iIzAwMCIgc3Ryb2tlLW9wYWNpdHk9IjAuMSIvPjwvc3ZnPg==')] opacity-0 group-hover:opacity-20 transition-opacity"></div>
                                 </button>
                             </div>
                         </div>
@@ -335,6 +350,8 @@ export default function ClickerPage() {
 
             {/* Stock Market Section */}
             <StockChart />
+            <OsintSection />
+            <CyberSection />
             <SessionManager />
 
             {/* Modals */}
@@ -342,7 +359,7 @@ export default function ClickerPage() {
             <AchievementsModal isOpen={isAchievementsOpen} onClose={() => setIsAchievementsOpen(false)} />
             <ThemeShopModal isOpen={isStoreOpen} onClose={() => setIsStoreOpen(false)} />
             {algoState && <AlgoCultModal isOpen={isAlgoOpen} onClose={() => setIsAlgoOpen(false)} state={algoState} />}
-            <CyberModal isOpen={isCyberOpen} onClose={() => setIsCyberOpen(false)} />
+            <PrestigeRitual isOpen={isPrestigeOpen} onClose={() => setIsPrestigeOpen(false)} />
         </div>
     );
 }

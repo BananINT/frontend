@@ -12,9 +12,9 @@ export default function AchievementsModal({ isOpen, onClose }: Props) {
     const { gameState } = useGame();
 
     return (
-        <Modal 
-            isOpen={isOpen} 
-            onClose={onClose} 
+        <Modal
+            isOpen={isOpen}
+            onClose={onClose}
             title="DOSSIER MÉRITE"
         >
             <div className="space-y-4">

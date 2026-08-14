@@ -33,9 +33,9 @@ export default function ThemeShopModal({ isOpen, onClose }: ThemeShopModalProps)
     };
 
     return (
-        <Modal 
-            isOpen={isOpen} 
-            onClose={onClose} 
+        <Modal
+            isOpen={isOpen}
+            onClose={onClose}
             title="BOUTIQUE DE STYLES"
         >
             <div className="grid grid-cols-1 gap-4">
@@ -45,11 +45,11 @@ export default function ThemeShopModal({ isOpen, onClose }: ThemeShopModalProps)
                     const canAfford = bananas >= data.cost;
 
                     return (
-                        <div 
+                        <div
                             key={themeId}
                             className={`p-4 border-2 flex items-center justify-between transition-all ${
-                                isOwned 
-                                ? 'border-banan-primary bg-banan-primary/5' 
+                                isOwned
+                                ? 'border-banan-primary bg-banan-primary/5'
                                 : 'border-white/10 bg-white/5 hover:border-white/20'
                             }`}
                         >
@@ -90,7 +90,7 @@ export default function ThemeShopModal({ isOpen, onClose }: ThemeShopModalProps)
                     );
                 })}
             </div>
-            
+
             <div className="mt-8 p-4 bg-banan-primary/10 border border-banan-primary/20 text-center">
                 <p className="text-banan-primary text-xs font-mono uppercase tracking-widest flex items-center justify-center gap-1">
                     Vos bananes: {formatNumber(bananas)} <Banana className="w-3 h-3" />

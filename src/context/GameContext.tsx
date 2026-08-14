@@ -20,6 +20,7 @@ interface BackendGameState {
   prestige_count: number;
   banana_dna: number;
   owned_themes: string;
+  total_bananas_earned: number;
 }
 
 interface BackendUpgrade {
@@ -59,6 +60,7 @@ interface GameContextType {
   sellStock: (symbol: string, quantity: number, minPrice?: number) => Promise<boolean>;
   buyTheme: (themeId: string) => Promise<boolean>;
   getMissions: () => void;
+  setClanTaxRate: (rate: number) => Promise<void>;
 }
 
 const defaultState: GameState = {
@@ -81,7 +83,8 @@ const defaultState: GameState = {
   isSooty: false,
   sootRemaining: 0,
   taxRate: 0.0,
-  totalDonated: 0
+  totalDonated: 0,
+  totalBananasEarned: 0
 };
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -163,7 +166,8 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
         leaderboard: leaderboard || [],
         marketData: [],
         ownedThemes: serverState.owned_themes?.split(',') || ['default'],
-        missions: []
+        missions: [],
+        totalBananasEarned: serverState.total_bananas_earned || 0
       };
 
       lastServerState.current = mappedState;
@@ -204,6 +208,13 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
       totalClicks?: number;
       newlyCompletedMissions?: string[];
       clan_id?: string | null;
+      totalBananasEarned?: number;
+      prestigeCount?: number;
+      bananaDNA?: number;
+      isSooty?: boolean;
+      sootRemaining?: number;
+      taxRate?: number;
+      totalDonated?: number;
     }) => {
       if (!data || Object.keys(data).length === 0) return;
 
@@ -216,7 +227,16 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
           stocks: data.stocks,
           ownedThemes: (typeof data.ownedThemes === 'string' ? data.ownedThemes.split(',') : data.ownedThemes) || prev.ownedThemes,
           clickCount: data.totalClicks || prev.clickCount,
-          clan_id: data.clan_id !== undefined ? data.clan_id : prev.clan_id
+          clan_id: data.clan_id !== undefined ? data.clan_id : prev.clan_id,
+          totalBananasEarned: data.totalBananasEarned !== undefined ? data.totalBananasEarned : prev.totalBananasEarned,
+          prestigeCount: data.prestigeCount !== undefined ? data.prestigeCount : prev.prestigeCount,
+          banana_dna: data.bananaDNA !== undefined ? data.bananaDNA : prev.banana_dna,
+          // Clan/soot fields: the server is authoritative on every sync tick,
+          // so the casino tables and the clan tax selector stay in step.
+          isSooty: data.isSooty !== undefined ? data.isSooty : prev.isSooty,
+          sootRemaining: data.sootRemaining !== undefined ? data.sootRemaining : prev.sootRemaining,
+          taxRate: data.taxRate !== undefined ? data.taxRate : prev.taxRate,
+          totalDonated: data.totalDonated !== undefined ? data.totalDonated : prev.totalDonated
         };
         
         if (data.newlyCompletedMissions && data.newlyCompletedMissions.length > 0) {
@@ -478,6 +498,15 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
     socketManager.send('get_missions', {});
   };
 
+  // The clan tax lives on the clan_members row but drives every sync, so the
+  // context owns it: the new rate lands in gameState before the next tick.
+  const setClanTaxRate = async (rate: number) => {
+    const res = await api.post('/clan/tax/set', { tax_rate: rate });
+    const applied = typeof res.data?.tax_rate === 'number' ? res.data.tax_rate : rate;
+    setGameState(prev => ({ ...prev, taxRate: applied }));
+    socketManager.send('sync', { pendingClicks: 0 });
+  };
+
   const buyStock = async (symbol: string, quantity: number, maxPrice?: number): Promise<boolean> => {
     socketManager.send('buy_stock', { symbol, shares: quantity, maxPrice });
     return true;
@@ -504,7 +533,8 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
         socketManager.send('buy_theme', { themeId });
         return true;
       },
-      getMissions
+      getMissions,
+      setClanTaxRate
     }}>
       {isLoading ? (
         <BananLoader message="IMPORTING_GAME..." />

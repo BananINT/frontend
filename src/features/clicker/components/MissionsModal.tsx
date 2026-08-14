@@ -95,7 +95,7 @@ export default function MissionsModal({ isOpen, onClose }: Props) {
                         Objectifs d'Unité <Users className="h-3 w-3" />
                     </h3>
                     <div className="space-y-4">
-                        {(gameState.missions || []).filter(m => m.type === 'team').map((mission) => {
+                        {(gameState.missions || []).filter(m => m.type === 'clan').map((mission) => {
                             const progress = mission.progress;
                             const percent = Math.min(100, Math.floor((progress / mission.target) * 100));
 

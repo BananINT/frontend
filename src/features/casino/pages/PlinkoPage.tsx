@@ -3,12 +3,13 @@ import { motion } from 'framer-motion';
 import { Banana, CircleDot } from 'lucide-react';
 import { socketManager } from '@app/lib/socket';
 import { formatNumber } from '@app/utils/format';
+import { fireJackpotConfetti, fireWinConfetti } from '@app/utils/confetti';
 import GameLayout from '../components/GameLayout';
 import BetControls from '../components/BetControls';
 import DoubleOrNothing from '../components/DoubleOrNothing';
 import FairnessPanel from '../components/FairnessPanel';
 import { useCasinoGame } from '../lib/useCasinoGame';
-import type { CasinoResult, PlinkoDetail } from '../lib/types';
+import type { CasinoResult, GambleState, PlinkoDetail } from '../lib/types';
 
 const ROWS = 16;
 const STEP_MS = 62;
@@ -17,7 +18,7 @@ const POP_MS = 1500;
 /** Board coordinate space; the SVG scales to fit. */
 const BOARD_W = 340;
 const PEG_GAP = 18;
-const ROW_GAP = 20;
+const ROW_GAP = 14;
 const TOP = 16;
 const BUCKETS = 17;
 /** Cap on simultaneous balls, so a stuck finger cannot flood the board. */
@@ -63,14 +64,25 @@ function pegPos(r: number, p: number) {
 }
 
 export default function PlinkoPage() {
-    const { result, error, gamble, dismissGamble, flashKey, play, act } = useCasinoGame<
+    // The hook's own win flash/confetti fires the instant the server replies,
+    // which is long before a ball has visually fallen — that would spoil the
+    // result before the player sees it land. `confetti: false` mutes it here;
+    // the socket handler below fires both by hand once a ball's popup appears.
+    const { result, error, gamble, dismissGamble, play, act } = useCasinoGame<
         CasinoResult<PlinkoDetail>
-    >('plinko', { concurrent: true });
+    >('plinko', { concurrent: true, confetti: false });
 
     const [bet, setBet] = useState(1000);
     const [risk, setRisk] = useState<(typeof RISKS)[number]['key']>('medium');
     const [balls, setBalls] = useState<Ball[]>([]);
     const [pops, setPops] = useState<Pop[]>([]);
+    const [flashKey, setFlashKey] = useState(0);
+    // The hook's `gamble` updates the instant the server replies too, which
+    // would pop the Double ou Rien offer up before the ball that won it has
+    // landed. Locked while that ball is still in the air; cleared at its
+    // landing, same as the flash/confetti above.
+    const [gambleLocked, setGambleLocked] = useState(false);
+    const lastGambleKey = useRef<string | null>(null);
     /** Last payout table seen, so the buckets keep their labels between drops. */
     const [table, setTable] = useState<number[]>([]);
 
@@ -112,6 +124,23 @@ export default function PlinkoPage() {
         const handle = (msg: { type: string; data?: unknown }) => {
             if (msg.type !== 'casino_result') return;
             const data = msg.data as CasinoResult<PlinkoDetail>;
+
+            const gambleKeyOf = (g: unknown) =>
+                g ? `${(g as GambleState).amount}:${(g as GambleState).chain}` : null;
+
+            // Double ou Rien is an instant coin flip with nothing to animate,
+            // so it still reveals the moment the server replies.
+            if (data?.game === 'gamble') {
+                lastGambleKey.current = gambleKeyOf(data.gamble);
+                const payout = Number(data.payout ?? 0);
+                if (payout > 0) {
+                    setFlashKey((k) => k + 1);
+                    if (Number(data.global_jackpot_won ?? 0) > 0) fireJackpotConfetti();
+                    else fireWinConfetti();
+                }
+                return;
+            }
+
             if (data?.game !== 'plinko' || !data.detail) return;
 
             const detail = data.detail;
@@ -120,8 +149,20 @@ export default function PlinkoPage() {
             setTable(detail.table ?? []);
             setBalls((b) => [...b, { id, path: detail.path, bucket: detail.bucket, startedAt: performance.now() }].slice(-MAX_BALLS));
 
+            // A gamble offer this ball just won (a key not already known) stays
+            // locked until the ball lands. One this ball merely carries
+            // unchanged (an offer from an earlier win, still pending) was
+            // already revealed and must not be hidden again.
+            const gambleKey = gambleKeyOf(data.gamble);
+            if (gambleKey && gambleKey !== lastGambleKey.current) setGambleLocked(true);
+            lastGambleKey.current = gambleKey;
+
             // The ball is swapped for its popup the moment it hits the bucket;
-            // the popup then expires on the board clock.
+            // the popup then expires on the board clock. The win reveal (flash
+            // + confetti + gamble offer) waits for this same moment, not the
+            // server reply.
+            const payout = Number(data.payout ?? 0);
+            const bet = Number(data.bet ?? 0);
             timers.current.push(
                 window.setTimeout(() => {
                     setBalls((b) => b.filter((x) => x.id !== id));
@@ -130,12 +171,19 @@ export default function PlinkoPage() {
                         {
                             id,
                             bucket: detail.bucket,
-                            payout: Number(data.payout ?? 0),
-                            bet: Number(data.bet ?? 0),
+                            payout,
+                            bet,
                             multiplier: detail.multiplier,
                             landedAt: performance.now(),
                         },
                     ]);
+                    setGambleLocked(false);
+
+                    if (payout > 0 && payout > bet) {
+                        setFlashKey((k) => k + 1);
+                        if (Number(data.global_jackpot_won ?? 0) > 0) fireJackpotConfetti();
+                        else fireWinConfetti();
+                    }
                 }, ROWS * STEP_MS)
             );
         };
@@ -160,7 +208,7 @@ export default function PlinkoPage() {
             floating={[CircleDot]}
             flashKey={flashKey}
             error={error}
-            banner={<DoubleOrNothing gamble={gamble} onGamble={() => act('play', {}, 'gamble')} onDecline={dismissGamble} busy={false} />}
+            banner={<DoubleOrNothing gamble={gambleLocked ? null : gamble} onGamble={() => act('play', {}, 'gamble')} onDecline={dismissGamble} busy={false} />}
         >
             <div
                 className="relative rounded-2xl border border-white/10 overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.7)]"

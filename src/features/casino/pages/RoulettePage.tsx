@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, type CSSProperties } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Skull, Dices } from 'lucide-react';
+import { Skull, Dices, Banana } from 'lucide-react';
 import { socketManager } from '@app/lib/socket';
 import { useGame } from '@app/context/GameContext';
 import { formatNumber } from '@app/utils/format';
@@ -200,6 +200,20 @@ export default function RoulettePage() {
                                             ) : null}
                                         </AnimatePresence>
                                     </div>
+                                </div>
+
+                                {/* Right above the trigger, so the player never has
+                                    to look away from the cylinder to check their
+                                    balance against the 10M stake. */}
+                                <div className="flex justify-between items-center text-[10px] font-mono uppercase text-white/35 mb-2">
+                                    <span>Solde disponible</span>
+                                    <span
+                                        className={`flex items-center gap-1 tabular-nums ${
+                                            gameState.bananas < 10000000 ? 'text-red-400' : 'text-white/70'
+                                        }`}
+                                    >
+                                        {formatNumber(gameState.bananas)} <Banana className="w-3 h-3" />
+                                    </span>
                                 </div>
 
                                 <motion.button

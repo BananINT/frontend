@@ -221,14 +221,13 @@ export interface CrashResult extends CasinoResult {
     crash_point?: number;
 }
 
-export interface MinesResult extends CasinoResult {
-    status: 'running' | 'cashed' | 'busted';
+export interface MinesDetail {
+    status: 'busted' | 'cashed';
     bugs: number;
+    bug_tiles: number[];
     revealed: number[];
-    bug_tiles?: number[];
-    tile?: number;
-    next_multiplier?: number;
-    potential?: number;
+    tile: number | null;
+    multiplier: number;
 }
 
 export interface BlackjackResult extends CasinoResult {

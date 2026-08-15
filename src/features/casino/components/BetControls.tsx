@@ -101,6 +101,20 @@ export default function BetControls({
 
             {hint && <p className="text-[10px] font-mono text-white/30 uppercase leading-relaxed">{hint}</p>}
 
+            {/* Right above the play button, so the player never has to look
+                away from the table (or scroll up to the lobby header) to
+                check what they can safely stake. */}
+            <div className="flex justify-between items-center text-[10px] font-mono uppercase text-white/35">
+                <span>Solde disponible</span>
+                <span
+                    className={`flex items-center gap-1 tabular-nums ${
+                        gameState.bananas < bet ? 'text-red-400' : 'text-white/70'
+                    }`}
+                >
+                    {formatNumber(gameState.bananas)} <Banana className="w-3 h-3" />
+                </span>
+            </div>
+
             {/* The action row keeps a constant height: swapping the stake button
                 for a table's in-round controls must not move the panel. */}
             <div className="mt-2 h-[4.25rem] shrink-0">

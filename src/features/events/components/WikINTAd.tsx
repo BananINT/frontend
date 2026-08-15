@@ -19,12 +19,12 @@ export default function WikINTAd() {
                         <div className="absolute -top-24 -right-24 w-64 h-64 bg-orange-500/20 blur-[100px] rounded-full pointer-events-none"></div>
 
                         {/* Header */}
-                        <div className="flex items-center gap-6 text-left mb-8 relative z-10">
-                            <div className="p-5 bg-black/40 backdrop-blur-sm border border-white/10 rounded-2xl shadow-inner">
-                                <GraduationCap className="w-10 h-10 text-orange-400" />
+                        <div className="flex items-center gap-4 sm:gap-6 text-left mb-8 relative z-10">
+                            <div className="p-3 sm:p-5 shrink-0 bg-black/40 backdrop-blur-sm border border-white/10 rounded-2xl shadow-inner">
+                                <GraduationCap className="w-7 h-7 sm:w-10 sm:h-10 text-orange-400" />
                             </div>
-                            <div>
-                                <h3 className="text-3xl md:text-4xl font-black tracking-tighter uppercase leading-none text-orange-400">
+                            <div className="min-w-0">
+                                <h3 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tighter uppercase leading-none text-orange-400">
                                     Intellect
                                 </h3>
                                 <span className="text-[11px] font-mono text-white/50 uppercase tracking-[0.3em] mt-2 block">
@@ -113,12 +113,12 @@ export default function WikINTAd() {
                         <div className="absolute -top-24 -right-24 w-64 h-64 bg-blue-500/20 blur-[100px] rounded-full pointer-events-none"></div>
 
                         {/* Header */}
-                        <div className="flex items-center gap-6 text-left mb-8 relative z-10">
-                            <div className="p-5 bg-black/40 backdrop-blur-sm border border-white/10 rounded-2xl shadow-inner">
-                                <Newspaper className="w-10 h-10 text-blue-400" />
+                        <div className="flex items-center gap-4 sm:gap-6 text-left mb-8 relative z-10">
+                            <div className="p-3 sm:p-5 shrink-0 bg-black/40 backdrop-blur-sm border border-white/10 rounded-2xl shadow-inner">
+                                <Newspaper className="w-7 h-7 sm:w-10 sm:h-10 text-blue-400" />
                             </div>
-                            <div>
-                                <h3 className="text-3xl md:text-4xl font-black tracking-tighter uppercase leading-none text-blue-400">
+                            <div className="min-w-0">
+                                <h3 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tighter uppercase leading-none text-blue-400">
                                     INTPortal
                                 </h3>
                                 <span className="text-[11px] font-mono text-white/50 uppercase tracking-[0.3em] mt-2 block">

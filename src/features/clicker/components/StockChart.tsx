@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
-import { createChart, ColorType, CandlestickSeries, AreaSeries, HistogramSeries, CrosshairMode } from 'lightweight-charts';
-import type { IChartApi, ISeriesApi, SeriesMarker, Time } from 'lightweight-charts';
+import { createChart, ColorType, CandlestickSeries, AreaSeries, HistogramSeries, CrosshairMode, createSeriesMarkers } from 'lightweight-charts';
+import type { IChartApi, ISeriesApi, ISeriesMarkersPluginApi, SeriesMarker, Time } from 'lightweight-charts';
 import { useGame } from '@app/context/GameContext';
 import { useTheme } from '@app/hooks/useTheme';
 
@@ -38,6 +38,8 @@ export default function StockChart() {
     const areaSeriesRef = useRef<ISeriesApi<"Area"> | null>(null);
     const volumeSeriesRef = useRef<ISeriesApi<"Histogram"> | null>(null);
     const priceLineRef = useRef<ReturnType<ISeriesApi<"Candlestick">["createPriceLine"]> | null>(null);
+    const candleMarkersRef = useRef<ISeriesMarkersPluginApi<Time> | null>(null);
+    const areaMarkersRef = useRef<ISeriesMarkersPluginApi<Time> | null>(null);
 
     const [chartType, setChartType] = useState<'candle' | 'area'>('candle');
     const [trades, setTrades] = useState<{ time: number, type: 'buy'|'sell' }[]>([]);
@@ -67,6 +69,12 @@ export default function StockChart() {
     const [buyQty, setBuyQty] = useState(1);
     const [error, setError] = useState<string | null>(null);
     const [isFuturesOpen, setIsFuturesOpen] = useState(false);
+    const [timeframe, setTimeframe] = useState('1H');
+    const timeframeRef = useRef(timeframe);
+
+    useEffect(() => {
+        timeframeRef.current = timeframe;
+    }, [timeframe]);
 
     // Sync Ref for Socket Listeners
     useEffect(() => {
@@ -77,7 +85,7 @@ export default function StockChart() {
         curTimeRef.current = Math.floor(Date.now() / 1000);
     }, []);
 
-    const fetchHistory = useCallback(async (tf: string = '1M') => {
+    const fetchHistory = useCallback(async (tf: string = '1H') => {
         if (!activeStock || !seriesRef.current) return;
         
         try {
@@ -136,13 +144,18 @@ export default function StockChart() {
                     priceLineRef.current.applyOptions({ price: update.current_price });
                 }
 
-                if (seriesRef.current) seriesRef.current.update(candle as Parameters<Exclude<typeof seriesRef.current, null>['update']>[0]);
-                if (areaSeriesRef.current) areaSeriesRef.current.update({ time: candle.time as Time, value: candle.close });
-                if (volumeSeriesRef.current) {
-                    const upColor = getCssVar('--color-stock-up', '#26a69a');
-                    const downColor = getCssVar('--color-stock-down', '#ef5350');
-                    const volColor = candle.close >= candle.open ? `${upColor}80` : `${downColor}80`;
-                    volumeSeriesRef.current.update({ time: candle.time as Time, value: candle.volume || 0, color: volColor });
+                // The backend only ever broadcasts a 1-minute-resolution candle in real time,
+                // so it can only be pushed into the series when viewing the 1H (1m-candle) timeframe.
+                // Feeding it into a coarser series (1D/1W/1M/ALL) would corrupt that series' spacing/scale.
+                if (timeframeRef.current === '1H') {
+                    if (seriesRef.current) seriesRef.current.update(candle as Parameters<Exclude<typeof seriesRef.current, null>['update']>[0]);
+                    if (areaSeriesRef.current) areaSeriesRef.current.update({ time: candle.time as Time, value: candle.close });
+                    if (volumeSeriesRef.current) {
+                        const upColor = getCssVar('--color-stock-up', '#26a69a');
+                        const downColor = getCssVar('--color-stock-down', '#ef5350');
+                        const volColor = candle.close >= candle.open ? `${upColor}80` : `${downColor}80`;
+                        volumeSeriesRef.current.update({ time: candle.time as Time, value: candle.volume || 0, color: volColor });
+                    }
                 }
 
                 lastCloseRef.current = candle.close;
@@ -230,7 +243,9 @@ export default function StockChart() {
         seriesRef.current = series;
         areaSeriesRef.current = areaSeries;
         volumeSeriesRef.current = volumeSeries;
-        
+        candleMarkersRef.current = createSeriesMarkers(series, []);
+        areaMarkersRef.current = createSeriesMarkers(areaSeries, []);
+
         // Markers will be handled by the trades effect
 
 
@@ -276,12 +291,14 @@ export default function StockChart() {
             areaSeriesRef.current = null;
             volumeSeriesRef.current = null;
             priceLineRef.current = null;
+            candleMarkersRef.current = null;
+            areaMarkersRef.current = null;
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [activeStock, chartType]);
 
     useEffect(() => {
-        setTimeout(() => fetchHistory(), 0);
+        setTimeout(() => fetchHistory(timeframeRef.current), 0);
     }, [fetchHistory]);
 
     useEffect(() => {
@@ -323,14 +340,14 @@ export default function StockChart() {
             seriesRef.current.applyOptions({ visible: chartType === 'candle' });
             areaSeriesRef.current.applyOptions({ visible: chartType === 'area' });
             // Reload market to prevent empty graphs
-            fetchHistory();
+            fetchHistory(timeframeRef.current);
         }
     }, [chartType, fetchHistory]);
 
     // 5. Markers Reactivity
     useEffect(() => {
-        if (!seriesRef.current || !areaSeriesRef.current) return;
-        
+        if (!candleMarkersRef.current || !areaMarkersRef.current) return;
+
         const markers: SeriesMarker<Time>[] = trades.map(t => ({
             time: t.time as Time,
             position: t.type === 'buy' ? 'belowBar' : 'aboveBar',
@@ -339,9 +356,9 @@ export default function StockChart() {
             text: t.type === 'buy' ? 'B' : 'S',
             size: 1,
         }));
-        
-        if (seriesRef.current) (seriesRef.current as unknown as { setMarkers: (m: SeriesMarker<Time>[]) => void }).setMarkers(markers);
-        if (areaSeriesRef.current) (areaSeriesRef.current as unknown as { setMarkers: (m: SeriesMarker<Time>[]) => void }).setMarkers(markers);
+
+        candleMarkersRef.current.setMarkers(markers);
+        areaMarkersRef.current.setMarkers(markers);
     }, [trades]);
 
     const handleBuy = () => {
@@ -376,6 +393,7 @@ export default function StockChart() {
 
     const handleTimeframe = (tf: string) => {
         if (!activeStock) return;
+        setTimeframe(tf);
         fetchHistory(tf);
     };
 
@@ -412,11 +430,11 @@ export default function StockChart() {
                 {/* Timeframes Overlay */}
                 <div className="absolute top-2 left-2 z-10 flex gap-2">
                     <div className="flex bg-black/50 border border-white/10 rounded backdrop-blur-sm overflow-hidden">
-                        {['1M', '1H', '1D', '1W', 'ALL'].map(tf => (
+                        {['1H', '1D', '1W', '1M', 'ALL'].map(tf => (
                             <button
                                 key={tf}
                                 onClick={() => handleTimeframe(tf)}
-                                className="px-3 py-1 text-[10px] font-mono font-bold text-white/50 hover:text-white hover:bg-white/10 transition-colors"
+                                className={`px-3 py-1 text-[10px] font-mono font-bold transition-colors ${timeframe === tf ? 'text-banan-primary bg-white/10' : 'text-white/50 hover:text-white hover:bg-white/5'}`}
                             >
                                 {tf}
                             </button>

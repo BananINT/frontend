@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bug, Banana, HandCoins, Cpu, TriangleAlert } from 'lucide-react';
+import { Bug, Banana, Cpu, TriangleAlert } from 'lucide-react';
 import { formatNumber } from '@app/utils/format';
 import GameLayout from '../components/GameLayout';
 import BetControls from '../components/BetControls';
@@ -8,36 +8,74 @@ import DoubleOrNothing from '../components/DoubleOrNothing';
 import FairnessPanel from '../components/FairnessPanel';
 import { CircuitBoard, ScanLines } from '../components/Surfaces';
 import { useCasinoGame } from '../lib/useCasinoGame';
-import type { MinesResult } from '../lib/types';
+import type { CasinoResult, MinesDetail } from '../lib/types';
 
 const TILES = 25;
 const GRID = 5;
 const BUG_PRESETS = [1, 3, 5, 10, 24];
+const TARGET_RTP = 0.92;
 
 const cell = (index: number) => ({ row: Math.floor(index / GRID), col: index % GRID });
 
+/** Mirrors the server's fair-odds ladder, for a live preview before playing. */
+function previewMultiplier(bugs: number, revealed: number) {
+    if (revealed <= 0) return 1;
+    const safe = TILES - bugs;
+    if (revealed > safe) return 0;
+    let odds = 1;
+    for (let i = 0; i < revealed; i++) odds *= (TILES - i) / (safe - i);
+    return Math.round(TARGET_RTP * odds * 10000) / 10000;
+}
+
 export default function MinesPage() {
-    const { result, error, busy, gamble, dismissGamble, flashKey, play, act } = useCasinoGame<MinesResult>('mines');
+    const { result, error, busy, gamble, dismissGamble, flashKey, play, act, reset } =
+        useCasinoGame<CasinoResult<MinesDetail>>('mines');
 
     const [bet, setBet] = useState(1000);
     const [bugs, setBugs] = useState(3);
+    const [selected, setSelected] = useState<number[]>([]);
 
-    const running = result?.status === 'running';
-    const busted = result?.status === 'busted';
-    const cashed = result?.status === 'cashed';
-    const finished = busted || cashed;
+    const detail = result?.detail;
+    const finished = !!detail;
+    const busted = detail?.status === 'busted';
+    const cashed = detail?.status === 'cashed';
 
-    const revealed = result?.revealed ?? [];
-    const bugTiles = result?.bug_tiles ?? [];
-    const multiplier = result?.multiplier ?? 1;
+    // A round is fully resolved in one round trip, so there is nothing to
+    // resume: the board only ever shows the picks the player is about to
+    // submit, or the outcome of the picks they just submitted.
+    const revealed = finished ? detail!.revealed : selected;
+    const bugTiles = finished ? detail!.bug_tiles : [];
+    const multiplier = detail?.multiplier ?? previewMultiplier(bugs, selected.length);
+
+    // Changing the bug count changes how many tiles fit on the board, so a
+    // selection made under a looser setting is trimmed rather than left
+    // invalid.
+    useEffect(() => {
+        const safeTotal = TILES - bugs;
+        setSelected((s) => (s.length > safeTotal ? s.slice(0, safeTotal) : s));
+    }, [bugs]);
 
     const tileState = (index: number) => {
-        if (revealed.includes(index)) return 'safe';
-        if (finished && bugTiles.includes(index)) return 'bug';
-        return 'hidden';
+        if (finished) {
+            if (bugTiles.includes(index)) return 'bug';
+            if (revealed.includes(index)) return 'safe';
+            return 'hidden';
+        }
+        return selected.includes(index) ? 'selected' : 'hidden';
     };
 
-    // Copper traces drawn between consecutively cleared pads.
+    const toggleTile = (index: number) => {
+        if (busy) return;
+        if (finished) {
+            // Touching the board after a round starts a fresh selection.
+            reset();
+            setSelected([index]);
+            return;
+        }
+        setSelected((s) => (s.includes(index) ? s.filter((t) => t !== index) : [...s, index]));
+    };
+
+    // Copper traces drawn between consecutively probed pads, in pick order.
     const traces = revealed.slice(1).map((tile, i) => {
         const from = cell(revealed[i]);
         const to = cell(tile);
@@ -51,12 +89,20 @@ export default function MinesPage() {
     });
 
     const risk = Math.round((bugs / TILES) * 100);
+    const potential = finished ? (result?.payout ?? 0) : Math.floor(bet * multiplier);
+    const canPlay = !busy && !finished && selected.length > 0;
+
+    const handlePlay = () => {
+        if (!canPlay) return;
+        play(bet, { bugs, tiles: selected });
+        setSelected([]);
+    };
 
     return (
         <GameLayout
             icon={Bug}
             title="Champ de Bugs"
-            subtitle="Sondez la carte. Chaque pastille saine étend le circuit — un seul bug et tout grille."
+            subtitle="Marquez les pastilles à sonder, puis lancez le test — tout se joue en un coup."
             accent="text-emerald-400"
             accentGlow="bg-emerald-500/20"
             floating={[Bug, Cpu]}
@@ -71,10 +117,8 @@ export default function MinesPage() {
                 {[
                     { label: 'Multiplicateur', value: `${multiplier.toFixed(2)}×`, tone: 'text-emerald-400' },
                     {
-                        label: running ? 'Gain potentiel' : 'Palier suivant',
-                        value: running
-                            ? `${formatNumber(result?.potential ?? 0)}`
-                            : `${(result?.next_multiplier ?? 0).toFixed(2)}×`,
+                        label: finished ? 'Résultat' : 'Gain potentiel',
+                        value: formatNumber(potential),
                         tone: 'text-white/80',
                     },
                     { label: 'Densité de bugs', value: `${risk}%`, tone: 'text-orange-400' },
@@ -123,7 +167,7 @@ export default function MinesPage() {
                     <div className="relative grid grid-cols-5 gap-2 md:gap-2.5">
                         {Array.from({ length: TILES }, (_, index) => {
                             const state = tileState(index);
-                            const clickable = running && state === 'hidden';
+                            const clickable = !busy;
                             const order = revealed.indexOf(index);
 
                             return (
@@ -131,10 +175,10 @@ export default function MinesPage() {
                                     key={index}
                                     whileHover={clickable ? { scale: 1.07, y: -2 } : {}}
                                     whileTap={clickable ? { scale: 0.9 } : {}}
-                                    onClick={() => clickable && act('reveal', { tile: index })}
+                                    onClick={() => toggleTile(index)}
                                     disabled={!clickable}
                                     animate={
-                                        state === 'bug'
+                                        state === 'bug' && detail?.tile === index
                                             ? { x: [0, -4, 4, -3, 3, 0], transition: { duration: 0.4 } }
                                             : {}
                                     }
@@ -143,14 +187,24 @@ export default function MinesPage() {
                                             ? 'border-emerald-400 bg-emerald-400/15 shadow-[0_0_20px_rgba(52,211,153,0.35),inset_0_0_12px_rgba(52,211,153,0.2)]'
                                             : state === 'bug'
                                               ? 'border-red-500 bg-red-500/25 shadow-[0_0_25px_rgba(239,68,68,0.5)]'
-                                              : clickable
-                                                ? 'border-emerald-800/70 bg-emerald-950/50 hover:border-emerald-400/70 hover:bg-emerald-900/40 cursor-pointer'
-                                                : 'border-emerald-900/40 bg-black/40'
+                                              : state === 'selected'
+                                                ? 'border-emerald-400/80 bg-emerald-400/10 shadow-[0_0_12px_rgba(52,211,153,0.25)]'
+                                                : clickable
+                                                  ? 'border-emerald-800/70 bg-emerald-950/50 hover:border-emerald-400/70 hover:bg-emerald-900/40 cursor-pointer'
+                                                  : 'border-emerald-900/40 bg-black/40'
                                     }`}
                                 >
                                     {/* Unrevealed pads look like solder points */}
                                     {state === 'hidden' && (
                                         <span className="w-2 h-2 rounded-full bg-emerald-500/25 shadow-[0_0_6px_rgba(16,185,129,0.4)]" />
+                                    )}
+
+                                    {state === 'selected' && (
+                                        <motion.span
+                                            initial={{ scale: 0 }}
+                                            animate={{ scale: 1 }}
+                                            className="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]"
+                                        />
                                     )}
 
                                     {state === 'safe' && (
@@ -230,30 +284,42 @@ export default function MinesPage() {
                             Circuit extrait · +{formatNumber(result?.payout ?? 0)} 🍌 ({multiplier.toFixed(2)}×)
                         </motion.p>
                     )}
+                    {!finished && selected.length === 0 && (
+                        <motion.p
+                            key="pick"
+                            initial={{ opacity: 0, y: -6 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0 }}
+                            className="absolute inset-0 text-center text-xs md:text-sm font-mono text-white/30 uppercase tracking-[0.2em] flex items-center justify-center"
+                        >
+                            Marquez au moins une pastille
+                        </motion.p>
+                    )}
                 </AnimatePresence>
             </div>
 
             <BetControls
                 bet={bet}
                 onBet={setBet}
-                onPlay={() => play(bet, { bugs })}
-                busy={busy && !running}
-                disabled={running}
+                onPlay={handlePlay}
+                busy={busy}
                 label="Sonder la carte"
                 icon={<Bug className="w-5 h-5" />}
                 actions={
-                    running ? (
-                        <motion.button
-                            whileHover={{ scale: revealed.length ? 1.03 : 1 }}
-                            whileTap={{ scale: revealed.length ? 0.95 : 1 }}
-                            onClick={() => act('cashout')}
-                            disabled={revealed.length === 0}
-                            className="w-full h-full bg-emerald-400 text-black font-black uppercase tracking-widest text-base md:text-lg rounded-xl hover:bg-white transition-colors disabled:opacity-40 flex items-center justify-center gap-2 shadow-[0_0_30px_rgba(52,211,153,0.4)]"
-                        >
-                            <HandCoins className="w-5 h-5" />
-                            Extraire {formatNumber(result?.potential ?? 0)} 🍌
-                        </motion.button>
-                    ) : undefined
+                    <motion.button
+                        whileHover={canPlay ? { scale: 1.03 } : {}}
+                        whileTap={canPlay ? { scale: 0.95 } : {}}
+                        onClick={handlePlay}
+                        disabled={!canPlay}
+                        className="w-full h-full bg-emerald-400 text-black font-black uppercase tracking-widest text-base md:text-lg rounded-xl hover:bg-white transition-colors disabled:opacity-40 flex items-center justify-center gap-2 shadow-[0_0_30px_rgba(52,211,153,0.4)]"
+                    >
+                        <Bug className="w-5 h-5" />
+                        {busy
+                            ? '...'
+                            : selected.length > 0
+                              ? `Sonder ${selected.length} pastille${selected.length > 1 ? 's' : ''}`
+                              : 'Sonder la carte'}
+                    </motion.button>
                 }
             >
                 <div className="flex flex-col gap-2">
@@ -263,7 +329,7 @@ export default function MinesPage() {
                             <button
                                 key={count}
                                 onClick={() => setBugs(count)}
-                                disabled={running}
+                                disabled={busy}
                                 className={`flex-1 px-3 py-1.5 rounded-lg text-xs font-mono uppercase border transition-colors disabled:opacity-40 ${
                                     bugs === count
                                         ? 'bg-emerald-400 text-black border-emerald-400 font-bold'

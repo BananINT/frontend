@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Club, Plus, Hand, CopyPlus } from 'lucide-react';
+import { Club, Plus, Hand, CopyPlus, Banana } from 'lucide-react';
 import { formatNumber } from '@app/utils/format';
 import GameLayout from '../components/GameLayout';
 import BetControls from '../components/BetControls';
@@ -8,7 +8,7 @@ import DoubleOrNothing from '../components/DoubleOrNothing';
 import FairnessPanel from '../components/FairnessPanel';
 import PlayingCard from '../components/PlayingCard';
 import { Felt } from '../components/Surfaces';
-import { useCasinoGame } from '../lib/useCasinoGame';
+import { useCasinoGame, useCasinoTopic } from '../lib/useCasinoGame';
 import type { BlackjackResult } from '../lib/types';
 
 const OUTCOME_COPY: Record<string, { text: string; color: string }> = {
@@ -45,26 +45,50 @@ function Fan({ cards, faceDown = 0 }: { cards: string[]; faceDown?: number }) {
     );
 }
 
-/** A stack of chips whose height tracks the wager. */
+const CHIP_SIZE = 44;
+const CHIP_OFFSET = 11;
+
+/** A stack of round poker chips whose height tracks the wager. */
 function ChipStack({ amount, doubled }: { amount: number; doubled?: boolean }) {
     const chips = Math.min(6, Math.max(1, Math.ceil(Math.log10(Math.max(10, amount)))));
+    const stackHeight = CHIP_SIZE + (chips - 1) * CHIP_OFFSET;
+
     return (
         <div className="flex flex-col items-center gap-1.5 w-full">
-            <div className="relative h-12 w-12">
-                {Array.from({ length: chips }, (_, i) => (
-                    <motion.div
-                        key={i}
-                        initial={{ y: -20, opacity: 0 }}
-                        animate={{ y: -i * 5, opacity: 1 }}
-                        transition={{ delay: i * 0.05, type: 'spring', damping: 14 }}
-                        className="absolute bottom-0 left-0 w-12 h-4 rounded-full border-2 border-dashed"
-                        style={{
-                            background: i % 2 ? '#c9a227' : '#8b1d1d',
-                            borderColor: 'rgba(255,255,255,0.45)',
-                            boxShadow: '0 2px 4px rgba(0,0,0,0.6)',
-                        }}
-                    />
-                ))}
+            <div className="relative" style={{ width: CHIP_SIZE, height: stackHeight }}>
+                {Array.from({ length: chips }, (_, i) => {
+                    const top = i === chips - 1;
+                    return (
+                        <motion.div
+                            key={i}
+                            initial={{ y: -20, opacity: 0 }}
+                            animate={{ y: -i * CHIP_OFFSET, opacity: 1 }}
+                            transition={{ delay: i * 0.05, type: 'spring', damping: 14 }}
+                            className="absolute bottom-0 left-0 rounded-full border-2 border-dashed flex items-center justify-center"
+                            style={{
+                                width: CHIP_SIZE,
+                                height: CHIP_SIZE,
+                                background: i % 2 ? '#c9a227' : '#8b1d1d',
+                                borderColor: 'rgba(255,255,255,0.45)',
+                                boxShadow: '0 2px 4px rgba(0,0,0,0.6)',
+                            }}
+                        >
+                            {top && (
+                                <span
+                                    className="rounded-full flex items-center justify-center"
+                                    style={{
+                                        width: CHIP_SIZE * 0.6,
+                                        height: CHIP_SIZE * 0.6,
+                                        background: 'rgba(0,0,0,0.3)',
+                                        border: '1px solid rgba(255,255,255,0.3)',
+                                    }}
+                                >
+                                    <Banana className="w-4 h-4 text-[#f5d76e]" />
+                                </span>
+                            )}
+                        </motion.div>
+                    );
+                })}
             </div>
             <span className="text-[10px] font-mono uppercase tracking-widest text-[#f5d76e]/70 tabular-nums truncate max-w-full">
                 {formatNumber(amount)}
@@ -75,9 +99,21 @@ function ChipStack({ amount, doubled }: { amount: number; doubled?: boolean }) {
 }
 
 export default function BlackjackPage() {
-    const { result, error, busy, gamble, dismissGamble, flashKey, play, act } = useCasinoGame<BlackjackResult>('blackjack');
+    const { result, error, busy, gamble, dismissGamble, flashKey, play, act, setResult } =
+        useCasinoGame<BlackjackResult>('blackjack');
 
     const [bet, setBet] = useState(1000);
+
+    // A page refresh mid-hand used to leave the player stuck: the board only
+    // ever populated from a `casino_play`/`casino_action` reply, so a hand
+    // left running server-side never rendered and a fresh deal was refused.
+    // On mount, ask the server whether a hand is already in flight and, if
+    // so, hydrate the board with it before the player can act.
+    const { state: resumed } = useCasinoTopic<BlackjackResult & { topic: string; status: string }>('blackjack');
+    useEffect(() => {
+        if (resumed?.status === 'playing' && !result) setResult(resumed);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [resumed]);
 
     const playing = result?.status === 'playing';
     const finished = result?.status === 'finished';

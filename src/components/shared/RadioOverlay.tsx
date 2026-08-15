@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { Play, Pause, SkipBack, SkipForward, Music, AlertCircle, List, Search, ChevronDown, ChevronUp } from 'lucide-react';
+import { Play, Pause, SkipBack, SkipForward, Music, AlertCircle, List, Search, ChevronDown, ChevronUp, Download } from 'lucide-react';
 import Modal from '@app/components/shared/Modal';
 import { motion, useAnimation, AnimatePresence } from 'framer-motion';
 
@@ -289,10 +289,13 @@ export default function RadioOverlay() {
                 {/* File List */}
                 <div className="flex-1 overflow-y-auto p-2 banan-scrollbar custom-scroll max-h-[50vh] min-h-[50vh] font-mono">
                     {filteredManifest.map((item) => (
-                        <button
+                        <div
                             key={item.index}
+                            role="button"
+                            tabIndex={0}
                             onClick={() => selectTrack(item.index)}
-                            className={`w-full flex items-center justify-between p-3 mb-1 text-left text-xs transition-all border ${currentTrackIndex === item.index
+                            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') selectTrack(item.index); }}
+                            className={`w-full flex items-center justify-between p-3 mb-1 text-left text-xs transition-all border cursor-pointer ${currentTrackIndex === item.index
                                     ? 'bg-banan-primary/10 border-banan-primary/50 text-banan-primary'
                                     : 'bg-white/5 border-transparent hover:border-white/20 text-white/60 hover:text-white hover:bg-white/10'
                                 }`}
@@ -310,7 +313,16 @@ export default function RadioOverlay() {
                                     ))}
                                 </div>
                             )}
-                        </button>
+                            <a
+                                href={item.url}
+                                download={item.filename}
+                                onClick={(e) => e.stopPropagation()}
+                                className="p-1.5 ml-2 shrink-0 text-white/40 hover:text-banan-primary hover:bg-white/10 transition-colors"
+                                title="Download"
+                            >
+                                <Download size={14} />
+                            </a>
+                        </div>
                     ))}
                     {filteredManifest.length === 0 && (
                         <div className="text-center py-12 text-white/20 text-xs tracking-widest uppercase font-mono">

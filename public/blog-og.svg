@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#0b0e10"/>
+  <rect x="48" y="48" width="1104" height="534" rx="28" fill="#14191b" stroke="#343e3e" stroke-width="2"/>
+  <rect x="80" y="80" width="12" height="470" rx="6" fill="#faff00"/>
+  <text x="135" y="162" fill="#faff00" font-family="DejaVu Sans, Arial, sans-serif" font-size="29" font-weight="700">BANANINT · LE CARNET</text>
+  <text x="135" y="310" fill="#f7f8f2" font-family="DejaVu Sans, Arial, sans-serif" font-size="59" font-weight="700">La vie à Télécom SudParis,</text>
+  <text x="135" y="385" fill="#f7f8f2" font-family="DejaVu Sans, Arial, sans-serif" font-size="59" font-weight="700">racontée de l’intérieur.</text>
+  <text x="135" y="492" fill="#b8c2bc" font-family="DejaVu Sans, Arial, sans-serif" font-size="27">Campus · Assos · BananINT</text>
+  <path transform="translate(0 -80)" d="M1018 166c14-8 30 2 39 25 10 27 7 52-9 75-19 28-47 38-73 22-9-6-8-13 1-18 38-20 53-54 42-104z" fill="none" stroke="#faff00" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

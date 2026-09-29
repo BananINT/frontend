@@ -33,7 +33,7 @@ const PodiumCard = ({ op }: { op: Bananier }) => {
 
     return (
         <motion.div
-            initial={{ opacity: 0, y: 50 }}
+            initial={false}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay }}

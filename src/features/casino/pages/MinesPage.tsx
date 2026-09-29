@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Bug, Banana, Cpu, TriangleAlert } from 'lucide-react';
 import { formatNumber } from '@app/utils/format';
@@ -48,12 +48,12 @@ export default function MinesPage() {
     const multiplier = detail?.multiplier ?? previewMultiplier(bugs, selected.length);
 
     // Changing the bug count changes how many tiles fit on the board, so a
-    // selection made under a looser setting is trimmed rather than left
-    // invalid.
-    useEffect(() => {
-        const safeTotal = TILES - bugs;
+    // selection made under a looser setting is trimmed rather than left invalid.
+    const handleSelectBugs = (count: number) => {
+        setBugs(count);
+        const safeTotal = TILES - count;
         setSelected((s) => (s.length > safeTotal ? s.slice(0, safeTotal) : s));
-    }, [bugs]);
+    };
 
     const tileState = (index: number) => {
         if (finished) {
@@ -328,7 +328,7 @@ export default function MinesPage() {
                         {BUG_PRESETS.map((count) => (
                             <button
                                 key={count}
-                                onClick={() => setBugs(count)}
+                                onClick={() => handleSelectBugs(count)}
                                 disabled={busy}
                                 className={`flex-1 px-3 py-1.5 rounded-lg text-xs font-mono uppercase border transition-colors disabled:opacity-40 ${
                                     bugs === count

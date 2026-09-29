@@ -149,7 +149,7 @@ export default function Globe() {
             // 1. Setup Scene, Camera, Renderer
             const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
             renderer.setClearColor(0x000000, 0);
-            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
             renderer.setSize(w, h);
             currentContainer.appendChild(renderer.domElement);
             renderer.domElement.style.background = 'transparent';

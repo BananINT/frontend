@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>BananINT - Le carnet</title>
+    <link>https://bananint.fr/blog</link>
+    <description>Vie étudiante à Télécom SudParis, repères sur le campus et coulisses de BananINT.</description>
+    <language>fr-FR</language>
+    <lastBuildDate>Tue, 29 Sep 2026 10:53:02 GMT</lastBuildDate>
+    <atom:link href="https://bananint.fr/feed.xml" rel="self" type="application/rss+xml"/>
+    
+    <item>
+      <title>Le premier clicker et la course aux bots</title>
+      <link>https://bananint.fr/blog/comment-bananint-a-commence</link>
+      <guid isPermaLink="true">https://bananint.fr/blog/comment-bananint-a-commence</guid>
+      <pubDate>Tue, 29 Sep 2026 08:00:00 GMT</pubDate>
+      <description>Le souvenir du premier clicker BananINT à Télécom SudParis : des clics, un classement, des bots et des étudiants qui reviennent jouer.</description>
+      <category>coulisses</category>
+    </item>
+    <item>
+      <title>TSP, MAISEL, INT : les premiers repères du campus</title>
+      <link>https://bananint.fr/blog/tsp-maisel-assos-premiers-reperes</link>
+      <guid isPermaLink="true">https://bananint.fr/blog/tsp-maisel-assos-premiers-reperes</guid>
+      <pubDate>Tue, 29 Sep 2026 08:00:00 GMT</pubDate>
+      <description>Un guide étudiant des premiers repères à Télécom SudParis : campus partagé, MAISEL, foyer, NOVA, Ritz et associations.</description>
+      <category>campus</category>
+    </item>
+    <item>
+      <title>Pourquoi il y a « INT » partout sur le campus</title>
+      <link>https://bananint.fr/blog/expressions-associations-int-xrtc</link>
+      <guid isPermaLink="true">https://bananint.fr/blog/expressions-associations-int-xrtc</guid>
+      <pubDate>Tue, 29 Sep 2026 08:00:00 GMT</pubDate>
+      <description>À Télécom SudParis, le nom INT revient dans les clubs, les stickers et les expressions. Un regard étudiant sur XRTC et la vie associative du campus.</description>
+      <category>campus</category>
+    </item>
+    <item>
+      <title>MAISEL : ce que changent vraiment U1 à U7</title>
+      <link>https://bananint.fr/blog/maisel-u1-u7-logements-telecom-sudparis</link>
+      <guid isPermaLink="true">https://bananint.fr/blog/maisel-u1-u7-logements-telecom-sudparis</guid>
+      <pubDate>Tue, 29 Sep 2026 08:00:00 GMT</pubDate>
+      <description>Repères étudiants sur les logements MAISEL de Télécom SudParis : U1 à U7, distance du foyer, bruit et différences entre bâtiments.</description>
+      <category>campus</category>
+    </item>
+    <item>
+      <title>NOVA, le Ritz et les petits détours d’une journée</title>
+      <link>https://bananint.fr/blog/nova-ritz-quotidien-campus-evry</link>
+      <guid isPermaLink="true">https://bananint.fr/blog/nova-ritz-quotidien-campus-evry</guid>
+      <pubDate>Tue, 29 Sep 2026 08:00:00 GMT</pubDate>
+      <description>À Télécom SudParis, NOVA réunit bibliothèque, salles de travail et imprimantes ; le Ritz rythme les déjeuners du campus.</description>
+      <category>campus</category>
+    </item>
+    <item>
+      <title>Bien commencer sur le clicker BananINT</title>
+      <link>https://bananint.fr/blog/guide-debutant-clicker-bananint</link>
+      <guid isPermaLink="true">https://bananint.fr/blog/guide-debutant-clicker-bananint</guid>
+      <pubDate>Tue, 29 Sep 2026 08:00:00 GMT</pubDate>
+      <description>Comment commencer le clicker BananINT : cliquer, choisir des améliorations, découvrir la production automatique et suivre le classement.</description>
+      <category>tutoriel</category>
+    </item>
+    <item>
+      <title>Lire la bourse de BananINT sans se précipiter</title>
+      <link>https://bananint.fr/blog/guide-bourse-trading-dividendes</link>
+      <guid isPermaLink="true">https://bananint.fr/blog/guide-bourse-trading-dividendes</guid>
+      <pubDate>Tue, 29 Sep 2026 08:00:00 GMT</pubDate>
+      <description>Comprendre la bourse du jeu BananINT : choisir une action, lire le graphique, acheter, vendre et suivre son portefeuille.</description>
+      <category>guide</category>
+    </item>
+    <item>
+      <title>Découvrir les clans et l’OSINT de BananINT</title>
+      <link>https://bananint.fr/blog/tutoriel-osint-guerre-de-clans</link>
+      <guid isPermaLink="true">https://bananint.fr/blog/tutoriel-osint-guerre-de-clans</guid>
+      <pubDate>Tue, 29 Sep 2026 08:00:00 GMT</pubDate>
+      <description>Les premiers repères sur les clans et l’OSINT dans BananINT : rejoindre un groupe et comprendre les panneaux du jeu sans spoiler les mécaniques cachées.</description>
+      <category>strategie</category>
+    </item>
+  </channel>
+</rss>

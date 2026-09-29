@@ -14,8 +14,10 @@ class WebSocketManager {
     private sequenceIdx = 0;
 
     constructor() {
-        const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        this.url = `${proto}//${window.location.host}/api/ws`;
+        const isClient = typeof window !== 'undefined';
+        const proto = isClient && window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const host = isClient ? window.location.host : 'localhost';
+        this.url = `${proto}//${host}/api/ws`;
     }
 
     setToken(token: string | null) {

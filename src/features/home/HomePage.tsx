@@ -19,9 +19,9 @@ import RecruitmentHub from './components/RecruitmentHub';
 import WikINTAd from '@app/features/events/components/WikINTAd';
 
 
-const FlipNumber = ({ value, flaps = 3, fontSize = '3rem' }: { value: number, flaps?: number, fontSize?: string }) => (
-    <span style={{ fontSize, lineHeight: 1 }}>
-        <SplitFlapDisplay value={formatNumber(value)} duration={80} minLength={flaps} />
+const FlipNumber = ({ value, flaps = 3, fontSize = '3rem', compact = false }: { value: number, flaps?: number, fontSize?: string, compact?: boolean }) => (
+    <span className="block max-w-full" style={{ fontSize, lineHeight: 1 }}>
+        {compact ? <span className="block break-all text-[clamp(1rem,5vw,1.875rem)]">{formatNumber(value)}</span> : <SplitFlapDisplay value={formatNumber(value)} duration={80} minLength={flaps} />}
     </span>
 );
 
@@ -102,7 +102,7 @@ export default function HomePage() {
                     {/* Header Text - Enhanced with Glow & Cast Shadow */}
                     <div className="mb-12 relative z-30 px-4 group">
                         <motion.span 
-                            initial={{ opacity: 0, y: -20 }}
+                            initial={false}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.8, delay: 0.2 }}
                             className="text-xs sm:text-sm font-mono text-banan-primary uppercase tracking-[0.4em] mb-6 block"
@@ -112,13 +112,13 @@ export default function HomePage() {
                         
                         <div className="relative">
                             {/* Main Title with Extra Inner Glow */}
-                            <h1 className="text-[clamp(1.5rem,11.5vw,12rem)] font-black tracking-tighter uppercase leading-[0.85] relative z-30">
+                            <h1 className="text-[clamp(1.5rem,10vw,12rem)] sm:text-[clamp(1.5rem,11.5vw,12rem)] font-black tracking-tighter uppercase leading-[0.85] relative z-30">
                                 <ShinyText text="BananINT" speed={6} className="selection:bg-banan-primary selection:text-banan-background" />
                             </h1>
                         </div>
 
                         <motion.p 
-                            initial={{ opacity: 0 }}
+                            initial={false}
                             animate={{ opacity: 1 }}
                             transition={{ duration: 1.2, delay: 0.8 }}
                             className="mt-8 text-sm sm:text-2xl text-white/80 max-w-2xl mx-auto font-light leading-relaxed tracking-wide"
@@ -130,15 +130,15 @@ export default function HomePage() {
                     {/* HERO CONTAINER: Stats floating over Globe on PC */}
                     <div className="w-full max-w-[1600px] mx-auto relative flex flex-col items-center lg:min-h-[800px] mt-4">
                         {/* Mobile Stats (Shows below globe on mobile) */}
-                        <div className="lg:hidden grid grid-cols-2 gap-4 w-full relative z-20 px-4">
-                            <div className="flex flex-col items-center justify-center p-6 bg-white/5 backdrop-blur-md border border-white/10 rounded-3xl shadow-xl">
+                        <div className="lg:hidden grid min-w-0 grid-cols-2 gap-3 w-full relative z-20 px-1 sm:gap-4 sm:px-4">
+                            <div className="flex min-w-0 flex-col items-center justify-center overflow-hidden p-3 sm:p-6 bg-white/5 backdrop-blur-md border border-white/10 rounded-3xl shadow-xl">
                                 <Users className="w-8 h-8 text-banan-primary mb-2" />
-                                <div className="text-3xl font-black text-white"><FlipNumber value={stats.total_players} fontSize="1.875rem" /></div>
+                                <div className="max-w-full font-black text-white"><FlipNumber value={stats.total_players} compact /></div>
                                 <div className="text-[10px] font-mono uppercase tracking-widest text-white/50">Membres</div>
                             </div>
-                            <div className="flex flex-col items-center justify-center p-6 bg-white/5 backdrop-blur-md border border-white/10 rounded-3xl shadow-xl">
+                            <div className="flex min-w-0 flex-col items-center justify-center overflow-hidden p-3 sm:p-6 bg-white/5 backdrop-blur-md border border-white/10 rounded-3xl shadow-xl">
                                 <Banana className="w-8 h-8 text-banan-primary mb-2" />
-                                <div className="text-3xl font-black text-white"><FlipNumber value={stats.total_bananas} fontSize="1.875rem" /></div>
+                                <div className="max-w-full font-black text-white"><FlipNumber value={stats.total_bananas} compact /></div>
                                 <div className="text-[10px] font-mono uppercase tracking-widest text-white/50">Bananes</div>
                             </div>
                         </div>
@@ -199,7 +199,7 @@ export default function HomePage() {
                         icon={Rocket}
                     >
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                            <div className="flex items-center justify-center bg-white/5 rounded-3xl border border-white/10 h-[500px] relative overflow-hidden group">
+                            <div className="flex items-center justify-center bg-white/5 rounded-3xl border border-white/10 h-64 sm:h-96 lg:h-[500px] relative overflow-hidden group">
                                 <LavaLamp />
                             </div>
 
@@ -238,6 +238,15 @@ export default function HomePage() {
                     </ShowcaseSection>
 
                     <BananierLogs />
+
+                    <section className="mx-auto max-w-5xl px-6 py-12">
+                        <div className="border-l-2 border-banan-primary bg-white/[0.03] p-6 sm:p-10">
+                            <p className="text-banan-primary text-xs font-mono mb-3">LE CARNET</p>
+                            <h2 className="text-2xl sm:text-3xl font-bold mb-4">Il n’y a pas que les bananes dans la vie.</h2>
+                            <p className="text-white/70 leading-relaxed max-w-2xl">La MAISEL, les assos, les projets et tout ce qu’on aimerait garder entre deux conversations. On commence par les repères du campus ; les histoires restent à écrire.</p>
+                            <Link to="/blog" className="inline-block mt-5 text-banan-primary underline underline-offset-4">Ouvrir le carnet →</Link>
+                        </div>
+                    </section>
   
                     <ShowcaseSection 
                         title="L'équipe (les addicts)"

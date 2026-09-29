@@ -140,36 +140,36 @@ export default function MarketTicker() {
     const [stocks, setStocks] = useState<Stock[]>([]);
     const [loading, setLoading] = useState(true);
 
-    const fetchData = async () => {
-        try {
-            const res = await api.get('/market/stocks');
-            const stocksData = res.data;
-            
-            // Limit to top 6 stocks for clean homepage look
-            const limitedStocks = stocksData.slice(0, 6);
-
-            // Fetch history for these stocks
-            const withHistory = await Promise.all(limitedStocks.map(async (s: Stock) => {
-                try {
-                    const hRes = await api.get(`/market/history/${s.symbol}?timeframe=1M`);
-                    return {
-                        ...s,
-                        history: hRes.data.candles.slice(-15).map((c: { close: number }) => c.close)
-                    };
-                } catch {
-                    return { ...s, history: [] };
-                }
-            }));
-            
-            setStocks(withHistory);
-        } catch (err) {
-            console.error("Failed to fetch market data", err);
-        } finally {
-            setLoading(false);
-        }
-    };
-
     useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const res = await api.get('/market/stocks');
+                const stocksData = res.data;
+
+                // Limit to top 6 stocks for clean homepage look
+                const limitedStocks = stocksData.slice(0, 6);
+
+                // Fetch history for these stocks
+                const withHistory = await Promise.all(limitedStocks.map(async (s: Stock) => {
+                    try {
+                        const hRes = await api.get(`/market/history/${s.symbol}?timeframe=1M`);
+                        return {
+                            ...s,
+                            history: hRes.data.candles.slice(-15).map((c: { close: number }) => c.close)
+                        };
+                    } catch {
+                        return { ...s, history: [] };
+                    }
+                }));
+
+                setStocks(withHistory);
+            } catch (err) {
+                console.error("Failed to fetch market data", err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
         fetchData();
         const interval = setInterval(fetchData, 60000);
         return () => clearInterval(interval);
@@ -198,7 +198,7 @@ export default function MarketTicker() {
                         {stocks.map((stock) => (
                             <motion.div
                                 key={stock.symbol}
-                                initial={{ opacity: 0, scale: 0.9 }}
+                                initial={false}
                                 animate={{ opacity: 1, scale: 1 }}
                                 exit={{ opacity: 0, scale: 0.9 }}
                                 layout

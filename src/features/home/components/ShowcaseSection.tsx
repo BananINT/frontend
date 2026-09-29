@@ -29,7 +29,7 @@ export default function ShowcaseSection({
     return (
         <motion.div 
             variants={revealVariants}
-            initial="hidden"
+            initial={false}
             whileInView="visible"
             viewport={{ once: true, margin: "-100px" }}
             className={`w-full ${maxWidth} mx-auto relative z-30 ${centered ? 'text-center my-20' : 'text-left my-25'} ${className}`}

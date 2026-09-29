@@ -77,7 +77,7 @@ export default function LiveHub() {
 
     return (
         <ShowcaseSection title="Terminal d'Activité" icon={Terminal}>
-            <div className="bg-[#0B0B0B] border border-white/10 rounded-2xl overflow-hidden relative shadow-[0_0_20px_rgba(0,0,0,0.8)] max-w-4xl mx-auto">
+            <div className="mx-auto max-w-4xl min-w-0 overflow-hidden rounded-2xl border border-white/10 bg-[#0B0B0B]">
                 {/* Window Header */}
                 <div className="bg-white/5 border-b border-white/10 p-3 flex items-center justify-between">
                     <div className="flex items-center gap-2">
@@ -98,21 +98,21 @@ export default function LiveHub() {
                 {/* Log Content */}
                 <div 
                     ref={containerRef}
-                    className="p-6 h-[300px] overflow-y-auto font-mono text-xs sm:text-sm relative z-10 scroll-smooth scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent"
+                    className="relative z-10 h-[260px] min-w-0 overflow-y-auto p-3 font-mono text-xs sm:h-[300px] sm:p-6 sm:text-sm"
                 >
                     <AnimatePresence initial={false}>
                         {logs.map((log) => (
                             <motion.div 
                                 key={log.id}
-                                initial={{ opacity: 0, x: -10 }}
+                                initial={false}
                                 animate={{ opacity: 1, x: 0 }}
-                                className="mb-2 flex items-start gap-3"
+                                className="mb-3 flex min-w-0 flex-wrap items-start gap-x-2 gap-y-1 sm:flex-nowrap sm:gap-3"
                             >
-                                <span className="text-white/30 shrink-0">[{log.timestamp}]</span>
+                                <span className="shrink-0 text-white/30">[{log.timestamp}]</span>
                                 <span className={`${getLevelColor(log.level)} font-bold shrink-0 w-16`}>
                                     {log.level}
                                 </span>
-                                <span className="text-white/80 opacity-90 break-words">
+                                <span className="min-w-0 basis-full break-words text-white/80 opacity-90 sm:basis-auto">
                                     {log.level === 'CRITICAL' && <AlertTriangle className="w-3 h-3 inline-block mr-1 -mt-0.5 text-banan-red" />}
                                     {log.message}
                                 </span>

@@ -53,6 +53,12 @@ export default function Footer() {
                                 </Link>
                             </li>
                             <li>
+                                <Link to="/blog" className="text-white/70 hover:text-banan-primary transition-colors flex items-center gap-2 group">
+                                    <span className="w-1 h-1 bg-white/20 group-hover:bg-banan-primary rounded-full transition-colors" />
+                                    Le carnet
+                                </Link>
+                            </li>
+                            <li>
                                 <a href="https://intellect.clubcode.fr/" target="_blank" rel="noopener noreferrer" className="text-white/70 hover:text-banan-primary transition-colors flex items-center gap-2 group">
                                     <span className="w-1 h-1 bg-white/20 group-hover:bg-banan-primary rounded-full transition-colors" />
                                     Intellect

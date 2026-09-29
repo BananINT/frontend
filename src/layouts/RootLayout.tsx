@@ -9,6 +9,7 @@ import BananLoader from '@app/components/shared/BananLoader';
 export default function RootLayout() {
     const location = useLocation();
     const isHome = location.pathname === '/';
+    const isBlog = location.pathname === '/blog' || location.pathname.startsWith('/blog/');
 
     return (
         <div className="min-h-[100dvh] bg-banan-background text-white font-mono flex flex-col relative">
@@ -16,7 +17,7 @@ export default function RootLayout() {
             <Header />
 
             {/* Main Content */}
-            <main className="flex-1 container max-w-[1920px] mx-auto p-0 border-x border-white/10 banan-grid">
+            <main className={isBlog ? 'flex-1 w-full p-0 banan-grid' : 'flex-1 container max-w-[1920px] mx-auto p-0 border-x border-white/10 banan-grid'}>
                 {isHome ? (
                     <Outlet />
                 ) : (

@@ -26,9 +26,12 @@ const EventsPage = lazy(() => import('@app/features/events/EventsPage'));
 const BananeeApp = lazy(() => import('@app/features/bananee/App'));
 const ClanPage = lazy(() => import('@app/features/clans/ClanPage'));
 const ClanOpsPage = lazy(() => import('@app/features/clans/ClanOpsPage'));
+const CyberLabPage = lazy(() => import('@app/features/lab/CyberLabPage'));
 // Nostalgia easter egg: original pre-BananINT clicker prototype, intentionally
 // disconnected from the real backend economy (own localStorage state only).
 const LegacyApp = lazy(() => import('@app/features/legacy/App'));
+const BlogListPage = lazy(() => import('@app/features/blog/BlogListPage'));
+const BlogPostPage = lazy(() => import('@app/features/blog/BlogPostPage'));
 
 function App() {
   return (
@@ -54,6 +57,7 @@ function App() {
               <Route path="/casino/fairness" element={<FairnessPage />} />
               <Route path="/clan" element={<ClanPage />} />
               <Route path="/clan/ops" element={<ClanOpsPage />} />
+              <Route path="/lab" element={<CyberLabPage />} />
             </Route>
             <Route
               path="/bananee"
@@ -61,6 +65,8 @@ function App() {
                 <BananeeApp />
               }
             />
+            <Route path="/blog" element={<BlogListPage />} />
+            <Route path="/blog/:slug" element={<BlogPostPage />} />
             <Route path="/legacy" element={<LegacyApp />} />
           </Route>
         </Routes>

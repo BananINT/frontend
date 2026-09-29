@@ -27,14 +27,6 @@ const UPGRADE_ICONS: Record<string, LucideIcon> = {
     prestige: Dna,
 };
 
-interface LeaderboardEntry {
-    name: string;
-    score: number;
-    prestigeCount: number;
-}
-
-
-
 export default function ClickerPage() {
     const { gameState, clickBanana, buyUpgrade, availableUpgrades } = useGame();
     const [isMissionsOpen, setIsMissionsOpen] = useState(false);
@@ -46,24 +38,7 @@ export default function ClickerPage() {
     const canAscend = gameState.totalBananasEarned >= PRESTIGE_REQUIREMENT;
     const [algoState, setAlgoState] = useState<AlgoCultState | null>(null);
     const [cyberAttacks, setCyberAttacks] = useState<CyberAttack[]>([]);
-    const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
-
-    useEffect(() => {
-        const fetchLeaderboard = async () => {
-            try {
-                const res = await fetch('/api/stats/leaderboard');
-                if (res.ok) {
-                    const data = await res.json();
-                    setLeaderboard(data);
-                }
-            } catch (err) {
-                console.error("Failed to fetch leaderboard", err);
-            }
-        };
-        fetchLeaderboard();
-        const interval = setInterval(fetchLeaderboard, 10000); // 10s poll
-        return () => clearInterval(interval);
-    }, []);
+    const leaderboard = gameState.leaderboard || [];
 
     useEffect(() => {
         const handleMessage = (msg: { type: string; data: unknown }) => {

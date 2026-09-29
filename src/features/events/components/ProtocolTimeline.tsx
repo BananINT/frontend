@@ -11,7 +11,7 @@ interface TimelineEvent {
 
 const EVENTS: TimelineEvent[] = [
     { year: "SEP 2025", title: "L'Étincelle Originelle", description: "Un groupe secret d'étudiants de Télécom SudParis découvre le potentiel caché des bananes pour optimiser la compilation de code en C." },
-    { year: "OCT 2025", title: "La Réserve Fédérale Bananière", description: "Mise en place du premier serveur clandestin dans le cours Beyond Notting Hill. Début du minage des premières unités de Potassium." },
+    { year: "OCT 2025", title: "La Réserve Fédérale Bananière", description: "Les premières expérimentations de BananINT circulent entre étudiants sur le campus." },
     { year: "NOV 2025", title: "L'Incident MiNET", description: "Le réseau BananINT sature la bande passante du campus en moins de 10 secondes. Le SI-Etudiant crash en boucle." },
     { year: "DEC 2025", title: "L'Incident du BDE", description: "Hypnos perd la liste, BananINT est demote et ses serveurs sont détruits lors de RagINT. Fuck le BDE. BananINT se morfond dans l'ombre." },
     { year: "JAN 2026", title: "La Secte", description: "Le groupe de militants bananiers s'organise pour contrer l'influence du BDE en secret. BananINT se rebelle contre l'oppression." },

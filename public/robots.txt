@@ -1,0 +1,7 @@
+# BananINT Robots Exclusion Protocol
+User-agent: *
+Allow: /
+Disallow: /silent-check-sso.html
+Disallow: /api/
+
+Sitemap: https://bananint.fr/sitemap.xml

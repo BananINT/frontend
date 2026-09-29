@@ -8,7 +8,7 @@ export default function WikINTAd() {
             <div className="mt-12 grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch">
                 {/* Intellect Card */}
                 <motion.div
-                    initial={{ opacity: 0, y: 20 }}
+                    initial={false}
                     whileInView={{ opacity: 1, y: 0 }}
                     transition={{ duration: 1.2 }}
                     viewport={{ once: true }}
@@ -102,7 +102,7 @@ export default function WikINTAd() {
 
                 {/* INTPortal Card */}
                 <motion.div
-                    initial={{ opacity: 0, y: 20 }}
+                    initial={false}
                     whileInView={{ opacity: 1, y: 0 }}
                     transition={{ duration: 1.2, delay: 0.15 }}
                     viewport={{ once: true }}

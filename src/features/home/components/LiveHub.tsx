@@ -1,133 +1,79 @@
-import { useEffect, useState, useRef } from 'react';
-import { Terminal, Activity, AlertTriangle } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useEffect, useState } from 'react';
+import { Activity, ArrowUpRight } from 'lucide-react';
+import { Link } from 'react-router';
 import ShowcaseSection from './ShowcaseSection';
 
-interface LogEntry {
+interface GameEvent {
     id: number;
     timestamp: string;
-    level: 'INFO' | 'WARN' | 'CRITICAL';
+    type: string;
     message: string;
 }
 
-// Mock removed
+const eventColor = (type: string) => {
+    if (type === 'MARKET') return 'text-banan-primary border-banan-primary/40';
+    if (type === 'CLAN' || type === 'MASS-HACK' || type === 'OSINT') return 'text-banan-teal border-banan-teal/40';
+    if (type === 'CASINO' || type === 'ROULETTE') return 'text-rose-400 border-rose-400/40';
+    if (type === 'GOLDEN') return 'text-amber-300 border-amber-300/40';
+    return 'text-white/70 border-white/25';
+};
 
 export default function LiveHub() {
-    const [logs, setLogs] = useState<LogEntry[]>([]);
-    const containerRef = useRef<HTMLDivElement>(null);
+    const [events, setEvents] = useState<GameEvent[]>([]);
+    const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
 
     useEffect(() => {
-        const fetchLogs = async () => {
+        let mounted = true;
+        const fetchEvents = async () => {
             try {
                 const response = await fetch('/api/stats/logs');
-                if (response.ok) {
-                    const data = await response.json();
-                    
-                    interface RawLog {
-                        id: number;
-                        timestamp: string;
-                        type: string;
-                        message: string;
-                    }
-
-                    // Filter out already existing logs to prevent duplicates
-                    setLogs(prev => {
-                        const existingIds = new Set(prev.map(l => l.id));
-                        const newEntries = (data as RawLog[]).filter((d: RawLog) => !existingIds.has(d.id)).map((d: RawLog) => ({
-                            id: d.id,
-                            timestamp: d.timestamp.substring(11, 19),
-                            level: d.type as 'INFO' | 'WARN' | 'CRITICAL',
-                            message: d.message
-                        })).reverse(); // Reverse to add oldest first from the new batch
-                        
-                        if (newEntries.length === 0) return prev;
-                        
-                        const merged = [...prev, ...newEntries];
-                        if (merged.length > 50) return merged.slice(merged.length - 50);
-                        return merged;
-                    });
+                if (!response.ok) throw new Error('Events unavailable');
+                const data: GameEvent[] = await response.json();
+                if (mounted) {
+                    setEvents(data.slice(0, 6));
+                    setStatus('ready');
                 }
-            } catch (err) {
-                console.error("Failed to fetch game logs", err);
+            } catch {
+                if (mounted) setStatus('error');
             }
         };
-
-        // Initial fetch
-        fetchLogs();
-
-        // Poll every 5 seconds
-        const interval = setInterval(fetchLogs, 5000);
-        return () => clearInterval(interval);
+        fetchEvents();
+        const interval = window.setInterval(fetchEvents, 5000);
+        return () => { mounted = false; window.clearInterval(interval); };
     }, []);
 
-    useEffect(() => {
-        if (containerRef.current) {
-            containerRef.current.scrollTop = containerRef.current.scrollHeight;
-        }
-    }, [logs]);
-
-    const getLevelColor = (level: string) => {
-        switch (level) {
-            case 'INFO': return 'text-banan-green';
-            case 'WARN': return 'text-banan-teal';
-            case 'CRITICAL': return 'text-banan-red';
-            default: return 'text-white/50';
-        }
-    };
-
     return (
-        <ShowcaseSection title="Terminal d'Activité" icon={Terminal}>
-            <div className="mx-auto max-w-4xl min-w-0 overflow-hidden rounded-2xl border border-white/10 bg-[#0B0B0B]">
-                {/* Window Header */}
-                <div className="bg-white/5 border-b border-white/10 p-3 flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                        <Activity className="w-4 h-4 text-banan-primary animate-pulse" />
-                        <span className="text-xs font-mono uppercase tracking-widest text-white/50">Flux Global // Live</span>
-                    </div>
-                    <div className="flex gap-2">
-                        <div className="w-2.5 h-2.5 rounded-full bg-white/10"></div>
-                        <div className="w-2.5 h-2.5 rounded-full bg-white/10"></div>
-                        <div className="w-2.5 h-2.5 rounded-full bg-banan-primary/50 animate-pulse"></div>
-                    </div>
+        <ShowcaseSection title="Ça bouge dans le jeu" icon={Activity}>
+            <div className="grid gap-8 border-t border-white/20 pt-8 lg:grid-cols-[minmax(0,0.7fr)_minmax(0,1.3fr)] lg:gap-16">
+                <div>
+                    <p className="font-mono text-xs uppercase tracking-[0.28em] text-banan-primary">Les derniers coups</p>
+                    <p className="mt-5 max-w-sm text-2xl font-bold leading-tight text-white/85 sm:text-3xl">Ce que les bananiers viennent de faire.</p>
+                    <p className="mt-4 max-w-sm text-sm leading-relaxed text-white/50">
+                        {status === 'ready' ? 'Les événements du jeu se mettent à jour ici toutes les cinq secondes.' : status === 'loading' ? 'On récupère les derniers événements.' : 'Le flux est momentanément indisponible.'}
+                    </p>
+                    <Link to="/clicker" className="mt-6 inline-flex items-center gap-2 font-mono text-sm font-bold text-banan-primary underline underline-offset-4 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-banan-primary">
+                        Entrer dans le jeu <ArrowUpRight size={16} aria-hidden="true" />
+                    </Link>
                 </div>
-
-                {/* Scanline Effect */}
-                <div className="absolute inset-0 pointer-events-none bg-[url('/img/grid.svg')] opacity-5 z-0"></div>
-                <div className="absolute inset-x-0 top-0 h-[2px] bg-banan-primary/20 pointer-events-none z-10 animate-[scan_4s_linear_infinite]"></div>
-
-                {/* Log Content */}
-                <div 
-                    ref={containerRef}
-                    className="relative z-10 h-[260px] min-w-0 overflow-y-auto p-3 font-mono text-xs sm:h-[300px] sm:p-6 sm:text-sm"
-                >
-                    <AnimatePresence initial={false}>
-                        {logs.map((log) => (
-                            <motion.div 
-                                key={log.id}
-                                initial={false}
-                                animate={{ opacity: 1, x: 0 }}
-                                className="mb-3 flex min-w-0 flex-wrap items-start gap-x-2 gap-y-1 sm:flex-nowrap sm:gap-3"
-                            >
-                                <span className="shrink-0 text-white/30">[{log.timestamp}]</span>
-                                <span className={`${getLevelColor(log.level)} font-bold shrink-0 w-16`}>
-                                    {log.level}
-                                </span>
-                                <span className="min-w-0 basis-full break-words text-white/80 opacity-90 sm:basis-auto">
-                                    {log.level === 'CRITICAL' && <AlertTriangle className="w-3 h-3 inline-block mr-1 -mt-0.5 text-banan-red" />}
-                                    {log.message}
-                                </span>
-                            </motion.div>
-                        ))}
-                    </AnimatePresence>
-                    {/* Blinking cursor */}
-                    <div className="mt-2 flex items-center gap-2 text-banan-primary">
-                        <span>&gt;</span>
-                        <motion.div 
-                            animate={{ opacity: [1, 0] }}
-                            transition={{ duration: 0.8, repeat: Infinity, ease: 'linear' }}
-                            className="w-2 h-4 bg-banan-primary"
-                        />
-                    </div>
+                <div className="min-w-0">
+                    {events.length ? (
+                        <ol className="border-l border-banan-primary/35 pl-6 sm:pl-8">
+                            {events.map(event => (
+                                <li key={event.id} className="relative border-b border-white/10 py-5 first:pt-0">
+                                    <span className="absolute -left-[31px] top-7 h-3 w-3 rounded-full border-2 border-banan-primary bg-black sm:-left-[39px]" aria-hidden="true" />
+                                    <div className="mb-2 flex flex-wrap items-center gap-x-3 gap-y-1">
+                                        <span className={`border px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider ${eventColor(event.type)}`}>{event.type}</span>
+                                        <time dateTime={event.timestamp} className="font-mono text-xs tabular-nums text-white/40">{event.timestamp.slice(11, 16)}</time>
+                                    </div>
+                                    <p className="break-words text-sm leading-relaxed text-white/80 sm:text-base">{event.message}</p>
+                                </li>
+                            ))}
+                        </ol>
+                    ) : (
+                        <div className="border-l border-banan-primary/35 py-8 pl-6 text-sm text-white/55 sm:pl-8">
+                            {status === 'loading' ? 'Chargement des événements…' : status === 'error' ? 'Impossible d’afficher les événements pour le moment.' : 'Aucun événement récent à afficher.'}
+                        </div>
+                    )}
                 </div>
             </div>
         </ShowcaseSection>

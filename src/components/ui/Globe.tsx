@@ -137,6 +137,10 @@ export default function Globe() {
         const initTimeout = setTimeout(() => {
             if (!isMounted || !currentContainer) return;
 
+            // Keep the illustrated globe visible on browsers without WebGL.
+            const probe = document.createElement('canvas');
+            if (!probe.getContext('webgl2') && !probe.getContext('webgl')) return;
+
             // Cleanup any existing
             if (rendererRef.current) {
                 currentContainer.innerHTML = '';
@@ -332,10 +336,17 @@ export default function Globe() {
 
 
     return (
-        <div
-            ref={containerRef}
-            className={`w-full h-full min-h-[500px] pointer-events-none transition-opacity duration-1000 ease-in-out bg-transparent ${loaded ? 'opacity-100' : 'opacity-0'}`}
-            style={{ cursor: 'default', background: 'transparent' }}
-        />
+        <div className="relative w-full h-full min-h-[500px] pointer-events-none" aria-hidden="true">
+            <img
+                src="/img/globe-still.webp"
+                alt=""
+                decoding="async"
+                className={`absolute left-1/2 top-1/2 w-[min(100vw,950px)] h-auto -translate-x-1/2 -translate-y-1/2 transition-opacity duration-700 ${loaded ? 'opacity-0' : 'opacity-100'}`}
+            />
+            <div
+                ref={containerRef}
+                className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${loaded ? 'opacity-100' : 'opacity-0'}`}
+            />
+        </div>
     );
 }

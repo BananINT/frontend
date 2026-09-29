@@ -1,244 +1,123 @@
 import { useEffect, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Activity, ShieldCheck, Zap, Banana, ChartCandlestick, Globe, Cpu, Database } from 'lucide-react';
+import { ArrowUpRight, Banana, ChartCandlestick, TrendingDown, TrendingUp } from 'lucide-react';
+import { Link } from 'react-router';
 import { api } from '@app/lib/api';
-import ShowcaseSection from './ShowcaseSection';
 import { formatNumber } from '@app/utils/format';
+import ShowcaseSection from './ShowcaseSection';
 
 interface Stock {
     symbol: string;
     name: string;
-    description: string;
     current_price: number;
     change_24h: number;
-    volatility: number;
     stock_type: string;
     history?: number[];
 }
 
-const Sparkline = ({ data, color, symbol }: { data: number[], color: string, symbol: string }) => {
-    if (!data || data.length < 2) return (
-        <div className="w-full h-12 flex items-center justify-center opacity-20">
-            <Activity className="w-full h-4 animate-pulse text-white/30" />
-        </div>
-    );
-    
-    const min = Math.min(...data);
-    const max = Math.max(...data);
-    const range = max - min || 1;
-    
-    const points = data.map((val, i) => ({
-        x: (i / (data.length - 1)) * 100,
-        y: 100 - ((val - min) / range) * 100
-    }));
-    
-    const pathData = `M ${points.map(p => `${p.x},${p.y}`).join(' L ')}`;
-    
+function PriceChart({ prices, rising }: { prices: number[]; rising: boolean }) {
+    if (prices.length < 2) {
+        return <div className="flex h-44 items-center justify-center border-y border-white/10 font-mono text-xs text-white/40">Historique pas encore disponible</div>;
+    }
+    const low = Math.min(...prices);
+    const spread = Math.max(...prices) - low || 1;
+    const points = prices.map((price, index) => `${(index / (prices.length - 1)) * 400},${110 - ((price - low) / spread) * 96}`).join(' ');
+    const color = rising ? '#a3e635' : '#fb7185';
     return (
-        <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="w-full h-12 overflow-visible">
-            <motion.path
-                initial={{ pathLength: 0, opacity: 0 }}
-                animate={{ pathLength: 1, opacity: 1 }}
-                transition={{ duration: 1.5, ease: "easeInOut" }}
-                d={pathData}
-                fill="none"
-                stroke={color}
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-            />
-            <path
-                d={`${pathData} L 100,100 L 0,100 Z`}
-                fill={`url(#gradient-${symbol})`}
-                opacity="0.1"
-            />
+        <svg viewBox="0 0 400 120" preserveAspectRatio="none" className="h-44 w-full" role="img" aria-label={`Évolution récente du cours : ${rising ? 'hausse' : 'baisse'}`}>
             <defs>
-                <linearGradient id={`gradient-${symbol}`} x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor={color} />
-                    <stop offset="100%" stopColor="transparent" />
+                <linearGradient id="stock-chart-fill" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor={color} stopOpacity="0.25" />
+                    <stop offset="100%" stopColor={color} stopOpacity="0" />
                 </linearGradient>
             </defs>
+            <path d="M0 119H400M0 61H400M0 2H400" stroke="white" strokeOpacity="0.08" strokeDasharray="3 7" />
+            <polygon points={`0,120 ${points} 400,120`} fill="url(#stock-chart-fill)" />
+            <polyline points={points} fill="none" stroke={color} strokeWidth="2.5" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
         </svg>
     );
-};
-
-
-const StockCard = ({ stock }: { stock: Stock }) => {
-    const isUp = stock.change_24h >= 0;
-    const color = isUp ? 'var(--color-banan-green)' : 'var(--color-banan-red)';
-    const [glitch, setGlitch] = useState(false);
-    useEffect(() => {
-        const interval = setInterval(() => {
-            if (Math.random() > 0.95) {
-                setGlitch(true);
-                setTimeout(() => setGlitch(false), 200);
-            }
-        }, 3000);
-        return () => clearInterval(interval);
-    }, []);
-
-    return (
-        <motion.div 
-            className={`relative group bg-white/5 border border-white/10 rounded-2xl p-5 overflow-hidden transition-all duration-300 hover:bg-white/[0.08] hover:border-white/20 ${glitch ? 'animate-pulse opacity-80' : ''}`}
-        >
-            {/* Background Noise Decor */}
-            <div className="absolute -right-4 -top-4 opacity-[0.03] group-hover:opacity-[0.07] transition-opacity pointer-events-none">
-                <Banana size={120} />
-            </div>
-
-            <div className="relative z-10">
-                <div className="flex justify-between items-start mb-4">
-                    <div>
-                        <div className="flex items-center gap-2 mb-1">
-                            <h3 className="font-mono text-lg font-bold text-white tracking-widest">{stock.symbol}</h3>
-                            <span className="text-[10px] px-1.5 py-0.5 bg-banan-primary/10 text-banan-primary border border-banan-primary/20 rounded font-mono uppercase">
-                                {stock.stock_type}
-                            </span>
-                        </div>
-                        <p className="text-xs text-white/50 font-medium truncate max-w-[150px]">{stock.name}</p>
-                    </div>
-                    <div className="text-right">
-                        <div className="text-xl font-black text-white font-mono leading-none mb-1">
-                            {formatNumber(stock.current_price)}
-                        </div>
-                        <div className={`text-xs font-bold font-mono ${isUp ? 'text-banan-green' : 'text-banan-red'}`}>
-                            {isUp ? '+' : ''}{stock.change_24h.toFixed(2)}%
-                        </div>
-                    </div>
-                </div>
-
-                <div className="mt-6 mb-4">
-                    <Sparkline data={stock.history || []} color={color} symbol={stock.symbol} />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4 mt-4 pt-4 border-t border-white/5">
-                    <div className="flex items-center gap-2 text-white/30">
-                        <Activity size={14} className="text-banan-primary/50" />
-                        <span className="text-[10px] font-mono uppercase tracking-[0.2em]">Vol: {stock.volatility.toFixed(1)}</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-white/30 justify-end">
-                        <ShieldCheck size={14} className="text-banan-teal/50" />
-                        <span className="text-[10px] font-mono uppercase tracking-[0.2em]">{isUp ? "Stable" : "Critique"}</span>
-                    </div>
-                </div>
-            </div>
-
-            {/* Scanning line animation */}
-            <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-0 group-hover:opacity-100 transition-opacity">
-                <motion.div 
-                    initial={{ y: -100 }}
-                    animate={{ y: 300 }}
-                    transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                    className="h-[1px] w-full bg-gradient-to-r from-transparent via-white/20 to-transparent"
-                />
-            </div>
-        </motion.div>
-    );
-};
+}
 
 export default function MarketTicker() {
     const [stocks, setStocks] = useState<Stock[]>([]);
+    const [selectedSymbol, setSelectedSymbol] = useState('BNDAQ');
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        let mounted = true;
         const fetchData = async () => {
             try {
-                const res = await api.get('/market/stocks');
-                const stocksData = res.data;
-
-                // Limit to top 6 stocks for clean homepage look
-                const limitedStocks = stocksData.slice(0, 6);
-
-                // Fetch history for these stocks
-                const withHistory = await Promise.all(limitedStocks.map(async (s: Stock) => {
+                const response = await api.get<Stock[]>('/market/stocks');
+                const recent = response.data.slice(0, 6);
+                const withHistory = await Promise.all(recent.map(async stock => {
                     try {
-                        const hRes = await api.get(`/market/history/${s.symbol}?timeframe=1M`);
-                        return {
-                            ...s,
-                            history: hRes.data.candles.slice(-15).map((c: { close: number }) => c.close)
-                        };
+                        const history = await api.get<{ candles: { close: number }[] }>(`/market/history/${encodeURIComponent(stock.symbol)}?timeframe=1M`);
+                        return { ...stock, history: history.data.candles.map(candle => candle.close) };
                     } catch {
-                        return { ...s, history: [] };
+                        return { ...stock, history: [] };
                     }
                 }));
-
-                setStocks(withHistory);
-            } catch (err) {
-                console.error("Failed to fetch market data", err);
+                if (mounted) setStocks(withHistory);
+            } catch {
+                if (mounted) setStocks([]);
             } finally {
-                setLoading(false);
+                if (mounted) setLoading(false);
             }
         };
-
         fetchData();
-        const interval = setInterval(fetchData, 60000);
-        return () => clearInterval(interval);
+        const interval = window.setInterval(fetchData, 60000);
+        return () => { mounted = false; window.clearInterval(interval); };
     }, []);
 
+    const selected = stocks.find(stock => stock.symbol === selectedSymbol) || stocks[0];
+    const rising = (selected?.change_24h || 0) >= 0;
+
     return (
-        <ShowcaseSection 
-            title="Stocks bananes" 
-            icon={ChartCandlestick}
-            className="relative"
-        >
-            <div className="absolute -left-12 top-1/2 -translate-y-1/2 opacity-5 pointer-events-none hidden 2xl:block">
-                <div className="text-4xl font-black rotate-90 text-white/20 select-none tracking-[0.2em]">STONKS_67_MDR</div>
-            </div>
-
-
+        <ShowcaseSection title="La bourse aux bananes" icon={ChartCandlestick}>
+            <p className="-mt-5 mb-8 max-w-xl text-sm leading-relaxed text-white/60 sm:mt-0">Les cours du jeu, mis à jour toutes les minutes. Choisis une valeur pour voir sa courbe.</p>
             {loading ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-20 px-4">
-                    {[...Array(6)].map((_, i) => (
-                        <div key={i} className="h-48 bg-white/5 border border-white/10 rounded-2xl animate-pulse" />
-                    ))}
-                </div>
+                <div className="border-y border-white/15 py-16 font-mono text-sm text-white/50">Chargement des cours…</div>
+            ) : !selected ? (
+                <div className="border-y border-white/15 py-16 font-mono text-sm text-white/50">Les cours sont indisponibles pour le moment.</div>
             ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
-                    <AnimatePresence mode="popLayout">
-                        {stocks.map((stock) => (
-                            <motion.div
-                                key={stock.symbol}
-                                initial={false}
-                                animate={{ opacity: 1, scale: 1 }}
-                                exit={{ opacity: 0, scale: 0.9 }}
-                                layout
-                            >
-                                <StockCard stock={stock} />
-                            </motion.div>
-                        ))}
-                    </AnimatePresence>
+                <div className="grid min-w-0 gap-8 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)] lg:gap-12">
+                    <div className="relative min-w-0 overflow-hidden border-t-2 border-banan-primary bg-white/[0.035] p-5 sm:p-8">
+                        <div className="absolute right-0 top-0 h-36 w-36 rounded-full bg-banan-primary/10 blur-3xl" aria-hidden="true" />
+                        <div className="relative flex flex-wrap items-start justify-between gap-5">
+                            <div>
+                                <p className="font-mono text-xs uppercase tracking-[0.25em] text-banan-primary">Valeur suivie</p>
+                                <h3 className="mt-3 text-4xl font-black tracking-tight sm:text-5xl">{selected.symbol}</h3>
+                                <p className="mt-1 text-sm text-white/55">{selected.name}</p>
+                            </div>
+                            <div className="text-left sm:text-right">
+                                <p className="font-mono text-xs uppercase tracking-widest text-white/45">Prix actuel</p>
+                                <p className="mt-2 flex items-center gap-2 font-mono text-3xl font-bold tabular-nums text-white sm:justify-end sm:text-4xl">{formatNumber(selected.current_price)} <Banana className="h-5 w-5 shrink-0 text-banan-primary" aria-label="bananes" /></p>
+                                <p className={`mt-2 inline-flex items-center gap-1 font-mono text-sm font-bold ${rising ? 'text-lime-400' : 'text-rose-400'}`}>
+                                    {rising ? <TrendingUp size={16} /> : <TrendingDown size={16} />}
+                                    {rising ? '+' : ''}{selected.change_24h.toFixed(2)}% sur 24 h
+                                </p>
+                            </div>
+                        </div>
+                        <div className="mt-8"><PriceChart prices={selected.history || []} rising={rising} /></div>
+                        <p className="mt-3 font-mono text-[11px] uppercase tracking-widest text-white/40">Cours récents · {selected.stock_type}</p>
+                    </div>
+                    <div className="min-w-0">
+                        <p className="mb-3 font-mono text-xs uppercase tracking-[0.25em] text-white/45">Sur le marché</p>
+                        <div className="border-t border-white/20">
+                            {stocks.map(stock => {
+                                const active = stock.symbol === selected.symbol;
+                                const up = stock.change_24h >= 0;
+                                return (
+                                    <button key={stock.symbol} type="button" aria-pressed={active} onClick={() => setSelectedSymbol(stock.symbol)} className={`group grid w-full min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b px-2 py-5 text-left transition-colors focus-visible:outline-2 focus-visible:outline-banan-primary ${active ? 'border-banan-primary bg-banan-primary/5' : 'border-white/15 hover:border-white/50 hover:bg-white/[0.03]'}`}>
+                                        <span className="min-w-0"><span className={`block text-lg font-black ${active ? 'text-banan-primary' : 'text-white'}`}>{stock.symbol}</span><span className="block truncate text-xs text-white/45">{stock.name}</span></span>
+                                        <span className="text-right"><span className="inline-flex items-center justify-end gap-1 font-mono text-sm font-bold tabular-nums text-white">{formatNumber(stock.current_price)} <Banana className="h-3.5 w-3.5 shrink-0 text-banan-primary" aria-label="bananes" /></span><span className={`block font-mono text-xs tabular-nums ${up ? 'text-lime-400' : 'text-rose-400'}`}>{up ? '+' : ''}{stock.change_24h.toFixed(2)}%</span></span>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                        <Link to="/clicker" className="mt-6 inline-flex items-center gap-2 font-mono text-sm font-bold text-banan-primary underline underline-offset-4 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-banan-primary">Ouvrir le jeu <ArrowUpRight size={16} aria-hidden="true" /></Link>
+                    </div>
                 </div>
             )}
-
-            <div className="flex flex-wrap justify-between items-center gap-6 mt-12 p-8 bg-white/[0.02] border border-white/10 rounded-3xl overflow-hidden relative">
-                <div className="absolute top-0 left-0 w-1 h-full bg-banan-primary/20" />
-                <div className="flex-1 min-w-[300px]">
-                    <h4 className="flex items-center gap-2 font-mono text-white text-sm font-bold mb-3 uppercase tracking-wider">
-                        <ShieldCheck size={16} className="text-banan-green" /> INTÉGRITÉ SYSTÈME : OPTIMALE
-                    </h4>
-                    <p className="text-white/40 text-xs leading-relaxed max-w-lg mb-6 font-mono">
-                        Protocole de transaction chiffré de bout en bout. Synchronisation du registre distribué vérifiée. 
-                        Toutes les opérations de marché sont signées cryptographiquement et sécurisées par le réseau K-Potassium.
-                    </p>
-                    <div className="flex flex-wrap gap-6 text-[10px] font-mono text-white/20">
-                        <div className="flex items-center gap-2"><Cpu size={12} /> CHARGE_CYCLE: 12%</div>
-                        <div className="flex items-center gap-2"><Database size={12} /> LATENCE_SYNC: 4ms</div>
-                        <div className="flex items-center gap-2"><Globe size={12} /> NŒUDS_ACTIFS: 1,337</div>
-                    </div>
-                </div>
-                
-                <div className="p-1 px-1.5 bg-white/5 rounded-2xl border border-white/10 group-hover:border-banan-primary/30 transition-colors">
-                    <div className="flex items-center gap-5 p-4 rounded-xl">
-                        <div className="p-3 bg-white/5 rounded-xl text-white/20 group-hover:text-banan-primary group-hover:bg-banan-primary/10 transition-all">
-                            <Zap size={24} />
-                        </div>
-                        <div>
-                            <div className="text-xs font-bold text-white/60 mb-1 font-mono uppercase tracking-widest">Flux Marché</div>
-                            <div className="text-[10px] text-banan-teal font-mono uppercase animate-pulse">● REST API</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </ShowcaseSection>
     );
 }

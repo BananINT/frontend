@@ -2,7 +2,7 @@ import React from 'react';
 import ShinyText from '@app/components/ui/ShinyText';
 import Aurora from '@app/components/ui/Aurora';
 import LavaLamp from '@app/components/ui/LavaLamp';
-import { Banana, Users, Calendar, Gamepad, ArrowDown, Rocket, Heart } from 'lucide-react';
+import { Banana, Users, Calendar, Gamepad, ArrowDown, ArrowUpRight, BookOpen, Rocket, Heart } from 'lucide-react';
 import { Link } from 'react-router';
 import { useEffect, useState, useRef } from 'react';
 import { motion } from 'framer-motion';
@@ -131,12 +131,12 @@ export default function HomePage() {
                     <div className="w-full max-w-[1600px] mx-auto relative flex flex-col items-center lg:min-h-[800px] mt-4">
                         {/* Mobile Stats (Shows below globe on mobile) */}
                         <div className="lg:hidden grid min-w-0 grid-cols-2 gap-3 w-full relative z-20 px-1 sm:gap-4 sm:px-4">
-                            <div className="flex min-w-0 flex-col items-center justify-center overflow-hidden p-3 sm:p-6 bg-white/5 backdrop-blur-md border border-white/10 rounded-3xl shadow-xl">
+                            <div className="flex min-w-0 flex-col items-center justify-center overflow-hidden border-t-2 border-banan-primary bg-black/65 p-3 shadow-[0_10px_40px_rgba(0,0,0,0.4)] backdrop-blur-md sm:p-6">
                                 <Users className="w-8 h-8 text-banan-primary mb-2" />
                                 <div className="max-w-full font-black text-white"><FlipNumber value={stats.total_players} compact /></div>
                                 <div className="text-[10px] font-mono uppercase tracking-widest text-white/50">Membres</div>
                             </div>
-                            <div className="flex min-w-0 flex-col items-center justify-center overflow-hidden p-3 sm:p-6 bg-white/5 backdrop-blur-md border border-white/10 rounded-3xl shadow-xl">
+                            <div className="flex min-w-0 flex-col items-center justify-center overflow-hidden border-t-2 border-banan-primary bg-black/65 p-3 shadow-[0_10px_40px_rgba(0,0,0,0.4)] backdrop-blur-md sm:p-6">
                                 <Banana className="w-8 h-8 text-banan-primary mb-2" />
                                 <div className="max-w-full font-black text-white"><FlipNumber value={stats.total_bananas} compact /></div>
                                 <div className="text-[10px] font-mono uppercase tracking-widest text-white/50">Bananes</div>
@@ -144,35 +144,35 @@ export default function HomePage() {
                         </div>
 
                         {/* Left Stat - Floating on PC */}
-                        <div className="hidden lg:flex flex-col items-center justify-center p-8 bg-white/5 backdrop-blur-md border border-white/10 rounded-3xl hover:bg-white/10 transition-colors group absolute left-0 top-[25%] -translate-y-1/2 z-20 shadow-[0_0_30px_rgba(0,0,0,0.5)]">
-                            <Users className="w-12 h-12 text-banan-primary mb-4 transition-transform group-hover:scale-110" />
-                            <div className="text-5xl font-black text-white mb-2"><FlipNumber value={stats.total_players} /></div>
-                            <div className="text-xs font-mono uppercase tracking-widest text-white/50">Membres Actifs</div>
+                        <div className="group absolute left-0 top-[42%] z-20 hidden w-64 -translate-y-1/2 overflow-hidden border-l-2 border-banan-primary bg-black/70 p-6 text-left shadow-[0_20px_60px_rgba(0,0,0,0.5)] backdrop-blur-xl lg:block xl:w-72">
+                            <div className="mb-6 flex items-center justify-between text-banan-primary"><span className="font-mono text-[10px] uppercase tracking-[0.25em]">Sur le campus</span><Users className="h-7 w-7 transition-transform group-hover:scale-110" /></div>
+                            <div className="font-black text-white"><FlipNumber value={stats.total_players} fontSize="clamp(2rem, 2.5vw, 2.5rem)" /></div>
+                            <div className="mt-3 font-mono text-xs uppercase tracking-widest text-white/55">Membres actifs</div>
                         </div>
 
                         {/* Globe Center - Full Width */}
-                        <div className="w-[calc(100%+2rem)] -mx-4 lg:w-full lg:mx-0 h-[450px] lg:h-[800px] flex items-center justify-center relative pointer-events-none -mt-32 lg:-mt-48">
-                            <div className="absolute inset-0 z-10 flex items-center justify-center pointer-events-none opacity-80 mix-blend-screen overflow-visible scale-[1.5] lg:scale-[1.3]">
+                        <div className="w-[calc(100%+2rem)] -mx-4 lg:w-full lg:mx-0 h-[450px] lg:h-[800px] flex items-center justify-center relative pointer-events-none -mt-16 lg:-mt-48">
+                            <div className="absolute inset-0 z-10 flex items-center justify-center pointer-events-none opacity-80 mix-blend-screen overflow-visible scale-[1.15] lg:scale-[1.3]">
                                 <Globe />
                             </div>
                         </div>
 
                         {/* Right Stat - Floating on PC */}
-                        <div className="hidden lg:flex flex-col items-center justify-center p-8 bg-white/5 backdrop-blur-md border border-white/10 rounded-3xl hover:bg-white/10 transition-colors group absolute right-0 top-[25%] -translate-y-1/2 z-20 shadow-[0_0_30px_rgba(0,0,0,0.5)]">
-                            <Banana className="w-12 h-12 text-banan-primary mb-4 transition-transform group-hover:scale-110" />
-                            <div className="text-5xl font-black text-white mb-2"><FlipNumber value={stats.total_bananas} /></div>
-                            <div className="text-xs font-mono uppercase tracking-widest text-white/50">Bananes Farmées</div>
+                        <div className="group absolute right-0 top-[42%] z-20 hidden w-64 -translate-y-1/2 overflow-hidden border-r-2 border-banan-primary bg-black/70 p-6 text-right shadow-[0_20px_60px_rgba(0,0,0,0.5)] backdrop-blur-xl lg:block xl:w-72">
+                            <div className="mb-6 flex items-center justify-between text-banan-primary"><Banana className="h-7 w-7 transition-transform group-hover:-rotate-12" /><span className="font-mono text-[10px] uppercase tracking-[0.25em]">Au compteur</span></div>
+                            <div className="font-black text-white"><FlipNumber value={stats.total_bananas} fontSize="clamp(2rem, 2.5vw, 2.5rem)" /></div>
+                            <div className="mt-3 font-mono text-xs uppercase tracking-widest text-white/55">Bananes farmées</div>
                         </div>
                     </div>
                     
                     <ShowcaseSection 
-                        title="Une expérience unique"
+                        title="Un clicker qui a mal tourné"
                         centered
                         maxWidth="max-w-2xl"
                         className="mb-20"
                     >
                         <p className="text-white/70 font-mono text-sm leading-relaxed mb-10">
-                            Rejoignez le réseau central. Farmez des bananes, investissez dans le marché boursier cryptographique, achetez des améliorations illégales et dominez le classement mondial. Le protocole vous attend.
+                            Le premier classement a lancé une course aux clics et aux bots sur le campus. Depuis, le jeu a grandi : améliore ta production, surveille le marché et essaie de grimper à ton tour.
                         </p>
                         <Link 
                             to="/clicker" 
@@ -185,6 +185,8 @@ export default function HomePage() {
                             <span className="relative z-10 tracking-widest">Jouer Maintenant</span>
                         </Link>
                     </ShowcaseSection>
+
+                    <BananierLogs />
 
                     <HallOfFame />
                     
@@ -237,16 +239,29 @@ export default function HomePage() {
                         </div>
                     </ShowcaseSection>
 
-                    <BananierLogs />
-
-                    <section className="mx-auto max-w-5xl px-6 py-12">
-                        <div className="border-l-2 border-banan-primary bg-white/[0.03] p-6 sm:p-10">
-                            <p className="text-banan-primary text-xs font-mono mb-3">LE CARNET</p>
-                            <h2 className="text-2xl sm:text-3xl font-bold mb-4">Il n’y a pas que les bananes dans la vie.</h2>
-                            <p className="text-white/70 leading-relaxed max-w-2xl">La MAISEL, les assos, les projets et tout ce qu’on aimerait garder entre deux conversations. On commence par les repères du campus ; les histoires restent à écrire.</p>
-                            <Link to="/blog" className="inline-block mt-5 text-banan-primary underline underline-offset-4">Ouvrir le carnet →</Link>
+                    <ShowcaseSection title="Le campus en vrai" icon={BookOpen}>
+                        <p className="-mt-5 mb-9 max-w-2xl text-sm leading-relaxed text-white/65 sm:mt-0 sm:text-base">
+                            Entre deux parties, il y a les lieux, les assos et les mots du campus. On a commencé à les raconter dans le carnet.
+                        </p>
+                        <div className="grid gap-x-8 gap-y-6 md:grid-cols-3">
+                            {[
+                                { number: '01', title: 'TSP, MAISEL, INT : les premiers repères du campus', slug: 'tsp-maisel-assos-premiers-reperes', label: 'Pour commencer' },
+                                { number: '02', title: 'Pourquoi il y a « INT » partout sur le campus', slug: 'expressions-associations-int-xrtc', label: 'Les mots du campus' },
+                                { number: '03', title: 'NOVA, le Ritz et les petits détours d’une journée', slug: 'nova-ritz-quotidien-campus-evry', label: 'Les lieux' },
+                            ].map((article) => (
+                                <Link key={article.slug} to={`/blog/${article.slug}`} className="group flex min-w-0 flex-col border-t-2 border-white/25 pt-4 transition-colors hover:border-banan-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-banan-primary">
+                                    <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-banan-primary">{article.number} / {article.label}</span>
+                                    <span className="mt-4 flex min-w-0 items-start justify-between gap-4 text-lg font-bold leading-snug text-white group-hover:text-banan-primary sm:text-xl">
+                                        <span>{article.title}</span>
+                                        <ArrowUpRight className="mt-1 h-5 w-5 shrink-0 text-banan-primary transition-transform group-hover:-translate-y-1 group-hover:translate-x-1" aria-hidden="true" />
+                                    </span>
+                                </Link>
+                            ))}
                         </div>
-                    </section>
+                        <Link to="/blog" className="mt-9 inline-flex items-center gap-2 font-mono text-sm font-bold text-banan-primary underline underline-offset-4 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-banan-primary">
+                            Tout le carnet <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+                        </Link>
+                    </ShowcaseSection>
   
                     <ShowcaseSection 
                         title="L'équipe (les addicts)"
@@ -298,12 +313,9 @@ export default function HomePage() {
                         centered
                         maxWidth="max-w-4xl"
                     >
-                        <div className="p-10 bg-white/5 backdrop-blur-md border border-white/10 rounded-3xl relative overflow-hidden group">
-                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-banan-primary/50 to-transparent opacity-50"></div>
-                            <p className="text-xl md:text-2xl text-white/80 font-light leading-relaxed italic">
-                                "Plus qu'un simple club, BananINT est l'épicentre de l'innovation et du potassium sur le campus. Là où le BDE s'essouffle et MiNET s'enferme dans ses racks, nous injectons une dose massive d'utilité et de fun. Notre dévotion à la banane n'est pas qu'un délire d'initiés, c'est une mission : apporter des services concrets, une technique irréprochable et assez d'énergie pour faire glisser toute l'école vers le futur."
-                            </p>
-                        </div>
+                        <p className="mx-auto max-w-3xl font-mono text-base leading-relaxed text-white/80 sm:text-xl">
+                            Un club qui n’existe pas tout à fait.<br />Un clicker que des gens ont pris beaucoup trop au sérieux.<br /><span className="font-bold text-banan-primary">Bienvenue à BananINT.</span>
+                        </p>
                     </ShowcaseSection>
                     
                     <RecruitmentHub />

@@ -86,7 +86,7 @@ export default function Header() {
 
     return (
         <header className="sticky top-0 z-50 w-full text-banan-background border-b border-banan-background select-none">
-            <div className="container z-50 bg-banan-primary flex h-12 items-center justify-between px-3 sm:px-4 max-w-[1920px] mx-auto relative min-w-0">
+            <div className="container z-50 bg-banan-primary flex h-12 items-center justify-between px-2 min-[375px]:px-3 sm:px-4 max-w-[1920px] mx-auto relative min-w-0">
                 {/* ============================================================== */}
                 {/* WIDE SCREENS (xl: >= 1280px): Full horizontal desktop bar      */}
                 {/* ============================================================== */}
@@ -185,7 +185,7 @@ export default function Header() {
                     </Link>
 
                     {/* Right: Nav Popup + Games Popup + Quick Auth */}
-                    <div className="flex items-center gap-2 shrink-0">
+                    <div className="flex items-center gap-1 min-[375px]:gap-2 shrink-0">
                         {/* Little Navigation Popup */}
                         <div ref={navRef} className="relative">
                             <button
@@ -195,14 +195,14 @@ export default function Header() {
                                     setIsGamesOpen(false);
                                 }}
                                 className={cn(
-                                    "flex items-center gap-1 px-2.5 py-1 text-xs font-bold uppercase tracking-wider rounded transition-all cursor-pointer border border-black/20 text-black hover:bg-black/10",
+                                    "flex items-center gap-1 px-1.5 min-[375px]:px-2.5 py-1 text-xs font-bold uppercase tracking-wider rounded transition-all cursor-pointer border border-black/20 text-black hover:bg-black/10",
                                     isNavOpen && "bg-black/15 border-black"
                                 )}
                                 aria-expanded={isNavOpen}
                                 aria-label="Menu Navigation"
                             >
                                 <Compass className="h-3.5 w-3.5 shrink-0" />
-                                <span>Nav</span>
+                                <span className="max-[374px]:hidden">Nav</span>
                                 <ChevronDown
                                     className={cn(
                                         "h-3 w-3 transition-transform duration-150",
@@ -257,14 +257,14 @@ export default function Header() {
                                     setIsNavOpen(false);
                                 }}
                                 className={cn(
-                                    "flex items-center gap-1 px-2.5 py-1 text-xs font-bold uppercase tracking-wider rounded transition-all cursor-pointer border border-black/20 text-black hover:bg-black/10",
+                                    "flex items-center gap-1 px-1.5 min-[375px]:px-2.5 py-1 text-xs font-bold uppercase tracking-wider rounded transition-all cursor-pointer border border-black/20 text-black hover:bg-black/10",
                                     isGamesOpen && "bg-black/15 border-black"
                                 )}
                                 aria-expanded={isGamesOpen}
                                 aria-label="Menu Jeux"
                             >
                                 <Gamepad2 className="h-3.5 w-3.5 shrink-0" />
-                                <span>Jeux</span>
+                                <span className="max-[374px]:hidden">Jeux</span>
                                 <ChevronDown
                                     className={cn(
                                         "h-3 w-3 transition-transform duration-150",
@@ -340,7 +340,7 @@ export default function Header() {
                         ) : (
                             <button
                                 onClick={() => login()}
-                                className="flex items-center gap-1 px-2.5 py-1 text-xs font-bold uppercase tracking-wider bg-black text-banan-primary rounded hover:bg-black/85 transition-all shrink-0 cursor-pointer shadow-sm"
+                                className="flex items-center gap-1 px-2 min-[375px]:px-2.5 py-1 text-xs font-bold uppercase tracking-wider bg-black text-banan-primary rounded hover:bg-black/85 transition-all shrink-0 cursor-pointer shadow-sm"
                             >
                                 <LogIn className="h-3.5 w-3.5 shrink-0" />
                                 <span className="hidden sm:inline">Login</span>

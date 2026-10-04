@@ -27,6 +27,13 @@ export default function AchievementsModal({ isOpen, onClose }: Props) {
                         } else if (achievement.id.startsWith('earn_')) {
                             const target = parseInt(achievement.id.split('_')[1]);
                             if (!isNaN(target)) isUnlocked = gameState.bananas >= target;
+                        } else if (achievement.id.startsWith('ach_prestige_')) {
+                            switch (achievement.id) {
+                                case 'ach_prestige_1': isUnlocked = gameState.prestigeCount >= 1; break;
+                                case 'ach_prestige_2': isUnlocked = gameState.prestigeCount >= 10; break;
+                                case 'ach_prestige_3': isUnlocked = gameState.prestigeCount >= 50; break;
+                                case 'ach_prestige_4': isUnlocked = gameState.prestigeCount >= 100; break;
+                            }
                         } else {
                             switch (achievement.id) {
                                 case 'first_click': isUnlocked = gameState.clickCount >= 1; break;

@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Dna, X } from 'lucide-react';
+import { Dna, X, Lock } from 'lucide-react';
 import { socketManager } from '@app/lib/socket';
 import { useGame } from '@app/context/GameContext';
 import { fireJackpotConfetti } from '@app/utils/confetti';
+import { PRESTIGE_REQUIREMENT } from '@app/config/gameConstants';
+import { formatNumber } from '@app/utils/format';
 
 interface PrestigeRitualProps {
     isOpen: boolean;
@@ -16,11 +18,15 @@ export default function PrestigeRitual({ isOpen, onClose }: PrestigeRitualProps)
     const { gameState } = useGame();
     const [stage, setStage] = useState<Stage>('confirm');
     const [dnaGained, setDnaGained] = useState(0);
+    const [targetPrestige, setTargetPrestige] = useState<number | null>(null);
 
+    const canAscend = gameState.totalBananasEarned >= PRESTIGE_REQUIREMENT;
     const previewDnaGain = 1 + Math.floor(gameState.prestigeCount / 10);
+    const progressPct = Math.min(100, (gameState.totalBananasEarned / PRESTIGE_REQUIREMENT) * 100);
 
     const handleClose = () => {
         setStage('confirm');
+        setTargetPrestige(null);
         onClose();
     };
 
@@ -29,17 +35,23 @@ export default function PrestigeRitual({ isOpen, onClose }: PrestigeRitualProps)
 
         const handleMessage = (msg: { type: string; data: unknown }) => {
             if (msg.type === 'prestige_success') {
-                const data = msg.data as { dnaGained: number };
+                const data = msg.data as { dnaGained: number; prestigeCount?: number };
                 setDnaGained(data.dnaGained);
+                if (data.prestigeCount !== undefined) {
+                    setTargetPrestige(data.prestigeCount);
+                } else {
+                    setTargetPrestige(gameState.prestigeCount + 1);
+                }
                 fireJackpotConfetti();
                 setStage('complete');
             }
         };
         socketManager.subscribe(handleMessage);
         return () => socketManager.unsubscribe(handleMessage);
-    }, [stage]);
+    }, [stage, gameState.prestigeCount]);
 
     const handleConfirm = () => {
+        if (!canAscend) return;
         setStage('ascending');
         socketManager.send('prestige', {});
     };
@@ -65,38 +77,59 @@ export default function PrestigeRitual({ isOpen, onClose }: PrestigeRitualProps)
                         <motion.div
                             initial={{ scale: 0.9, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
-                            className="relative z-10 max-w-md w-full mx-4 p-10 rounded-3xl border border-banan-primary/40 bg-white/5 backdrop-blur-md text-center"
+                            className="relative z-10 max-w-md w-full mx-4 p-8 sm:p-10 rounded-3xl border border-banan-primary/40 bg-white/5 backdrop-blur-md text-center"
                         >
-                            <button onClick={onClose} className="absolute top-4 right-4 text-white/40 hover:text-white transition-colors">
+                            <button onClick={handleClose} className="absolute top-4 right-4 text-white/40 hover:text-white transition-colors">
                                 <X className="w-5 h-5" />
                             </button>
                             <motion.div
                                 animate={{ rotate: 360 }}
                                 transition={{ repeat: Infinity, duration: 6, ease: 'linear' }}
-                                className="inline-block mb-6"
+                                className="inline-block mb-4"
                             >
                                 <Dna className="w-16 h-16 text-banan-primary" />
                             </motion.div>
-                            <h2 className="text-3xl font-black uppercase tracking-tighter text-banan-primary mb-3">Ascension</h2>
-                            <p className="text-sm font-mono text-white/60 leading-relaxed mb-6">
-                                Renaître de zéro, muni d'ADN de Banane éternel. Vos bananes, améliorations et clics repartent à zéro — votre prestige et vos thèmes restent acquis à jamais.
+                            <h2 className="text-3xl font-black uppercase tracking-tighter text-banan-primary mb-2">Ascension</h2>
+                            <p className="text-xs sm:text-sm font-mono text-white/60 leading-relaxed mb-6">
+                                Renaître de zéro, muni d'ADN de Banane éternel. Vos bananes, améliorations et clics repartent à zéro — votre prestige, vos améliorations ADN et vos thèmes restent acquis à jamais.
                             </p>
-                            <div className="text-xs font-mono text-white/40 uppercase tracking-widest mb-8">
-                                ADN gagné à l'ascension
-                                <div className="text-2xl font-black text-banan-primary mt-1">+{previewDnaGain}</div>
-                            </div>
+
+                            {!canAscend ? (
+                                <div className="mb-6 bg-black/40 border border-white/10 rounded-2xl p-4">
+                                    <div className="flex items-center justify-center gap-2 text-xs font-mono text-white/50 uppercase tracking-widest mb-2">
+                                        <Lock className="w-3.5 h-3.5 text-banan-primary" />
+                                        Progression Requise (1 Milliard)
+                                    </div>
+                                    <div className="w-full bg-white/10 h-2.5 rounded-full overflow-hidden mb-2">
+                                        <div
+                                            className="bg-banan-primary h-full transition-all duration-300"
+                                            style={{ width: `${progressPct}%` }}
+                                        />
+                                    </div>
+                                    <div className="text-[11px] font-mono text-white/80">
+                                        <span className="text-banan-primary font-bold">{formatNumber(gameState.totalBananasEarned)}</span> / {formatNumber(PRESTIGE_REQUIREMENT)} ({progressPct.toFixed(1)}%)
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="text-xs font-mono text-white/40 uppercase tracking-widest mb-8 bg-banan-primary/10 border border-banan-primary/30 rounded-2xl p-4">
+                                    ADN gagné à l'ascension
+                                    <div className="text-3xl font-black text-banan-primary mt-1">+{previewDnaGain} 🧬</div>
+                                </div>
+                            )}
+
                             <div className="flex gap-3">
                                 <button
-                                    onClick={onClose}
+                                    onClick={handleClose}
                                     className="flex-1 py-3 rounded-xl border border-white/10 text-white/50 hover:text-white hover:border-white/30 transition-colors text-xs font-bold uppercase tracking-widest"
                                 >
-                                    Pas encore
+                                    Fermer
                                 </button>
                                 <button
                                     onClick={handleConfirm}
-                                    className="flex-1 py-3 rounded-xl bg-banan-primary text-black font-black uppercase tracking-widest text-xs hover:bg-white transition-colors shadow-[0_0_30px_rgba(250,222,0,0.3)]"
+                                    disabled={!canAscend}
+                                    className="flex-1 py-3 rounded-xl bg-banan-primary text-black font-black uppercase tracking-widest text-xs hover:bg-white transition-colors shadow-[0_0_30px_rgba(250,222,0,0.3)] disabled:opacity-40 disabled:cursor-not-allowed"
                                 >
-                                    Ascender
+                                    {canAscend ? "Ascender" : "Bloqué"}
                                 </button>
                             </div>
                         </motion.div>
@@ -138,7 +171,7 @@ export default function PrestigeRitual({ isOpen, onClose }: PrestigeRitualProps)
                                 Ascension Réussie
                             </h2>
                             <p className="text-sm font-mono text-white/60 uppercase tracking-widest mb-8">
-                                +{dnaGained} ADN de Banane • Prestige {gameState.prestigeCount + 1}
+                                +{dnaGained} ADN de Banane • Prestige {targetPrestige ?? (gameState.prestigeCount)}
                             </p>
                             <button
                                 onClick={handleClose}

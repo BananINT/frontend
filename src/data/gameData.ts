@@ -37,6 +37,11 @@ export const ACHIEVEMENTS_DATA: Omit<Achievement, 'unlocked'>[] = [
     { id: 'click_100000', label: 'Gourou du Clic', description: 'Effectuez 100 000 clics.' },
     { id: 'click_1000000', label: 'Doigt de Fer', description: 'Effectuez 1 000 000 clics.' },
     { id: 'click_10000000', label: 'Divinité du Clic', description: 'Effectuez 10 000 000 clics.' },
+    // Prestige track
+    { id: 'ach_prestige_1', label: 'Ascension Initiale', description: 'Effectuez votre première ascension cosmique.' },
+    { id: 'ach_prestige_2', label: 'Accro à l\'Ascension', description: 'Effectuez 10 ascensions.' },
+    { id: 'ach_prestige_3', label: 'Transcendance Bananière', description: 'Effectuez 50 ascensions.' },
+    { id: 'ach_prestige_4', label: 'Divinité Primordiale', description: 'Effectuez 100 ascensions.' },
 ];
 
 export const MISSIONS_DATA: Omit<Mission, 'progress' | 'completed'>[] = [

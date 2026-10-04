@@ -83,7 +83,7 @@ function getToolMetadata(name: string) {
     case 'simulate_prestige_dna_tree':
       return {
         label: 'Arbre ADN Prestige',
-        icon: Layers,
+        icon: Dna,
         color: 'text-purple-300',
       };
     case 'track_banana_lottery':

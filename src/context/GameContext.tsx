@@ -335,7 +335,7 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
 
       setAvailableUpgrades(prev => prev.map(u =>
         u.id === payload.upgrade_id
-          ? { ...u, owned: payload.new_level, cost: payload.next_cost || u.cost }
+          ? { ...u, owned: payload.new_level, cost: payload.next_cost !== undefined && payload.next_cost !== null ? payload.next_cost : u.cost }
           : u
       ));
 
@@ -347,12 +347,55 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
             bananas: stats.bananas,
             clickValue: stats.bananasPerClick,
             autoClickers: stats.bananasPerSecond,
-            banana_dna: stats.bananaDNA || prev.banana_dna
+            banana_dna: stats.bananaDNA !== undefined ? stats.bananaDNA : prev.banana_dna
           };
           lastServerState.current = newState;
           return newState;
         });
       }
+    };
+
+    const handlePrestigeSuccess = (response: {
+      success: boolean;
+      dnaGained?: number;
+      bananaDNA?: number;
+      prestigeCount?: number;
+      bananasPerClick?: number;
+      bananasPerSecond?: number;
+      upgrades?: BackendUpgrade[];
+    }) => {
+      if (!response) return;
+
+      if (response.upgrades && Array.isArray(response.upgrades)) {
+        setAvailableUpgrades(response.upgrades.map((u: BackendUpgrade) => ({
+          id: u.upgrade_id,
+          name: u.name,
+          cost: u.base_cost,
+          value: u.multiplier,
+          type: u.upgrade_type,
+          desc: u.description,
+          owned: u.owned
+        })));
+      } else {
+        setAvailableUpgrades(prev => prev.map(u => 
+          u.type !== 'prestige' ? { ...u, owned: 0 } : u
+        ));
+      }
+
+      setGameState(prev => {
+        const newState: GameState = {
+          ...prev,
+          bananas: 0,
+          clickCount: 0,
+          totalBananasEarned: 0,
+          prestigeCount: response.prestigeCount !== undefined ? response.prestigeCount : prev.prestigeCount + 1,
+          banana_dna: response.bananaDNA !== undefined ? response.bananaDNA : prev.banana_dna + (response.dnaGained || 0),
+          clickValue: response.bananasPerClick !== undefined ? response.bananasPerClick : prev.clickValue,
+          autoClickers: response.bananasPerSecond !== undefined ? response.bananasPerSecond : 0,
+        };
+        lastServerState.current = newState;
+        return newState;
+      });
     };
 
     const handleTradeSuccess = (response: { success: boolean; new_balance?: number }) => {
@@ -418,6 +461,9 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
           break;
         case 'purchase_success':
           handleUpgradeSuccess(data as Parameters<typeof handleUpgradeSuccess>[0]);
+          break;
+        case 'prestige_success':
+          handlePrestigeSuccess(data as Parameters<typeof handlePrestigeSuccess>[0]);
           break;
         case 'trade_success':
           handleTradeSuccess(data as Parameters<typeof handleTradeSuccess>[0]);

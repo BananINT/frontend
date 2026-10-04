@@ -126,16 +126,33 @@ export default function ClickerPage() {
                             >
                                 <CircuitBoard className="h-4 w-4" />
                             </button>
-                            {gameState.prestigeCount > 0 && (
+                            {(gameState.prestigeCount > 0 || gameState.banana_dna > 0) && (
                                 <button
                                     onClick={() => setActiveTab('prestige')}
                                     className={`flex-1 py-2 flex justify-center items-center hover:bg-white/5 transition-colors ${activeTab === 'prestige' ? 'bg-white/10 text-banan-primary' : 'text-white/30'}`}
-                                    title="Prestige Upgrades"
+                                    title="Améliorations ADN Prestige"
                                 >
                                     <Dna className="h-4 w-4" />
                                 </button>
                             )}
                         </div>
+
+                        {activeTab === 'prestige' && (
+                            <div className="p-3 bg-banan-primary/10 border-b border-banan-primary/20 flex flex-col gap-1">
+                                <div className="flex items-center justify-between">
+                                    <span className="text-[10px] font-mono uppercase text-white/50 tracking-wider flex items-center gap-1.5">
+                                        <Dna className="w-3.5 h-3.5 text-banan-primary" />
+                                        Solde ADN
+                                    </span>
+                                    <span className="font-mono font-black text-xs text-banan-primary flex items-center gap-1">
+                                        {formatNumber(gameState.banana_dna)} 🧬
+                                    </span>
+                                </div>
+                                <div className="text-[9px] font-mono text-white/40 leading-tight">
+                                    Améliorations génétiques permanentes conservées lors de l'Ascension.
+                                </div>
+                            </div>
+                        )}
 
                         <div className="flex-1 overflow-y-auto">
                             {availableUpgrades.filter(u => u.type === activeTab).length === 0 ? (
@@ -143,28 +160,46 @@ export default function ClickerPage() {
                                     Aucune amélioration disponible
                                 </div>
                             ) : (
-                                availableUpgrades.filter(u => u.type === activeTab).sort((a, b) => a.cost - b.cost).map((item) => (
-                                    <button
-                                        key={item.id}
-                                        onClick={() => buyUpgrade(item.id)}
-                                        disabled={gameState.bananas < item.cost}
-                                        className="w-full flex items-center justify-between p-4 border-b border-white/10 hover:bg-white/5 active:bg-banan-primary active:text-black transition-colors disabled:opacity-30 group"
-                                    >
-                                        <div className="text-left">
-                                            <div className="font-bold font-mono text-xs uppercase tracking-wider mb-1 flex items-center gap-2">
-                                                {(() => { const Icon = UPGRADE_ICONS[item.type]; return Icon ? <Icon className="h-3.5 w-3.5 text-white/40" /> : null; })()}
-                                                {item.name}
-                                                <span className="text-white/30 ml-2">x{item.owned}</span>
+                                availableUpgrades.filter(u => u.type === activeTab).sort((a, b) => a.cost - b.cost).map((item) => {
+                                    const isPrestige = item.type === 'prestige';
+                                    const isAcquired = isPrestige && item.owned >= 1;
+                                    const isDisabled = isPrestige
+                                        ? (isAcquired || gameState.banana_dna < item.cost)
+                                        : (gameState.bananas < item.cost);
+
+                                    return (
+                                        <button
+                                            key={item.id}
+                                            onClick={() => buyUpgrade(item.id)}
+                                            disabled={isDisabled}
+                                            className={`w-full flex items-center justify-between p-4 border-b border-white/10 transition-colors group ${
+                                                isAcquired
+                                                    ? 'bg-banan-primary/5 cursor-default'
+                                                    : 'hover:bg-white/5 active:bg-banan-primary active:text-black disabled:opacity-30'
+                                            }`}
+                                        >
+                                            <div className="text-left">
+                                                <div className="font-bold font-mono text-xs uppercase tracking-wider mb-1 flex items-center gap-2">
+                                                    {(() => { const Icon = UPGRADE_ICONS[item.type]; return Icon ? <Icon className="h-3.5 w-3.5 text-white/40" /> : null; })()}
+                                                    {item.name}
+                                                    {!isPrestige && <span className="text-white/30 ml-2">x{item.owned}</span>}
+                                                </div>
+                                                <div className="text-[10px] font-mono opacity-50">
+                                                    {item.desc || `+${item.value} ${item.type === 'click' ? '/CLICK' : '/SEC'}`}
+                                                </div>
                                             </div>
-                                            <div className="text-[10px] font-mono opacity-50">
-                                                {item.desc || `+${item.value} ${item.type === 'click' ? '/CLICK' : '/SEC'}`}
-                                            </div>
-                                        </div>
-                                        <div className="font-mono font-bold text-banan-primary text-xs group-hover:text-white group-active:text-black">
-                                            {formatNumber(item.cost)}
-                                        </div>
-                                    </button>
-                                ))
+                                            {isAcquired ? (
+                                                <span className="text-[10px] font-mono font-bold text-banan-primary border border-banan-primary/40 bg-banan-primary/10 px-2 py-0.5 rounded uppercase tracking-wider">
+                                                    ACQUIS
+                                                </span>
+                                            ) : (
+                                                <div className="font-mono font-bold text-banan-primary text-xs group-hover:text-white group-active:text-black flex items-center gap-1">
+                                                    {formatNumber(item.cost)} {isPrestige ? 'ADN' : ''}
+                                                </div>
+                                            )}
+                                        </button>
+                                    );
+                                })
                             )}
                         </div>
                     </GameSection>
@@ -257,19 +292,44 @@ export default function ClickerPage() {
                                     <Eye className="h-4 w-4" />
                                     <span>{algoState?.status === 'demanding' ? 'SACRIFICE REQUIS' : 'CULTE'}</span>
                                 </button>
+                                <button
+                                    onClick={() => setIsPrestigeOpen(true)}
+                                    className={`flex items-center gap-2 px-4 py-2 border transition-all text-xs font-black uppercase tracking-wider ${
+                                        canAscend
+                                            ? 'bg-banan-primary text-black border-banan-primary animate-pulse shadow-[0_0_20px_rgba(250,222,0,0.6)] hover:bg-white'
+                                            : 'bg-white/5 border-white/10 hover:border-banan-primary hover:text-banan-primary text-white/50'
+                                    }`}
+                                >
+                                    <Dna className="h-4 w-4" />
+                                    <span>{canAscend ? 'ASCENSION !' : 'ASCENSION'}</span>
+                                </button>
                             </div>
                         </div>
 
                         {/* Stats Footer */}
-                        <div className="h-16 border-t border-white/10 grid grid-cols-2 divide-x divide-white/10 backdrop-blur-sm z-10 relative">
-                            <div className="flex items-center justify-between px-6">
+                        <div className={`h-16 border-t border-white/10 grid ${(gameState.prestigeCount > 0 || gameState.banana_dna > 0) ? 'grid-cols-3' : 'grid-cols-2'} divide-x divide-white/10 backdrop-blur-sm z-10 relative`}>
+                            <div className="flex items-center justify-between px-4 sm:px-6">
                                 <span className="text-[10px] font-mono uppercase text-white/50">Efficacité</span>
-                                <span className="text-xl font-bold font-sans text-white">{gameState.clickValue}</span>
+                                <span className="text-lg sm:text-xl font-bold font-sans text-white">{gameState.clickValue}</span>
                             </div>
-                            <div className="flex items-center justify-between px-6">
+                            <div className="flex items-center justify-between px-4 sm:px-6">
                                 <span className="text-[10px] font-mono uppercase text-white/50">Automatisation</span>
-                                <span className="text-xl font-bold font-sans text-white">{gameState.autoClickers}/s</span>
+                                <span className="text-lg sm:text-xl font-bold font-sans text-white">{gameState.autoClickers}/s</span>
                             </div>
+                            {(gameState.prestigeCount > 0 || gameState.banana_dna > 0) && (
+                                <div className="flex items-center justify-between px-4 sm:px-6">
+                                    <span className="text-[10px] font-mono uppercase text-banan-primary flex items-center gap-1">
+                                        <Dna className="w-3.5 h-3.5" />
+                                        ADN & Prestige
+                                    </span>
+                                    <span className="text-lg sm:text-xl font-bold font-sans text-banan-primary flex items-center gap-1.5">
+                                        {formatNumber(gameState.banana_dna)} 🧬
+                                        {gameState.prestigeCount > 0 && (
+                                            <span className="text-xs text-white/40 font-mono">★{gameState.prestigeCount}</span>
+                                        )}
+                                    </span>
+                                </div>
+                            )}
                         </div>
                     </GameSection>
                 </div>

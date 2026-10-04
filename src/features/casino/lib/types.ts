@@ -107,6 +107,33 @@ export interface WheelSegment {
     value: number;
 }
 
+export const DEFAULT_WHEEL_SEGMENTS: WheelSegment[] = [
+    { kind: 'soot', value: 0.0 },
+    { kind: 'win', value: 1.0 },
+    { kind: 'miss', value: 0.0 },
+    { kind: 'win', value: 2.0 },
+    { kind: 'win', value: 0.5 },
+    { kind: 'miss', value: 0.0 },
+    { kind: 'win', value: 3.0 },
+    { kind: 'win', value: 0.5 },
+    { kind: 'miss', value: 0.0 },
+    { kind: 'win', value: 1.0 },
+    { kind: 'win', value: 2.0 },
+    { kind: 'miss', value: 0.0 },
+    { kind: 'win', value: 5.0 },
+    { kind: 'win', value: 0.5 },
+    { kind: 'miss', value: 0.0 },
+    { kind: 'win', value: 1.0 },
+    { kind: 'win', value: 2.0 },
+    { kind: 'miss', value: 0.0 },
+    { kind: 'win', value: 1.5 },
+    { kind: 'win', value: 0.5 },
+    { kind: 'miss', value: 0.0 },
+    { kind: 'win', value: 1.0 },
+    { kind: 'win', value: 0.5 },
+    { kind: 'miss', value: 0.0 },
+];
+
 export interface WheelDetail {
     index: number;
     kind: WheelSegment['kind'];

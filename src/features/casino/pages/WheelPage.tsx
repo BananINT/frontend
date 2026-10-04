@@ -8,7 +8,7 @@ import DoubleOrNothing from '../components/DoubleOrNothing';
 import FairnessPanel from '../components/FairnessPanel';
 import { useCasinoGame } from '../lib/useCasinoGame';
 import { useBeat } from '../lib/animation';
-import type { CasinoResult, WheelDetail } from '../lib/types';
+import { type CasinoResult, type WheelDetail, DEFAULT_WHEEL_SEGMENTS } from '../lib/types';
 
 const SPIN_MS = 3400;
 const R = 150;
@@ -47,7 +47,7 @@ export default function WheelPage() {
     const [bet, setBet] = useState(1000);
 
     const detail = result?.detail;
-    const segments = detail?.segments ?? [];
+    const segments = detail?.segments ?? DEFAULT_WHEEL_SEGMENTS;
     const count = segments.length || 24;
 
     const spinning = useBeat(result?.proof?.nonce, SPIN_MS);
@@ -57,7 +57,7 @@ export default function WheelPage() {
     const perSegment = 360 / count;
     const angle = detail
         ? (result?.proof?.nonce ?? 0) * 6 * 360 + (360 - detail.index * perSegment - perSegment / 2)
-        : 0;
+        : 360 - perSegment / 2;
 
     const hitSoot = !spinning && detail?.kind === 'soot';
 
@@ -126,10 +126,7 @@ export default function WheelPage() {
                         >
                             <circle cx={CX} cy={CY} r={R + 6} fill="#0a0710" stroke="#3f3f46" strokeWidth="3" />
 
-                            {(segments.length
-                                ? segments
-                                : Array.from({ length: 24 }, () => ({ kind: 'miss', value: 0 }))
-                            ).map((segment, i) => (
+                            {segments.map((segment, i) => (
                                 <g key={i}>
                                     <path
                                         d={wedge(i, count)}

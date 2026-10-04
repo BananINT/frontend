@@ -1,24 +1,24 @@
 
 import { useGame } from '@app/context/GameContext';
-import { Zap, TrendingUp, Trophy, CircuitBoard, Dna, Banana, type LucideIcon } from 'lucide-react';
+import { Zap, TrendingUp, Trophy, CircuitBoard, Dna, Banana, Crosshair, type LucideIcon } from 'lucide-react';
 
 import StockChart from './components/StockChart';
-import SessionManager from './components/SessionManager';
-import MissionsModal from './components/MissionsModal';
-import AchievementsModal from './components/AchievementsModal';
+import CyberWarfareSection from './components/CyberWarfareSection';
+import MissionsAchievementsSection from './components/MissionsAchievementsSection';
+import AgentDossierCard from './components/AgentDossierCard';
+import SystemTelemetryCard from './components/SystemTelemetryCard';
+import CyberCombatFeedCard from './components/CyberCombatFeedCard';
 import ThemeShopModal from './components/ThemeShopModal';
-import { Medal, Target, Palette, Eye, AlertTriangle } from 'lucide-react';
+import { Palette, Eye, AlertTriangle } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import GameSection from '@app/components/shared/GameSection';
 import { formatNumber } from '@app/utils/format';
 import AlgoCultModal from './components/AlgoCultModal';
-import OsintSection from './components/OsintSection';
-import CyberSection from './components/CyberSection';
 import GoldenBanana from './components/GoldenBanana';
 import PrestigeRitual from './components/PrestigeRitual';
 import { PRESTIGE_REQUIREMENT } from '@app/config/gameConstants';
-import type { AlgoCultState, CyberAttack } from '@app/types/game';
+import type { AlgoCultState, CyberAttack, CyberState } from '@app/types/game';
 
 const UPGRADE_ICONS: Record<string, LucideIcon> = {
     click: Zap,
@@ -29,31 +29,34 @@ const UPGRADE_ICONS: Record<string, LucideIcon> = {
 
 export default function ClickerPage() {
     const { gameState, clickBanana, buyUpgrade, availableUpgrades } = useGame();
-    const [isMissionsOpen, setIsMissionsOpen] = useState(false);
-    const [isAchievementsOpen, setIsAchievementsOpen] = useState(false);
     const [isStoreOpen, setIsStoreOpen] = useState(false);
     const [activeTab, setActiveTab] = useState<'click' | 'auto' | 'synergy' | 'prestige'>('click');
     const [isAlgoOpen, setIsAlgoOpen] = useState(false);
     const [isPrestigeOpen, setIsPrestigeOpen] = useState(false);
     const canAscend = gameState.totalBananasEarned >= PRESTIGE_REQUIREMENT;
     const [algoState, setAlgoState] = useState<AlgoCultState | null>(null);
+    const [cyberState, setCyberState] = useState<CyberState | null>(null);
     const [cyberAttacks, setCyberAttacks] = useState<CyberAttack[]>([]);
+    const [retaliationTarget, setRetaliationTarget] = useState<{ id: string; name: string } | null>(null);
     const leaderboard = gameState.leaderboard || [];
 
     useEffect(() => {
         const handleMessage = (msg: { type: string; data: unknown }) => {
             if (msg.type === 'algo_cult_state') {
                 setAlgoState(msg.data as AlgoCultState);
+            } else if (msg.type === 'cyber_state') {
+                setCyberState(msg.data as CyberState);
             } else if (msg.type === 'cyber_attacked') {
                 setCyberAttacks(prev => [...prev, msg.data as CyberAttack]);
                 setTimeout(() => {
                     setCyberAttacks(prev => prev.slice(1));
-                }, 8000);
+                }, 10000);
             }
         };
         import('@app/lib/socket').then(({ socketManager }) => {
             socketManager.subscribe(handleMessage);
             socketManager.send('get_algo_cult_state', {});
+            socketManager.send('get_cyber_state', {});
         });
         
         return () => {
@@ -65,6 +68,15 @@ export default function ClickerPage() {
 
     return (
         <div className="flex flex-col relative">
+            {/* Active Overclock Frenzy Banner */}
+            {cyberState?.overclock_active && (
+                <div className="w-full bg-banan-primary text-black font-mono font-black text-xs py-2 px-4 text-center tracking-widest uppercase flex items-center justify-center gap-2 animate-pulse shadow-[0_0_25px_rgba(250,222,0,0.6)] z-30 sticky top-0 border-b border-black">
+                    <Zap className="h-4 w-4 text-black fill-current" />
+                    SURCHARGE KERNEL ACTIVE : MULTIPLICATEUR DE PRODUCTION ×2 ({cyberState.overclock_remaining}S RESTANTES)
+                    <Zap className="h-4 w-4 text-black fill-current" />
+                </div>
+            )}
+
             {/* Global Cyber Attack Alerts */}
             <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50 flex flex-col gap-2 pointer-events-none">
                 <AnimatePresence>
@@ -89,6 +101,17 @@ export default function ClickerPage() {
                                     </div>
                                 )}
                             </div>
+                            <button
+                                onClick={() => {
+                                    setRetaliationTarget({ id: attack.attacker_id || attack.attacker, name: attack.attacker });
+                                    const el = document.getElementById('cyber-warfare-section');
+                                    if (el) el.scrollIntoView({ behavior: 'smooth' });
+                                }}
+                                className="mt-3 px-4 py-1.5 bg-red-600 hover:bg-red-500 text-white font-mono font-bold text-xs uppercase tracking-wider flex items-center gap-1.5 transition-colors shadow-[0_0_10px_rgba(239,68,68,0.5)]"
+                            >
+                                <Crosshair className="h-3.5 w-3.5" />
+                                CONTRE-ATTAQUER
+                            </button>
                         </motion.div>
                     ))}
                 </AnimatePresence>
@@ -240,38 +263,10 @@ export default function ClickerPage() {
                                     <div className="absolute bottom-0 left-0 w-2 h-2 border-b-2 border-l-2 border-banan-primary" />
                                     <div className="absolute bottom-0 right-0 w-2 h-2 border-b-2 border-r-2 border-banan-primary" />
                                 </button>
-
-                                {/* Subtle Ascension cue — only appears once eligible */}
-                                {canAscend && (
-                                    <motion.button
-                                        onClick={() => setIsPrestigeOpen(true)}
-                                        initial={{ opacity: 0, scale: 0.6 }}
-                                        animate={{ opacity: 1, scale: [1, 1.12, 1] }}
-                                        transition={{ opacity: { duration: 0.6 }, scale: { repeat: Infinity, duration: 2.2 } }}
-                                        className="absolute -top-3 -right-3 p-2.5 rounded-full bg-black border border-banan-primary/60 shadow-[0_0_16px_rgba(250,222,0,0.4)] hover:scale-110 transition-transform"
-                                        title="Ascension disponible"
-                                    >
-                                        <Dna className="w-5 h-5 text-banan-primary" />
-                                    </motion.button>
-                                )}
                             </div>
 
                             {/* Control Panel Buttons */}
                             <div className="flex flex-wrap justify-center gap-2 md:gap-4">
-                                <button
-                                    onClick={() => setIsMissionsOpen(true)}
-                                    className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 hover:border-banan-primary hover:text-banan-primary transition-colors text-xs font-bold uppercase tracking-wider"
-                                >
-                                    <Target className="h-4 w-4" />
-                                    <span>MISSIONS</span>
-                                </button>
-                                <button
-                                    onClick={() => setIsAchievementsOpen(true)}
-                                    className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 hover:border-banan-primary hover:text-banan-primary transition-colors text-xs font-bold uppercase tracking-wider"
-                                >
-                                    <Medal className="h-4 w-4" />
-                                    <span>MÉRITE</span>
-                                </button>
                                 <button
                                     onClick={() => setIsStoreOpen(true)}
                                     className="flex items-center gap-2 px-4 py-2 bg-banan-primary/10 border border-banan-primary/20 hover:border-banan-primary hover:bg-banan-primary hover:text-black transition-all text-banan-primary text-xs font-black uppercase tracking-wider shadow-[0_0_15px_rgba(var(--banan-primary-rgb),0.2)]"
@@ -383,15 +378,30 @@ export default function ClickerPage() {
                 </div>
             </div>
 
-            {/* Stock Market Section */}
+            {/* Tier 1: Stock Market Section */}
             <StockChart />
-            <OsintSection />
-            <CyberSection />
-            <SessionManager />
+
+            {/* Tier 2: Centre de Cyber-Guerre & Marché Noir */}
+            <div id="cyber-warfare-section">
+                <CyberWarfareSection 
+                    retaliationTarget={retaliationTarget} 
+                    onClearRetaliation={() => setRetaliationTarget(null)} 
+                />
+            </div>
+
+            {/* Tier 3: Centre d'Opérations & Distinctions (Missions & Mérite) */}
+            <div id="operations-section">
+                <MissionsAchievementsSection />
+            </div>
+
+            {/* Tier 4: Dossier Agent, Télémétrie & Télétype de Combat (Grille 3 colonnes) */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 divide-y lg:divide-y-0 lg:divide-x divide-white/10 border-t border-b border-white/10 w-full bg-banan-background">
+                <AgentDossierCard />
+                <SystemTelemetryCard />
+                <CyberCombatFeedCard />
+            </div>
 
             {/* Modals */}
-            <MissionsModal isOpen={isMissionsOpen} onClose={() => setIsMissionsOpen(false)} />
-            <AchievementsModal isOpen={isAchievementsOpen} onClose={() => setIsAchievementsOpen(false)} />
             <ThemeShopModal isOpen={isStoreOpen} onClose={() => setIsStoreOpen(false)} />
             {algoState && <AlgoCultModal isOpen={isAlgoOpen} onClose={() => setIsAlgoOpen(false)} state={algoState} />}
             <PrestigeRitual isOpen={isPrestigeOpen} onClose={() => setIsPrestigeOpen(false)} />

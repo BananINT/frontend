@@ -82,4 +82,53 @@ export interface CyberAttack {
   attacker: string;
   stolen: number;
   mitigated: number;
+  attacker_id?: string;
+  can_retaliate?: boolean;
+}
+
+export interface DarknetCatalogItem {
+  name: string;
+  cost: number;
+  desc: string;
+  icon: string;
+}
+
+export interface CorpNode {
+  id: string;
+  name: string;
+  difficulty: number;
+  base_reward: number;
+  ip: string;
+}
+
+export interface AttackConfig {
+  name: string;
+  cost: number;
+  success_rate: number;
+  steal_pct: number;
+  bypass: number;
+}
+
+export interface CyberState {
+  mercenaries: number;
+  firewall_level: number;
+  ogm_active: boolean;
+  darknet_items: string[];
+  police_heat: number;
+  overclock_active: boolean;
+  overclock_remaining: number;
+  overclock_cooldown_remaining?: number;
+  attack_cooldown_remaining?: number;
+  shield_remaining?: number;
+  corp_cooldowns?: Record<string, number>;
+  catalog: Record<string, DarknetCatalogItem>;
+  corp_nodes: CorpNode[];
+  attacks: Record<string, AttackConfig>;
+}
+
+export interface CyberCombatLog {
+  id: number;
+  type: string;
+  message: string;
+  time: string;
 }

@@ -21,7 +21,11 @@ interface Stock {
 
 const STOCK_META: Record<string, { id: number, colorVar: string }> = {
     'BNDAQ': { id: 1, colorVar: '--banan-primary' },
-    'BG': { id: 2, colorVar: '--banan-red' }
+    'BG':    { id: 2, colorVar: '--banan-red' },
+    'OGM':   { id: 3, colorVar: '--banan-green' },
+    'CYBR':  { id: 4, colorVar: '--banan-cyber' },
+    'FED':   { id: 5, colorVar: '--banan-algo' },
+    'QNTM':  { id: 6, colorVar: '--banan-teal' }
 };
 
 const getCssVar = (name: string, fallback: string) => {
@@ -190,7 +194,7 @@ export default function StockChart() {
                 attributionLogo: false,
             },
             width: chartContainerRef.current.clientWidth || 300,
-            height: 300,
+            height: 400,
             grid: {
                 vertLines: { color: gridColor },
                 horzLines: { color: gridColor },
@@ -399,34 +403,53 @@ export default function StockChart() {
 
     return (
         <GameSection
-            title="STONKS"
+            title="BOURSE & TRADING (STONKS)"
             icon={ChartCandlestick}
+            className="w-full border-t border-white/10 p-0"
+            headerClassName="p-4 mb-0 border-b border-white/10"
             rightElement={
-                <div className="flex items-center">
-                    <div className="flex border-l border-white/10">
-                        {stocks.map(stock => (
-                            <button
-                                key={stock.symbol}
-                                onClick={() => {
-                                    setActiveStock(stock);
-                                    setBuyQty(1);
-                                    // Instantly update the UI price when switching tabs
-                                    setCurrentPrice(stock.current_price);
-                                }}
-                                className={`px-4 py-3 text-xs font-bold uppercase transition-colors border-l first:border-l-0 border-white/10 ${activeStock?.symbol === stock.symbol
-                                    ? 'bg-white/10 text-banan-primary'
-                                    : 'text-white/30 hover:bg-white/5 hover:text-white'
-                                    }`}
-                            >
-                                {stock.symbol}
-                            </button>
-                        ))}
-                    </div>
+                <div className="flex items-center gap-3 font-mono text-[10px]">
+                    <span className="flex items-center gap-1.5 text-green-400 font-bold">
+                        <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+                        TICK EN DIRECT
+                    </span>
+                    <span className="text-white/40 border-l border-white/10 pl-3">
+                        ACTIF : <span className="text-banan-primary font-bold">{activeStock?.symbol || 'BNDAQ'}</span>
+                    </span>
                 </div>
             }
         >
+            {/* Market Ticker Strip */}
+            <div className="flex items-center gap-3 py-2.5 px-4 border-b border-white/10 bg-white/5 overflow-x-auto text-[11px] font-mono">
+                <span className="text-[10px] uppercase font-bold text-white/40 shrink-0 flex items-center gap-1.5">
+                    <Activity className="h-3.5 w-3.5 text-banan-primary" /> FLUX MARCHÉ :
+                </span>
+                {stocks.map(s => {
+                    const change = s.lastCandle && s.lastCandle.open > 0 
+                        ? ((s.current_price - s.lastCandle.open) / s.lastCandle.open) * 100 
+                        : 0;
+                    const isPositive = change >= 0;
+                    return (
+                        <div 
+                            key={`ticker-${s.symbol}`} 
+                            onClick={() => { setActiveStock(s); setCurrentPrice(s.current_price); }}
+                            className={`flex items-center gap-2 px-2.5 py-1 bg-black/60 border cursor-pointer transition-colors shrink-0 ${
+                                activeStock?.symbol === s.symbol ? 'border-banan-primary' : 'border-white/10 hover:border-white/30'
+                            }`}
+                        >
+                            <span className="font-bold text-white">{s.symbol}</span>
+                            <span className="text-banan-primary font-bold">{formatNumber(s.current_price)} 🍌</span>
+                            <span className={`text-[10px] font-bold ${isPositive ? 'text-green-400' : 'text-red-400'}`}>
+                                {isPositive ? '+' : ''}{change.toFixed(2)}%
+                            </span>
+                            <span className="text-[9px] text-white/30">Vol:{s.volatility}</span>
+                        </div>
+                    );
+                })}
+            </div>
+
             {/* Chart Area */}
-            <div className="relative border border-white/10">
+            <div className="relative border-b border-white/10">
                 {/* Timeframes Overlay */}
                 <div className="absolute top-2 left-2 z-10 flex gap-2">
                     <div className="flex bg-black/50 border border-white/10 rounded backdrop-blur-sm overflow-hidden">

@@ -1,92 +1,110 @@
-
-import { History } from 'lucide-react';
-import { motion } from 'framer-motion';
-import ShowcaseSection from '../../home/components/ShowcaseSection';
+import { ArrowUpRight, FileText, Plus } from 'lucide-react';
 
 interface TimelineEvent {
-    year: string;
+    date: string;
     title: string;
     description: string;
+    file: string;
+    log: string[];
+    conclusion: string;
 }
 
+// These records are deliberately fictional campus folklore, not a dated account of real events.
 const EVENTS: TimelineEvent[] = [
-    { year: "SEP 2025", title: "L'Étincelle Originelle", description: "Un groupe secret d'étudiants de Télécom SudParis découvre le potentiel caché des bananes pour optimiser la compilation de code en C." },
-    { year: "OCT 2025", title: "La Réserve Fédérale Bananière", description: "Les premières expérimentations de BananINT circulent entre étudiants sur le campus." },
-    { year: "NOV 2025", title: "L'Incident MiNET", description: "Le réseau BananINT sature la bande passante du campus en moins de 10 secondes. Le SI-Etudiant crash en boucle." },
-    { year: "DEC 2025", title: "L'Incident du BDE", description: "Hypnos perd la liste, BananINT est demote et ses serveurs sont détruits lors de RagINT. Fuck le BDE. BananINT se morfond dans l'ombre." },
-    { year: "JAN 2026", title: "La Secte", description: "Le groupe de militants bananiers s'organise pour contrer l'influence du BDE en secret. BananINT se rebelle contre l'oppression." },
-    { year: "??? ????", title: "[SIGNAL PERDU]", description: "Toute transmission ultérieure a été chiffrée. Le protocole continue, quelque part, hors de portée." },
+    {
+        date: 'SEP 2025',
+        title: "L'Étincelle Originelle",
+        description: 'Une banane apparaît dans les discussions. Personne ne revendique officiellement la responsabilité du potassium.',
+        file: 'DOSSIER 001 / PREMIER CONTACT',
+        log: ['Objet observé : une banane.', 'Nombre de témoins fiables : variable.', 'Niveau de gravité : beaucoup trop élevé pour un fruit.'],
+        conclusion: 'L’enquête recommande de ne surtout pas demander pourquoi.',
+    },
+    {
+        date: 'OCT 2025',
+        title: 'La Réserve Fédérale Bananière',
+        description: 'Les premières expérimentations de BananINT circulent entre étudiants sur le campus.',
+        file: 'DOSSIER 002 / CIRCULATION',
+        log: ['Une personne en parle à une autre.', 'Cette autre personne en parle à trois autres.', 'Le service comptable refuse de reconnaître la banane comme devise.'],
+        conclusion: 'Le bouche-à-oreille reste notre technologie la plus instable.',
+    },
+    {
+        date: 'NOV 2025',
+        title: "L'Incident MiNET",
+        description: 'Une rumeur affirme qu’une banane aurait traversé un câble Ethernet. Aucun paquet n’a souhaité témoigner.',
+        file: 'DOSSIER 003 / RÉSEAU',
+        log: ['Ping : pong.', 'Ping : banane.', 'Diagnostic : le câble nie toute implication.'],
+        conclusion: 'Le câble réclame un avocat.',
+    },
+    {
+        date: 'DEC 2025',
+        title: "L'Incident du BDE",
+        description: 'Une banane dépose sa candidature au BDE. Le formulaire exige un prénom.',
+        file: 'DOSSIER 004 / PROCÈS-VERBAL',
+        log: ['Point 1 : la banane demande la parole.', 'Point 2 : la parole lui est refusée.', 'Point 3 : le procès-verbal est mystérieusement jaune.'],
+        conclusion: 'La banane fait appel. L’appel est occupé.',
+    },
+    {
+        date: 'JAN 2026',
+        title: 'La Secte',
+        description: 'Le protocole prend de l’ampleur. Ses membres prétendent qu’il ne s’agit que d’un jeu. Le protocole refuse de commenter.',
+        file: 'DOSSIER 005 / ORGANIGRAMME',
+        log: ['Présidence : non renseignée.', 'Trésorerie : une peau de banane.', 'Mot de passe du jour : [CAVIARDÉ].'],
+        conclusion: 'Structure officielle introuvable. Ambiance très officielle.',
+    },
+    {
+        date: '??? ????',
+        title: '[SIGNAL PERDU]',
+        description: 'Toute transmission ultérieure a été chiffrée. Le protocole continue, quelque part, hors de portée.',
+        file: 'DOSSIER 006 / TRANSMISSION INCOMPLÈTE',
+        log: ['Connexion au serveur…', 'Déchiffrement : 0 %', 'Dernier message lisible : « Vous êtes encore là ? »'],
+        conclusion: 'Page suivante introuvable.',
+    },
 ];
 
 export default function ProtocolTimeline() {
     return (
-        <ShowcaseSection title="Timeline BananINT" icon={History} centered maxWidth="max-w-4xl">
-            <div className="relative mt-16 pr-4 pl-0 md:pr-0">
-                
-                <div className="space-y-12 relative z-10">
-                    {EVENTS.map((event, index) => {
-                        const isEven = index % 2 === 0;
-                        const isLast = index === EVENTS.length - 1;
-                        return (
-                            <motion.div 
-                                key={index}
-                                initial={{ opacity: 0, y: 30 }}
-                                whileInView={{ opacity: 1, y: 0 }}
-                                viewport={{ once: true, margin: "-50px" }}
-                                transition={{ duration: 0.6, delay: 0.1 }}
-                                className={`flex flex-col md:flex-row items-start md:items-center justify-between w-full relative ${
-                                    isEven ? 'md:flex-row-reverse' : ''
-                                }`}
-                            >
-                                {/* Glowing Dot */}
-                                <div className="absolute left-[15px] md:left-1/2 top-[30px] md:top-[38px] w-4 h-4 bg-black border-[3px] border-banan-primary rounded-full z-20 -translate-x-1/2 -translate-y-1/2 shadow-[0_0_15px_var(--color-banan-primary)]"></div>
-                                
-                                {/* Vertical Line Segment */}
-                                {!isLast && (
-                                    <div className={`absolute left-[15px] md:left-1/2 top-[30px] md:top-[38px] w-1 ${index === 0 ? 'bg-gradient-to-b from-banan-primary/50 to-white/10' : 'bg-white/10'} -translate-x-1/2 z-0`} style={{ height: 'calc(100% + 48px)' }}></div>
-                                )}
-                                
-                                {/* Date Marker for Mobile */}
-                                <div className="pl-[40px] md:hidden font-mono text-banan-primary text-xl font-bold mb-2 pt-4">
-                                    [{event.year}]
-                                </div>
-
-                                {/* Content Box */}
-                                <div className={`w-full md:w-[45%] pl-[40px] md:pl-0 ${isEven ? 'md:pl-10' : 'md:pr-10'}`}>
-                                    <div className={`p-6 bg-white/5 border border-white/10 rounded-2xl hover:border-banan-primary/30 transition-colors group relative ${
-                                        isEven ? 'md:text-left' : 'md:text-right'
-                                    }`}>
-                                        
-                                        <div className="flex items-center gap-3 mb-2 justify-start md:hidden">
-                                            <h3 className="text-xl font-bold text-white uppercase">{event.title}</h3>
-                                        </div>
-                                        <div className={`hidden md:flex items-center gap-3 mb-2 ${isEven ? 'justify-start' : 'justify-end'}`}>
-                                            {!isEven && <h3 className="text-xl font-bold text-white uppercase">{event.title}</h3>}
-                                            {isEven && <h3 className="text-xl font-bold text-white uppercase">{event.title}</h3>}
-                                        </div>
-
-                                        <p className="text-white/60 text-sm leading-relaxed mb-4">
-                                            {event.description}
-                                        </p>
-                                        
-                                        <div className={`hidden md:block absolute top-[38px] w-10 h-px bg-banan-primary/30 group-hover:bg-banan-primary/80 transition-colors -z-10 ${
-                                            isEven ? '-left-10' : '-right-10'
-                                        }`} style={{ transform: 'translateY(-50%)' }}></div>
-                                    </div>
-                                </div>
-
-                                {/* Date Marker for Desktop */}
-                                <div className={`hidden md:flex w-full md:w-[45%] ${isEven ? 'justify-end pr-10' : 'justify-start pl-10'}`}>
-                                    <span className="font-mono text-banan-primary/30 text-4xl lg:text-5xl font-black tracking-tighter hover:text-banan-primary transition-colors cursor-default whitespace-nowrap">
-                                        {event.year}
-                                    </span>
-                                </div>
-                            </motion.div>
-                        );
-                    })}
-                </div>
-
+        <section aria-labelledby="timeline-title" className="mx-auto w-full max-w-6xl text-left">
+            <div className="mb-12 border-t border-banan-primary/60 pt-5 md:mb-20">
+                <h2 id="timeline-title" className="font-sans text-4xl font-black uppercase leading-[0.9] tracking-[-0.06em] text-white sm:text-5xl md:text-7xl">Les <span className="text-banan-primary">incidents.</span></h2>
             </div>
-        </ShowcaseSection>
+
+            <ol className="relative">
+                {EVENTS.map((event, index) => {
+                    const isLast = index === EVENTS.length - 1;
+                    return (
+                        <li key={event.file} className="grid grid-cols-[2rem_minmax(0,1fr)] gap-x-3 md:grid-cols-[minmax(0,13rem)_2rem_minmax(0,1fr)] md:gap-x-6">
+                            <div className="hidden pt-2 text-right md:block">
+                                <span className={`font-mono text-2xl font-bold tracking-[-0.08em] lg:text-3xl ${isLast ? 'text-white/40' : 'text-banan-primary'}`}>{event.date}</span>
+                            </div>
+
+                            <div className="relative flex justify-center" aria-hidden="true">
+                                {!isLast && <div className="absolute top-4 -bottom-4 w-px bg-gradient-to-b from-banan-primary/70 to-banan-primary/15" />}
+                                <div className={`relative z-10 mt-2 h-4 w-4 rounded-full border-[3px] bg-banan-black shadow-[0_0_18px_var(--color-banan-primary)] ${isLast ? 'border-white/50' : 'border-banan-primary'}`} />
+                            </div>
+
+                            <div className={`min-w-0 border-b border-white/10 pb-14 md:pb-20 ${isLast ? 'border-b-0' : ''}`}>
+                                <p className="mb-3 font-mono text-sm font-bold tracking-wider text-banan-primary md:hidden">[{event.date}]</p>
+                                <h3 className={`max-w-2xl break-words font-sans font-black uppercase leading-[0.98] tracking-[-0.045em] text-white ${index === 0 ? 'text-[clamp(1.5rem,7.5vw,1.875rem)] sm:text-5xl lg:text-6xl' : 'text-[clamp(1.5rem,7.5vw,1.875rem)] sm:text-4xl lg:text-5xl'} ${isLast ? 'text-white/70' : ''}`}>{event.title}</h3>
+                                <p className="mt-5 max-w-xl text-base leading-relaxed text-white/65 md:text-lg">{event.description}</p>
+
+                                <details className="group mt-7 max-w-2xl border-t border-white/20 open:border-banan-primary/60">
+                                    <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-4 font-mono text-xs font-bold uppercase tracking-[0.13em] text-banan-primary transition-colors hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-banan-primary [&::-webkit-details-marker]:hidden">
+                                        <span className="flex items-center gap-3"><FileText aria-hidden="true" className="h-4 w-4 shrink-0" /><span><span className="group-open:hidden">Ouvrir</span><span className="hidden group-open:inline">Refermer</span> le dossier {String(index + 1).padStart(2, '0')}</span></span>
+                                        <Plus aria-hidden="true" className="h-4 w-4 shrink-0 transition-transform group-open:rotate-45" />
+                                    </summary>
+                                    <div className="mb-3 border-l-2 border-banan-primary bg-white/[0.035] px-4 py-5 sm:px-6">
+                                        <p className="border-b border-white/10 pb-4 font-mono text-[10px] font-bold uppercase tracking-[0.15em] text-white/45">{event.file}</p>
+                                        <ul className="space-y-3 py-5 font-mono text-xs leading-relaxed text-white/75 sm:text-sm">
+                                            {event.log.map((line, lineIndex) => <li key={line}><span className="mr-3 text-banan-primary/60">{String(lineIndex + 1).padStart(2, '0')} /</span>{line}</li>)}
+                                        </ul>
+                                        <p className="flex gap-2 border-t border-white/10 pt-4 text-sm leading-relaxed text-banan-primary"><ArrowUpRight aria-hidden="true" className="mt-0.5 h-4 w-4 shrink-0" />{event.conclusion}</p>
+                                    </div>
+                                </details>
+                            </div>
+                        </li>
+                    );
+                })}
+            </ol>
+        </section>
     );
 }

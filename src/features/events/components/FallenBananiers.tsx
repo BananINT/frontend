@@ -31,7 +31,7 @@ export default function FallenBananiers() {
                     {FALLEN.map((user, idx) => (
                         <motion.div 
                             key={idx}
-                            initial={{ opacity: 0, x: -20 }}
+                            initial={false}
                             whileInView={{ opacity: 1, x: 0 }}
                             transition={{ duration: 0.3, delay: idx * 0.1 }}
                             viewport={{ once: true }}
@@ -57,6 +57,9 @@ export default function FallenBananiers() {
                 }
                 .memorial-pulse {
                     animation: pulseOpacity 4s ease-in-out infinite;
+                }
+                @media (prefers-reduced-motion: reduce) {
+                    .memorial-pulse { animation: none; }
                 }
                 `}
             </style>

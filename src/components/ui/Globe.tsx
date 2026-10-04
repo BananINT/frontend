@@ -103,6 +103,21 @@ function genRandomNumbers(min: number, max: number, count: number) {
     return arr;
 }
 
+// Computes camera distance so the rendered 3D globe diameter exactly matches the placeholder still image
+function getGlobeCameraDistance(containerHeight: number): number {
+    if (!containerHeight || containerHeight <= 0) return 238;
+    // The placeholder image is styled with w-[min(100vw,950px)]
+    const placeholderWidth = typeof window !== 'undefined' ? Math.min(window.innerWidth, 950) : 950;
+    // In globe-still.webp (1000x1000), the solid globe sphere diameter is 852px (0.852 of width)
+    const targetSphereDiameter = 0.852 * placeholderWidth;
+    const fovRad = (45 * Math.PI) / 180;
+    // ThreeGlobe sphere diameter is 200 units (radius 100).
+    // In perspective projection: diameterInPixels = (200 * h) / (2 * distance * tan(fov / 2))
+    // distance = (100 * h) / (targetSphereDiameter * tan(fov / 2))
+    const rawDistance = (100 * containerHeight) / (targetSphereDiameter * Math.tan(fovRad / 2));
+    return Math.max(150, Math.min(rawDistance, 500));
+}
+
 export default function Globe() {
     const containerRef = useRef<HTMLDivElement>(null);
     const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
@@ -162,8 +177,9 @@ export default function Globe() {
             const scene = new THREE.Scene();
             sceneRef.current = scene;
 
+            const initialDistance = getGlobeCameraDistance(h);
             const camera = new THREE.PerspectiveCamera(45, w / h, 1, 4000);
-            camera.position.z = 300;
+            camera.position.z = initialDistance;
             cameraRef.current = camera;
 
             const GLOBE_CONFIG = getGlobeConfig();
@@ -188,8 +204,8 @@ export default function Globe() {
             controls.enableRotate = false; // Disable Manual Rotation
             controls.autoRotate = GLOBE_CONFIG.autoRotate;
             controls.autoRotateSpeed = GLOBE_CONFIG.autoRotateSpeed;
-            controls.minDistance = 200;
-            controls.maxDistance = 500;
+            controls.minDistance = 150;
+            controls.maxDistance = 600;
             controlsRef.current = controls;
 
             // 2. Setup Lighting
@@ -299,6 +315,17 @@ export default function Globe() {
                 cameraRef.current.aspect = width / height;
                 cameraRef.current.updateProjectionMatrix();
                 rendererRef.current.setSize(width, height);
+
+                const targetDistance = getGlobeCameraDistance(height);
+                if (controlsRef.current) {
+                    controlsRef.current.minDistance = targetDistance;
+                    controlsRef.current.maxDistance = targetDistance;
+                    controlsRef.current.update();
+                    controlsRef.current.minDistance = 150;
+                    controlsRef.current.maxDistance = 600;
+                } else {
+                    cameraRef.current.position.setLength(targetDistance);
+                }
             };
 
             window.addEventListener('resize', handleResize);
@@ -320,6 +347,10 @@ export default function Globe() {
             }
             
             if (animationFrameId.current) cancelAnimationFrame(animationFrameId.current);
+            if (controlsRef.current) {
+                controlsRef.current.dispose();
+                controlsRef.current = null;
+            }
             const currentRenderer = rendererRef.current;
             if (currentRenderer) {
                 currentRenderer.dispose();
@@ -345,7 +376,7 @@ export default function Globe() {
             />
             <div
                 ref={containerRef}
-                className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${loaded ? 'opacity-100' : 'opacity-0'}`}
+                className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-[700px] lg:h-[1200px] transition-opacity duration-1000 ease-in-out ${loaded ? 'opacity-100' : 'opacity-0'}`}
             />
         </div>
     );

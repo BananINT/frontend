@@ -151,7 +151,7 @@ export default function HomePage() {
                         </div>
 
                         {/* Globe Center - Full Width */}
-                        <div className="w-[calc(100%+2rem)] -mx-4 lg:w-full lg:mx-0 h-[450px] lg:h-[800px] flex items-center justify-center relative pointer-events-none -mt-16 lg:-mt-48">
+                        <div className="w-[calc(100%+2rem)] -mx-4 lg:w-full lg:mx-0 h-[450px] lg:h-[800px] flex items-center justify-center relative pointer-events-none -mt-16 lg:-mt-24">
                             <div className="absolute inset-0 z-10 flex items-center justify-center pointer-events-none opacity-80 mix-blend-screen overflow-visible scale-[1.15] lg:scale-[1.3]">
                                 <Globe />
                             </div>

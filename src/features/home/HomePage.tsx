@@ -45,7 +45,7 @@ const TeamCardsGroup = ({ children }: { children: React.ReactNode }) => {
         <div 
             ref={containerRef}
             onMouseMove={handleMouseMove}
-            className="group/cards grid grid-cols-1 md:grid-cols-3 gap-6"
+            className="group/cards grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
         >
             {children}
         </div>
@@ -274,9 +274,9 @@ export default function HomePage() {
                                 </div>
                                 <div className="text-center">
                                     <h3 className="text-2xl font-black text-white uppercase mb-1">Lucas Thuries</h3>
-                                    <p className="text-banan-green font-mono text-sm tracking-widest uppercase mb-4">Banana Advocate / M. Grosse Banane</p>
+                                    <p className="text-banan-green font-mono text-sm tracking-widest uppercase mb-4">Banana Advocate</p>
                                     <div className="w-full h-px bg-white/10 mb-4"></div>
-                                    <p className="text-white/60 text-sm">"Mène la révolution banane, une réunion à la fois."</p>
+                                    <p className="text-white/60 text-sm">"Négocie les alliances stratégiques et convertit les sceptiques au protocole banane."</p>
                                 </div>
                             </TeamCard>
 
@@ -286,9 +286,9 @@ export default function HomePage() {
                                 </div>
                                 <div className="text-center">
                                     <h3 className="text-2xl font-black text-white uppercase mb-1">Dimitri Fajal</h3>
-                                    <p className="text-banan-primary font-mono text-sm tracking-widest uppercase mb-4">Président / Singe du code</p>
+                                    <p className="text-banan-primary font-mono text-sm tracking-widest uppercase mb-4">Président & Tech Lead</p>
                                     <div className="w-full h-px bg-white/10 mb-4"></div>
-                                    <p className="text-white/60 text-sm">"Transforme la caféine en algorithmes enrichis en potassium."</p>
+                                    <p className="text-white/60 text-sm">"Conçoit l'architecture du système et orchestre la simulation économique en temps réel."</p>
                                 </div>
                             </TeamCard>
 
@@ -298,9 +298,21 @@ export default function HomePage() {
                                 </div>
                                 <div className="text-center">
                                     <h3 className="text-2xl font-black text-white uppercase mb-1">Florian Rivière</h3>
-                                    <p className="text-banan-teal font-mono text-sm tracking-widest uppercase mb-4">CM / Hype Man</p>
+                                    <p className="text-banan-teal font-mono text-sm tracking-widest uppercase mb-4">Community Manager</p>
                                     <div className="w-full h-px bg-white/10 mb-4"></div>
-                                    <p className="text-white/60 text-sm">"Répand la bonne parole plus vite qu'on ne glisse."</p>
+                                    <p className="text-white/60 text-sm">"Fédère la communauté des bananiers et pilote les opérations de communication."</p>
+                                </div>
+                            </TeamCard>
+
+                            <TeamCard glowColor="rgba(245, 158, 11, 0.15)">
+                                <div className="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-amber-400 to-amber-600/50 rounded-full flex items-center justify-center text-white shadow-[0_0_30px_rgba(245,158,11,0.3)] overflow-hidden">
+                                    <img src="/img/team/theo.webp" alt="Théo Darvoux" className="w-full h-full object-cover" />
+                                </div>
+                                <div className="text-center">
+                                    <h3 className="text-2xl font-black text-white uppercase mb-1">Théo Darvoux</h3>
+                                    <p className="text-amber-400 font-mono text-sm tracking-widest uppercase mb-4">Emissaire BananINT</p>
+                                    <div className="w-full h-px bg-white/10 mb-4"></div>
+                                    <p className="text-white/60 text-sm">"Établit les liaisons diplomatiques et guide les nouvelles recrues vers l'écosystème."</p>
                                 </div>
                             </TeamCard>
                         </TeamCardsGroup>

@@ -1,137 +1,246 @@
 import type { BlogArticle } from '../types';
 
-// Edited from the dated student accounts in docs/tsp/sources/.
 const author = { name: 'BananINT', role: 'Le carnet du campus', avatar: '🍌' };
 const date = '2026-09-29T08:00:00Z';
 
 export const CAMPUS_ARTICLES: BlogArticle[] = [
     {
-        id: 'coulisses-origines', slug: 'comment-bananint-a-commence',
-        title: 'Le premier clicker et la course aux bots',
-        subtitle: 'Avant le jeu actuel, un classement a suffi pour lancer une petite compétition sur le campus.',
-        metaTitle: 'BananINT à Télécom SudParis : le premier clicker',
-        metaDescription: 'Le souvenir du premier clicker BananINT à Télécom SudParis : des clics, un classement, des bots et des étudiants qui reviennent jouer.',
-        keywords: ['BananINT', 'Télécom SudParis', 'clicker', 'bots', 'vie étudiante'],
-        category: 'coulisses', tags: ['BananINT', 'Campus', 'Clicker'],
-        author: { name: 'Créateur de BananINT', role: 'Étudiant en deuxième année à TSP', avatar: '🍌' },
-        publishedAt: date, updatedAt: date, readingTime: '3 min', featured: true,
-        content: `Au départ, BananINT était une idée qu’on racontait aux gens sur le campus. Le « club » des bananes existe encore un peu comme ça : assez pour que le nom circule, pas vraiment comme une association avec un programme à suivre.
+        id: 'coulisses-origines',
+        slug: 'comment-bananint-a-commence',
+        title: 'Aux origines de BananINT : du prototype à la guerre des bots',
+        subtitle: 'Comment un projet potache lancé au premier semestre est devenu une compétition d’ingénierie sur le campus.',
+        metaTitle: 'Histoire de BananINT : genèse, premier clicker et bots',
+        metaDescription: 'L’histoire authentique de BananINT à Télécom SudParis : premier prototype, bouche-à-oreille en amphi, bots informatiques et refonte de production.',
+        keywords: ['BananINT', 'Télécom SudParis', 'clicker', 'bots', 'vie étudiante', 'HackademINT'],
+        category: 'coulisses',
+        tags: ['BananINT', 'Campus', 'Clicker'],
+        author: { name: 'Créateur de BananINT', role: 'Étudiant en 2e année à TSP', avatar: '🍌' },
+        publishedAt: date,
+        updatedAt: date,
+        readingTime: '4 min',
+        featured: true,
+        content: `BananINT est né d’un besoin élémentaire : s’amuser pendant les cours magistraux du premier semestre d’ingénieur. Entre deux démonstrations théoriques et des extraits de films projetés en fond, l'idée collective d’un club parodique dédié à la banane a rapidement émergé.
 
-Vers le milieu du premier semestre, j’ai mis un premier clicker en ligne. On en parlait simplement aux étudiants qu’on croisait. Le jeu n’était même pas terminé qu’une personne avait déjà accumulé des millions de clics à la main. Son score a été remis à zéro ensuite ; je ne me souviens plus précisément pourquoi, donc je préfère ne pas inventer de cause.
+## Le premier prototype
 
-## Le classement a pris le relais
+Le tout premier jet de l’interface a été généré en quelques minutes via une requête sur un grand modèle de langage. Le résultat initial était rudimentaire, mais il fournissait une base interactive fonctionnelle : une banane jaune au centre de l’écran et un compteur incrémental.
 
-Le défi n’était plus seulement de cliquer. Beaucoup se sont mis à écrire des bots et à comparer leurs résultats pour prendre la première place. Dans une école où beaucoup aiment coder, trouver un moyen plus malin de jouer faisait partie du jeu. Le serveur gardait l’état du classement : les tentatives pour « casser » le clicker devenaient surtout une compétition d’ingéniosité.
+La diffusion s'est faite sans campagne marketing ni affichage formel : simplement en allant voir les étudiants au foyer, en salle de travail et entre les rangs des amphithéâtres pour leur faire tester le lien. Le concept a immédiatement pris.
 
-On pouvait aussi revenir après un moment d’absence et trouver une récompense liée à cette progression hors ligne. Entre le jeu à la main, les bots et les retours pour voir le classement, il y avait toujours une raison de jeter un œil.
+## La guerre des scripts et des bots
 
-## Ce qu’on retrouve aujourd’hui
+Dans une école d'ingénieurs spécialisée dans le numérique et les télécommunications, le jeu manuel a très vite été dépassé. Dès les premiers jours, des étudiants ont conçu des scripts et des programmes d'automatisation (notamment en Python) pour faire exploser les scores et s'emparer de la première place du classement.
 
-Cette première version a laissé une trace dans les souvenirs des joueurs. Un clin d’œil à cette époque se cache encore sur le site ; on laisse le plaisir de le trouver.
+Le clicker s'est alors transformé en banc d'essai pour les passionnés de cybersécurité, notamment au sein du club HackademINT (qui organise chaque année le 404 CTF). Certains ont tenté d'intercepter les requêtes HTTP et de manipuler les soldes. Mais le serveur d'authentification et de calcul faisait autorité : impossible de forcer arbitrairement l'état sans respecter les règles de validation du backend.
 
-J’ai continué à développer BananINT depuis le deuxième semestre, en apprenant au passage Docker et beaucoup de choses sur le web. Le jeu actuel a grandi, mais il reste un projet étudiant qui avance par essais, corrections et discussions. C’est aussi pour ça que ce carnet parle du campus autour du jeu, et pas seulement des bananes à gagner.
+## Les records manuels et l'engouement
+
+Pendant que certains affinaient leurs scripts d'automatisation, d'autres joueurs ont poursuivi la voie du clic manuel pur : l'un d'eux est ainsi parvenu à franchir le cap de plusieurs millions de clics à la force du poignet avant qu'une mise à jour de structure ne réinitialise les compteurs.
+
+Le premier jeu incluait déjà un système de rétention basé sur des récompenses différées après une période d'absence, préfigurant les mécaniques modernes d'AFK farming. Une reproduction visuelle de ce premier clicker historique reste d'ailleurs accessible sous forme d'easter egg au sein de l'application.
+
+## La transition vers la stack moderne
+
+Après ce premier engouement viral, les limites techniques du prototype initial ont nécessité une reconstruction complète :
+- **Architecture applicative** : Réécriture du backend en Python 3.13 avec FastAPI et persistance sous PostgreSQL.
+- **Transactions sécurisées** : Implémentation de verrous au niveau des lignes de base de données pour éliminer les conditions de concurrence.
+- **Temps réel** : Mise en place d'une infrastructure WebSockets diffusant instantanément les événements de marché et les variations économiques.
+- **Interface web** : Front-end réactif développé sous React et Tailwind CSS.
+
+BananINT continue d'évoluer sur cette base : un projet d'ingénierie étudiant, conçu sur le campus et développé au fil des promotions.
 `,
     },
     {
-        id: 'campus-reperes', slug: 'tsp-maisel-assos-premiers-reperes',
-        title: 'TSP, MAISEL, INT : les premiers repères du campus',
-        subtitle: 'Un point de départ pour comprendre les noms que tout le monde utilise à Évry.',
-        metaTitle: 'Télécom SudParis : campus, MAISEL et vie étudiante',
-        metaDescription: 'Un guide étudiant des premiers repères à Télécom SudParis : campus partagé, MAISEL, foyer, NOVA, Ritz et associations.',
-        keywords: ['Télécom SudParis', 'vie étudiante', 'campus Évry', 'MAISEL', 'associations'],
-        category: 'campus', tags: ['Campus', 'TSP', 'MAISEL', 'Assos'],
-        author, publishedAt: date, updatedAt: date, readingTime: '4 min',
-        content: `On peut arriver à Télécom SudParis et avoir l’impression d’avoir raté les trois premières saisons. Les bâtiments ont des noms, les associations des sigles et personne ne pense toujours à les expliquer. Voici une première carte mentale, écrite depuis le campus.
+        id: 'campus-reperes',
+        slug: 'tsp-maisel-assos-premiers-reperes',
+        title: 'Guide des associations du campus : BDE, MiNET et clubs',
+        subtitle: 'Cartographie et annuaire des structures qui animent la vie étudiante commune à Télécom SudParis et IMT-BS.',
+        metaTitle: 'Associations Télécom SudParis et IMT-BS : annuaire et guide',
+        metaDescription: 'Panorama complet des associations du campus d’Évry : BDE, BDA, ASINT, MiNET, HackademINT, INTv, BPM et clubs spécialisés.',
+        keywords: ['Télécom SudParis', 'associations', 'BDE', 'MiNET', 'HackademINT', 'vie associative', 'IMT-BS'],
+        category: 'campus',
+        tags: ['Campus', 'TSP', 'Assos'],
+        author,
+        publishedAt: date,
+        updatedAt: date,
+        readingTime: '5 min',
+        content: `Le campus d’Évry regroupe deux établissements majeurs de l’Institut Mines-Télécom : **Télécom SudParis** (école d’ingénieurs) et **Institut Mines-Télécom Business School** (école de management). La force de ce campus réside dans sa vie associative partagée : la majorité des bureaux et des clubs intègrent des étudiants des deux formations.
 
-## Un campus partagé
+## Les trois bureaux exécutifs
 
-À Évry, TSP partage une bonne partie de la vie du campus avec [Institut Mines-Télécom Business School](https://www.imt-bs.eu/). Étudiants ingénieurs et managers se retrouvent dans les mêmes lieux et de nombreuses associations. **INT** est un ancien nom qui vit toujours dans les conversations, les noms des clubs et les jeux de mots. Il explique aussi le nom BananINT.
+La vie associative est coordonnée par trois instances principales élues chaque année :
 
-## Les lieux qu’on cite le plus
+- **BDE (Bureau des Élèves)** : Organe central de coordination de la vie étudiante. Il assure la liaison avec les directions des deux écoles, négocie les partenariats majeurs et organise les temps forts du calendrier étudiant.
+- **BDA (Bureau des Arts)** : Fédère l'ensemble des activités culturelles et artistiques. Il supervise les ateliers de théâtre, danse, musique, comédie musicale et organise des manifestations d'envergure comme le festival *Festiv’art* et les scènes ouvertes.
+- **ASINT (Association Sportive)** : Structure commune assurant l'entraînement hebdomadaire dans une quinzaine de disciplines, la gestion des installations sportives du campus et la participation aux tournois universitaires de la Fédération Française du Sport Universitaire (FFSU).
 
-La **MAISEL** s’occupe des résidences étudiantes. Les bâtiments U1 à U7 ne se ressemblent pas tous ; [on les parcourt dans un article dédié](/blog/maisel-u1-u7-logements-telecom-sudparis). Le **foyer** est un lieu central de la vie associative. **NOVA** est le bâtiment circulaire où l’on travaille, retrouve la bibliothèque et utilise les imprimantes. Le **Ritz** est le restaurant du campus où beaucoup déjeunent. [Voici ces lieux dans une journée ordinaire](/blog/nova-ritz-quotidien-campus-evry).
+## Les clubs techniques et technologiques
 
-## Les noms dans les conversations
+Compte tenu de la culture technologique historique du campus, plusieurs clubs associatifs développent des activités techniques de premier plan :
 
-**MiNET** gère le réseau des résidences. **INTv** est un club vidéo du campus : ses membres aiment filmer, monter et partager leurs créations. Tu peux découvrir [leurs vidéos publiques](https://www.youtube.com/@INTvCrew/videos). Le **BDE**, lui, est l’association étudiante qui rythme notamment le début de l’année.
+- **MiNET** : Association historique fondée en 1991, opérant en tant que fournisseur d'accès Internet associatif. Les étudiants membres gèrent de manière autonome le réseau fibré et les switchs reliant l'ensemble des résidences de la MAISEL (plus de 1 000 chambres équipées en prises RJ45 Gigabit).
+- **HackademINT** : Club d'expertise en cybersécurité informatique. Les membres participent aux compétitions Capture The Flag (CTF) nationales et internationales et co-conçoivent des épreuves de référence telles que le *404 CTF*.
+- **INTech** : Club de robotique et de mécatronique préparant chaque année des prototypes autonomes pour la Coupe de France de Robotique.
+- **Gam’INT** : Pôle e-sport et gaming organisant des tournois en réseau local et sur consoles au Foyer.
 
-Il y a bien plus de clubs que ces quelques noms. Le [portail des associations](https://portal.bananint.fr/) aide à les retrouver, et [Welcom’](https://welcom.theodarvoux.fr/) propose d’autres repères étudiants. Le langage commun vient avec le temps : stickers, suffixe « INT » et expressions comme **XRTC** finissent par devenir familiers. [On décrypte ces habitudes ici](/blog/expressions-associations-int-xrtc).
+## Création, médias et vie événementielle
 
-Ce carnet est une vue étudiante, pas un règlement ni une liste complète. Pour des horaires, tarifs et démarches en cours, vérifie toujours les sites des lieux concernés.
+- **INTv** : Club vidéo officiel du campus, assurant la captation, la régie et le montage vidéo de l'ensemble des manifestations étudiantes.
+- **BPM** : Équipe spécialisée dans la sonorisation, la scénographie lumineuse et le mix DJ pour les soirées du Foyer et les galas.
+- **Déclic** : Club de photographie couvrant les événements associatifs et publiant les reportages visuels du campus.
+- **Welcom’** : Association dédiée à l'accueil, au parrainage et à l'accompagnement administratif des étudiants internationaux.
+- **AbsINThe** : Équipe assurant la gestion et le service du bar associatif situé au rez-de-chaussée du Foyer.
+
+L'annuaire exhaustif et mis à jour des clubs est consultable sur le portail associatif du campus à l'adresse [portal.bananint.fr](https://portal.bananint.fr/).
 `,
     },
     {
-        id: 'campus-assos-vocabulaire', slug: 'expressions-associations-int-xrtc',
-        title: 'Pourquoi il y a « INT » partout sur le campus',
-        subtitle: 'XRTC, stickers, noms d’assos : le petit vocabulaire qui se transmet entre étudiants.',
-        metaTitle: 'Vie associative à Télécom SudParis : INT, XRTC et assos',
-        metaDescription: 'À Télécom SudParis, le nom INT revient dans les clubs, les stickers et les expressions. Un regard étudiant sur XRTC et la vie associative du campus.',
-        keywords: ['Télécom SudParis', 'vie associative', 'INT', 'XRTC', 'associations campus'],
-        category: 'campus', tags: ['Campus', 'TSP', 'Assos'],
-        author, publishedAt: date, updatedAt: date, readingTime: '3 min',
-        content: `Tu entends « INT » dans un nom de club, puis dans une blague, puis encore sur un sticker collé quelque part. Ce n’est pas un code à apprendre avant la rentrée : c’est une manière de se reconnaître sur le campus.
+        id: 'campus-assos-vocabulaire',
+        slug: 'expressions-associations-int-xrtc',
+        title: 'Lexique & culture du campus : INT, XRTC et traditions',
+        subtitle: 'Déchiffrer le vocabulaire, les acronymes et les coutumes transmis d’une promotion à l’autre.',
+        metaTitle: 'Lexique étudiant Télécom SudParis : INT, XRTC et vocabulaire',
+        metaDescription: 'Le glossaire complet du vocabulaire de Télécom SudParis : origine du suffixe INT, formule XRTC, rituels d’intégration et stickers.',
+        keywords: ['Télécom SudParis', 'vocabulaire campus', 'INT', 'XRTC', 'traditions étudiantes'],
+        category: 'campus',
+        tags: ['Campus', 'TSP', 'Assos'],
+        author,
+        publishedAt: date,
+        updatedAt: date,
+        readingTime: '4 min',
+        content: `Tout nouvel arrivant sur le campus d’Évry fait face à un lexique composé d’abréviations historiques, d'expressions locales et de rituels partagés. Voici les clés de décryptage indispensables.
 
-## Un ancien nom resté vivant
+## L'omniprésence du suffixe « INT »
 
-Le nom **INT** a une histoire plus ancienne que les promotions actuelles de Télécom SudParis. Il continue à servir de matériau pour nommer les associations et inventer des jeux de mots. BananINT s’inscrit dans cette habitude, avec son statut de club pour rire qui existe surtout parce que les étudiants continuent à en parler.
+Avant de prendre leurs dénominations actuelles de Télécom SudParis et IMT-BS, les deux écoles formaient ensemble l'**Institut National des Télécommunications (INT)**. Bien que les statuts aient évolué, l'acronyme INT reste le marqueur identitaire fondamental du campus.
 
-Autre formule qu’on entend : **XRTC**, pour « X roule the campus ». Le X peut représenter un club, une association ou autre chose. Il n’y a pas de sens profond à chercher derrière chaque occurrence ; le plaisir est souvent dans la variation.
+Il est utilisé systématiquement dans les créations lexicales, les jeux de mots et les dénominations d'associations :
+- **BananINT** (le clicker du campus)
+- **HackademINT** (le club cyber)
+- **Gam’INT** (le club jeu vidéo)
+- **AbsINThe** (le bar étudiant du foyer)
+- **Épicer’INT** (l'épicerie solidaire)
 
-## Les assos dépassent les sigles
+## L'expression « XRTC »
 
-Le BDE anime notamment le début d’année. INTv est un club vidéo ; on peut simplement découvrir [ses créations publiques](https://www.youtube.com/@INTvCrew/videos). Mais la vie associative ne se limite pas à ces noms : son, vidéo, sport, cybersécurité, accueil, projets techniques et culturels ont chacun leur place. Le [portail des associations](https://portal.bananint.fr/) est une meilleure liste de départ qu’une énumération figée dans un article. La [présentation de TSP](https://www.telecom-sudparis.eu/campus/vie-associative/) rappelle aussi que cette vie est partagée avec IMT-BS.
+Formule omniprésente scandée lors des rassemblements et inscrite sur les affiches : **XRTC** signifie mot pour mot **« X Roule The Campus »**.
 
-Les stickers d’associations sont parfois le premier indice visible. Le reste vient en passant du temps avec les gens : on apprend un nom parce qu’on a été à un événement, aidé à préparer quelque chose, ou simplement entendu une histoire au foyer. Un lexique aide à suivre ; il ne remplace pas la rencontre.
+La variable *X* est substituée par le nom d'un club, d'un collectif ou d'un projet (par exemple *« MiNET RTC »* ou *« BDA RTC »*). L'expression est une revendication festive d'énergie et de présence au sein de la vie étudiante.
+
+## Les stickers comme marqueur d'appartenance
+
+Les associations et clubs éditent leurs propres séries de stickers adhésifs. Collés en grand nombre sur les capots des ordinateurs portables, les casques ou les murs des locaux associatifs, ils constituent une signature visuelle immédiate permettant d'identifier les centres d'intérêt et l'implication de chacun.
+
+## Le calendrier des campagnes associatives
+
+Le premier semestre est rythmé par les périodes de campagne pour l'élection des nouveaux bureaux :
+- **Défis créatifs** : Les équipes candidates organisent des animations publiques, des présentations thématiques et des contenus humoristiques pour faire connaître leur projet.
+- **Dossiers de gestion** : Au-delà de l'animation, chaque équipe candidate doit soumettre des livrables de gestion rigoureux (budgets prévisionnels, tableaux de trésorerie, plannings logistiques) démontrant sa capacité à administrer l'association.
+
+## Les temps forts de rentrée
+
+L'année universitaire s'articule autour de plusieurs jalons clés :
+- **SEI (Semaine d'Intégration)** : Découverte des infrastructures, des promotions et des associations.
+- **WEI (Week-end d'Intégration)** : Séjour de cohésion collective en début d'année.
+- **Club B** : Soirée festive hebdomadaire du mercredi soir organisée au Foyer par BPM et l'AbsINThe.
 `,
     },
     {
-        id: 'campus-maisel', slug: 'maisel-u1-u7-logements-telecom-sudparis',
-        title: 'MAISEL : ce que changent vraiment U1 à U7',
-        subtitle: 'Des impressions d’étudiant sur les résidences, à compléter avec les personnes qui y habitent.',
-        metaTitle: 'Logements MAISEL U1 à U7 à Télécom SudParis',
-        metaDescription: 'Repères étudiants sur les logements MAISEL de Télécom SudParis : U1 à U7, distance du foyer, bruit et différences entre bâtiments.',
-        keywords: ['Télécom SudParis', 'MAISEL', 'U1 U7', 'logements étudiants Évry'],
-        category: 'campus', tags: ['Campus', 'TSP', 'MAISEL'],
-        author, publishedAt: date, updatedAt: date, readingTime: '4 min',
-        content: `On parle souvent de « la MAISEL » comme si toutes les chambres donnaient sur le même couloir. Sur le campus, les bâtiments vont pourtant de **U1 à U7**, et leur emplacement change la façon de vivre les journées.
+        id: 'campus-maisel',
+        slug: 'maisel-u1-u7-logements-telecom-sudparis',
+        title: 'Guide des résidences MAISEL : comparatif de U1 à U7',
+        subtitle: 'Emplacements, atmosphère et caractéristiques pratiques des sept bâtiments de logement du campus.',
+        metaTitle: 'Résidences MAISEL U1 à U7 Télécom SudParis : guide pratique',
+        metaDescription: 'Comparatif objectif des résidences étudiantes MAISEL à Évry : analyse des bâtiments U1 à U7, isolation acoustique, emplacement et vie quotidienne.',
+        keywords: ['MAISEL', 'logement étudiant', 'Télécom SudParis', 'U1 U7', 'résidence Évry'],
+        category: 'campus',
+        tags: ['Campus', 'TSP', 'MAISEL'],
+        author,
+        publishedAt: date,
+        updatedAt: date,
+        readingTime: '4 min',
+        content: `La **MAISEL** (Maison des Élèves) administre le parc de logements étudiants sur le campus d’Évry. Réparti sur sept bâtiments désignés de **U1 à U7**, ce parc présente des configurations spatiales et des environnements sonores très contrastés.
 
-## La distance au foyer compte
+## Analyse bâtiment par bâtiment
 
-**U1, U2 et U4** sont proches du foyer. C’est pratique pour la vie associative, mais la proximité peut aussi signifier plus de bruit. **U3** paraît plus excentré sur le campus à l’étudiant qui a raconté ces repères ; selon son expérience, on y croise beaucoup d’étudiants internationaux. **U6** est hors campus. Ce sont des impressions de vie, pas des mesures de distance ou de niveau sonore.
+### U1, U2 et U4 : La zone Foyer
+- **Situation** : Situés à proximité immédiate ou directement au-dessus du Foyer associatif.
+- **Avantages** : Emplacement central, accès en quelques secondes aux locaux associatifs, aux événements et aux salles de travail.
+- **Inconvénients** : Niveau d'exposition sonore élevé les soirs d'événements associatifs et de Club B. À privilégier si vous souhaitez participer activement à la vie nocturne du campus.
 
-**U7** lui paraît le plus moderne. **U5** ne lui évoque pas de particularité heureuse ou spectaculaire : des couloirs étroits et une hauteur sous plafond plutôt faible. Il se souvient de problèmes d’hygiène il y a quelques années, sans affirmer qu’ils existent encore aujourd’hui. Aucun de ces avis ne vaut une visite de chambre ni un état des lieux actuel.
+### U7 : Le standard moderne
+- **Situation** : 14 rue Charles Fourier, en face du restaurant universitaire (le Ritz).
+- **Avantages** : Bâtiment le plus récent du campus. Conception moderne, ascenseurs, isolation acoustique renforcée et salles de bain individuelles récentes.
+- **Inconvénients** : Forte demande lors des attributions de chambres.
 
-## Où chercher un avis récent
+### U3 : L'aile internationale
+- **Situation** : Positionné au nord du campus, légèrement en retrait des allées principales.
+- **Avantages** : Environnement calme entouré d'espaces verts. Historiquement, le U3 accueille une forte concentration d'étudiants internationaux venus en échange académique.
+- **Inconvénients** : Bâtiment légèrement excentré par rapport aux amphithéâtres.
 
-Pour comparer les bâtiments, le plus utile reste de demander aux personnes qui y vivent cette année. Le [Discord des admissibles](https://discord.com/invite/Us9QXdwt86), réutilisé depuis plusieurs promotions, permet justement aux anciens de raconter les différences. Vérifie la date du témoignage avant de prendre une anecdote pour la situation présente.
+### U5 : La configuration classique
+- **Situation** : Emplacement intermédiaire sur le campus.
+- **Caractéristiques** : Bâtiment standard à couloirs centraux étroits et hauteur sous plafond classique. Chambres fonctionnelles sans spécificité architecturale particulière.
 
-Les démarches, disponibilités et informations officielles sont sur [le site de la MAISEL](https://maisel.imtbs-tsp.eu/logements/). **NOVA**, malgré sa place dans les conversations sur le campus, n’est pas un bâtiment de logement : [on y va surtout pour travailler et imprimer](/blog/nova-ritz-quotidien-campus-evry).
+### U6 : L'annexe hors-campus
+- **Situation** : Seul bâtiment situé en dehors de l'enceinte fermée du campus d'Évry.
+- **Caractéristiques** : Nécessite un court trajet à pied ou à vélo pour rejoindre les cours. Environnement indépendant du rythme direct du foyer.
+
+## Informations techniques et services
+
+Toutes les résidences de la MAISEL partagent plusieurs caractéristiques de fonctionnement :
+- **Connexion réseau MiNET** : Chaque chambre dispose d'une prise murale RJ45 raccordée directement au réseau Gigabit administré par l'association MiNET. Une inscription auprès de MiNET est requise pour activer le port Ethernet.
+- **Cuisines collectives** : Cuisines d'étage équipées de plaques de cuisson et de réfrigérateurs partagés.
+- **Laveries** : Salles de machines à laver et sèche-linge à cartes réparties dans les différents bâtiments.
+
+Pour recueillir les avis directs des promotions précédentes, le serveur Discord des admissibles ([rejoindre l'invitation](https://discord.com/invite/Us9QXdwt86)) constitue une base d'échange historique très active.
 `,
     },
     {
-        id: 'campus-nova-ritz', slug: 'nova-ritz-quotidien-campus-evry',
-        title: 'NOVA, le Ritz et les petits détours d’une journée',
-        subtitle: 'La vie du campus passe aussi par les imprimantes, la pause déjeuner et des piles de feuilles avant les examens.',
-        metaTitle: 'NOVA et le Ritz : quotidien du campus de Télécom SudParis',
-        metaDescription: 'À Télécom SudParis, NOVA réunit bibliothèque, salles de travail et imprimantes ; le Ritz rythme les déjeuners du campus.',
-        keywords: ['Télécom SudParis', 'NOVA', 'Ritz', 'campus Évry', 'vie étudiante'],
-        category: 'campus', tags: ['Campus', 'TSP', 'NOVA', 'Ritz'],
-        author, publishedAt: date, updatedAt: date, readingTime: '4 min',
-        content: `NOVA se remarque d’abord parce que le bâtiment est rond. Une fois entré, il est surtout très ordinaire au bon sens du terme : on s’y pose, on travaille, on imprime, on croise quelqu’un qui vient faire exactement la même chose.
+        id: 'campus-nova-ritz',
+        slug: 'nova-ritz-quotidien-campus-evry',
+        title: 'Lieux clés du campus : Le Foyer, NOVA et Le Ritz',
+        subtitle: 'Les points de passage obligatoires d’une journée type entre cours, travail collaboratif et restauration.',
+        metaTitle: 'Lieux incontournables du campus : Foyer, NOVA et Ritz',
+        metaDescription: 'Guide pratique des lieux de vie de Télécom SudParis : Foyer des élèves, espace NOVA et restaurant Le Ritz.',
+        keywords: ['Télécom SudParis', 'NOVA', 'Ritz', 'Foyer', 'campus Évry', 'vie étudiante'],
+        category: 'campus',
+        tags: ['Campus', 'TSP', 'NOVA', 'Ritz'],
+        author,
+        publishedAt: date,
+        updatedAt: date,
+        readingTime: '4 min',
+        content: `Le quotidien d’un étudiant sur le campus d’Évry s’articule autour de trois pôles majeurs : les moments associatifs au Foyer, le travail de projet à NOVA et les repas au Ritz.
 
-## NOVA et ses imprimantes
+## Le Foyer associatif : le cœur battant du campus
 
-Au rez-de-chaussée, il y a la cafétéria, des tables et des distributeurs. Au premier étage se trouvent la bibliothèque, des salles d’étude et des salles de projet. Les imprimantes principales sont aussi à NOVA. Pour l’étudiant qui nous a raconté ces lieux, imprimer est facile et le quota paraît généreux.
+Situé au pied des résidences U1 et U2, le Foyer est l'espace de rassemblement principal :
+- **L'AbsINThe** : Le bar étudiant géré par l'association du même nom. C'est le point de rencontre pour les pauses de fin d'après-midi.
+- **La Grande Salle (GS) et l'Espace Triangle** : Espaces modulables accueillant les tournois de jeux, les assemblées générales, les projections et les soirées étudiantes du mercredi (Club B).
+- **Les locaux de clubs** : Les étages et couloirs adjacents abritent les ateliers et sièges des associations (studios vidéo INTv, régie BPM, salles de réunion BDE).
 
-Avant certains examens où les documents sont autorisés, les mêmes supports réapparaissent en piles de papier. D’autres impressions sont faites juste pour rire. Il se souvient notamment d’images de pieds et de découpages ou collages, sans vouloir transformer un souvenir incertain en tradition officielle. On rit aussi de l’absurdité écologique de tant imprimer pour parfois ne presque rien utiliser.
+## NOVA : l'espace de projet et d'impression
 
-## Le Ritz à midi
+Reconnaissable à son architecture circulaire singulière, NOVA est le bâtiment dédié au travail collaboratif et à la documentation :
 
-Pour déjeuner, le **Ritz** est le restaurant principal du campus. Beaucoup de gens y passent, même si les habitudes varient. L’étudiant interrogé aime plutôt la nourriture, mais trouve que c’est devenu assez cher ; il a entendu d’autres étudiants s’en plaindre. La cafétéria de NOVA a également la réputation d’être chère. Ce sont des appréciations datées, pas un relevé de tarifs.
+### Répartition des espaces
+- **Rez-de-chaussée** : Espace cafétéria, tables de travail en groupe informel et distributeurs automatiques de boissons et snacks.
+- **Premier étage** : Médiathèque et bibliothèque universitaire, salles de projet insonorisées équipées d'écrans pour les travaux d'équipe, et zones d'étude individuelle silencieuse.
 
-« Ritz » peut aussi désigner, dans une campagne ou une association, la personne qui prépare à manger. On peut donc parler du Ritz sans parler du bâtiment : une de ces petites ambiguïtés qui font le langage du campus.
+### Le pôle d'impression central
+NOVA abrite le parc d'imprimantes réseau du campus. Chaque étudiant bénéficie d'un quota annuel de pages pour ses travaux universitaires. 
 
-NOVA et le Ritz ne résument pas toute la vie à Télécom SudParis. Ils montrent simplement comment un lieu devient familier : par les trajets répétés, les pauses avec les autres et les choses banales dont on finit par se souvenir.
+Ce pôle connaît un pic d'affluence caractéristique à l'approche des sessions de partiels : dans plusieurs matières autorisant l'ensemble des documents papier en examen, les imprimantes tournent à plein régime pour débiter des classeurs entiers de cours et d'annales corrigées.
+
+## Le Ritz : le restaurant universitaire du campus
+
+Situé à proximité immédiate du bâtiment U7, le restaurant principal du campus — universellement désigné par les étudiants sous le nom du **Ritz** — concentre la quasi-totalité des déjeuners de midi.
+
+### La cuisine et les services
+Le restaurant propose des formules complètes (entrées, plats chauds, desserts). Si la qualité globale des repas est reconnue par les étudiants, les évolutions récentes de tarifs font l'objet de discussions régulières dans les promotions. En complément, la cafétéria de NOVA propose des solutions de restauration rapide sur le pouce.
+
+### Le double sens du mot « Ritz »
+Dans le vocabulaire du campus, le terme a acquis un sens dérivé : au sein des équipes de campagne associative et des grands projets de clubs, **le Ritz** désigne la personne officiellement responsable de la logistique alimentaire et de la préparation des repas pour l'équipe.
 `,
     },
 ];

@@ -5,19 +5,27 @@ const date = '2026-09-29T08:00:00Z';
 
 export const GAME_ARTICLES: BlogArticle[] = [
     {
-        id: 'guide-debutant', slug: 'guide-debutant-clicker-bananint',
-        title: 'Bien commencer sur le clicker BananINT',
-        subtitle: 'Des clics, des améliorations et un classement : les bases visibles du jeu, sans dévoiler ce qui se découvre en jouant.',
-        metaTitle: 'Guide débutant du clicker BananINT',
-        metaDescription: 'Comment commencer le clicker BananINT : cliquer, choisir des améliorations, découvrir la production automatique et suivre le classement.',
-        keywords: ['BananINT', 'clicker', 'guide débutant', 'améliorations', 'classement'],
-        category: 'tutoriel', tags: ['BananINT', 'Clicker', 'Débutant'],
-        author, publishedAt: date, updatedAt: date, readingTime: '4 min',
-        content: `Le [clicker BananINT](/clicker) commence par un geste très simple : cliquer sur la banane. Le nombre affiché monte, puis les premières améliorations apparaissent. Le plaisir vient autant des choix que des clics eux-mêmes.
+        id: 'guide-debutant',
+        slug: 'guide-debutant-clicker-bananint',
+        title: 'Bien commencer sur le clicker BananINT : guide & mécaniques',
+        subtitle: 'Métriques clés, formules BPC/BPS, arbre d’améliorations, synergies et système d’Ascension.',
+        metaTitle: 'Guide débutant BananINT : BPC, BPS, améliorations et ascension',
+        metaDescription: 'Le guide complet pour maîtriser le clicker BananINT : calcul du BPC et BPS, synergies de production, gestion AFK et rituel d’Ascension.',
+        keywords: ['BananINT', 'clicker', 'guide débutant', 'BPC', 'BPS', 'améliorations', 'ascension'],
+        category: 'tutoriel',
+        tags: ['BananINT', 'Clicker', 'Débutant'],
+        author,
+        publishedAt: date,
+        updatedAt: date,
+        readingTime: '5 min',
+        content: `Le clicker de [BananINT](/clicker) repose sur un système économique incrémental calibré pour équilibrer investissement actif et génération passive de bananes. Ce guide détaille les formules fondamentales et les paliers d'optimisation.
 
-## Regarder avant d’acheter
+## Les deux piliers : BPC et BPS
 
-La boutique classe les améliorations par familles. Celles de **clic** rendent le geste manuel plus intéressant ; celles d’**automatisation** ajoutent une production qui continue sans cliquer. D’autres effets apparaissent dans l’interface au fil de la partie. Pour commencer, lis le coût et la description de chaque amélioration, puis regarde ce qui change après l’achat.
+L'économie du joueur s'articule autour de deux grandeurs :
+
+1. **BPC (Bananes Par Clic)** : La valeur ajoutée à votre réserve à chaque interaction manuelle sur la banane centrale. La valeur de base est de 1 🍌 par clic.
+2. **BPS (Bananes Par Seconde)** : Le flux continu généré automatiquement par vos infrastructures industrielles, sans nécessiter d'interaction physique.
 
 \`\`\`mermaid
 flowchart LR
@@ -27,57 +35,193 @@ flowchart LR
     D --> A
 \`\`\`
 
-Ce schéma n’est pas une recette pour optimiser chaque partie. Il rappelle simplement la boucle visible dès le départ.
+## Arbre des améliorations de Clic (BPC)
 
-## Revenir et comparer
+Les améliorations manuelles permettent de booster directement le rendement de vos clics :
 
-Le classement est une bonne raison de revenir voir ce que les autres ont fait. Dès le premier clicker, les étudiants ont joué à plusieurs manières de grimper, à la main comme avec du code. Le projet actuel garde ce goût de compétition. Ne prends toutefois pas les vieux récits de scores pour une promesse de progression identique aujourd’hui.
+| Amélioration | Coût de base | Bonus BPC | Description |
+| :--- | :--- | :--- | :--- |
+| **Better Fingers** | 10 🍌 | +1 BPC | Premier renfort musculaire |
+| **Stronger Arms** | 100 🍌 | +5 BPC | Puissance accrue par frappe |
+| **Banana Gloves** | 1 000 🍌 | +20 BPC | Gants de préhension renforcés |
+| **Banana Laser Gloves** | 10 000 🍌 | +60 BPC | Focalisation laser par impulsion |
+| **Banana Peeler** | 100 000 🍌 | +120 BPC | Éplucheur semi-automatique |
+| **Hydraulic Banana Press** | 1 000 000 🍌 | +500 BPC | Presse hydraulique haute pression |
+| **Cybernetic Ape Arms** | 10 000 000 🍌 | +2 000 BPC | Prothèses cybernétiques avancées |
+| **Banana Neural Net** | 100 000 000 🍌 | +8 000 BPC | Réseau de neurones prédictif |
+| **Quantum Finger Extension** | 1 000 000 000 🍌 | +35 000 BPC | Extension quantique multi-plans |
+| **The Golden Touch** | 10 000 000 000 🍌 | +150 000 BPC | Transmutation dorée au toucher |
 
-La page du jeu présente aussi d’autres panneaux, comme les missions et les réussites. Explore-les à ton rythme : le carnet donne des repères, mais laisse au jeu ses découvertes. Si tu veux comprendre d’où vient cette obsession du classement, [voici l’histoire du premier clicker](/blog/comment-bananint-a-commence).
+## Arbre des améliorations automatiques (BPS)
+
+Les infrastructures automatisées garantissent un revenu passif régulier, même lorsque vous n'interagissez pas avec le jeu :
+
+- **Banana Tree** (50 🍌) : +1 BPS
+- **Banana Harvester Bot** (500 🍌) : +10 BPS
+- **Banana Plantation** (5 000 🍌) : +80 BPS
+- **Banana Factory** (50 000 🍌) : +400 BPS
+- **Banana Enrichment Center** (500 000 🍌) : +1 600 BPS
+- **Banana Shipping Fleet** (5 000 000 🍌) : +4 800 BPS
+- **Banana Space Program** (50 000 000 🍌) : +25 000 BPS
+- **Banana Multiverse Farm** (500 000 000 🍌) : +180 000 BPS
+- **Intergalactic Banana Trade** (5 000 000 000 🍌) : +1 500 000 BPS
+- **Dyson Sphere** (50 000 000 000 🍌) : +12 000 000 BPS
+- **Banana Singularity** (500 000 000 000 🍌) : +100 000 000 BPS
+- **Omniversal Banana Nexus** (5 000 000 000 000 🍌) : +800 000 000 BPS
+- **God of Bananas** (50 000 000 000 000 🍌) : +6 000 000 000 BPS
+
+## Les upgrades de Synergie
+
+Disponibles en milieu de partie, ces améliorations créent des effets croisés démultiplicateurs :
+- **Auto-clicker Bots** (1 000 000 🍌) : Déclenche un clic automatique toutes les 10 secondes.
+- **Photosynthetic Bananas** (100 000 000 🍌) : Confère **+10% de puissance de clic** par bâtiment automatique possédé.
+- **Kinetic Feedback Loop** (10 000 000 000 🍌) : Confère **+5% de BPS** par amélioration de clic acquise.
+- **Recursive Banana Cloning** (1 000 000 000 000 🍌) : Double l'intégralité de la production automatique de base.
+- **Hive-Mind Apes** (100 000 000 000 000 🍌) : Double l'intégralité de la production de clic de base.
+
+## Le Rituel d'Ascension (Prestige)
+
+Lorsque la progression ralentit, le système d'Ascension permet de réinitialiser votre solde de bananes et vos améliorations standard en échange de points de transcendance cosmique.
+
+Ces points débloquent un arbre d'améliorations permanentes de prestige :
+- **Genome Amplifier** : +10% à l'ensemble de la production globale.
+- **Quantum Banana Matrix** : +25% de production globale.
+- **Genetic Overclocking** : +50% de puissance de clic.
+- **Evolutionary Boost** : +100% de production automatique.
+- Paliers finaux : jusqu'à **+25 000%** de production totale avec *The Final Banana*.
+
+## La production AFK
+
+Le backend de BananINT intègre un calcul d'absence : à chaque reconnexion, le serveur évalue la durée écoulée et crédite votre compte d'un montant de bananes basé sur votre BPS actif.
 `,
     },
     {
-        id: 'guide-marche', slug: 'guide-bourse-trading-dividendes',
-        title: 'Lire la bourse de BananINT sans se précipiter',
-        subtitle: 'Cours, graphiques et portefeuille : une introduction à ce que montre réellement le marché du jeu.',
-        metaTitle: 'Guide de la bourse BananINT : cours et portefeuille',
-        metaDescription: 'Comprendre la bourse du jeu BananINT : choisir une action, lire le graphique, acheter, vendre et suivre son portefeuille.',
-        keywords: ['BananINT', 'bourse du jeu', 'marché', 'graphique', 'portefeuille'],
-        category: 'guide', tags: ['BananINT', 'Trading', 'Guide'],
-        author, publishedAt: date, updatedAt: date, readingTime: '4 min',
-        content: `Sous le clicker se trouve un marché virtuel. Il est facile d’y voir un graphique qui bouge et d’imaginer qu’il faut agir tout de suite. Le meilleur premier pas est plus simple : comprendre ce que l’interface affiche.
+        id: 'guide-marche',
+        slug: 'guide-bourse-trading-dividendes',
+        title: 'Guide de la bourse BananINT : cours, ordres limites et dividendes',
+        subtitle: 'Comprendre les trois tiers d’actifs, le carnet d’ordres et les stratégies de rente passive.',
+        metaTitle: 'Bourse de BananINT : trading, actions, dividendes et ordres limites',
+        metaDescription: 'Maîtriser le marché boursier de BananINT : analyse des actions (BNDAQ, OGM, FED), ordres à cours limité et stratégie de dividendes réguliers.',
+        keywords: ['BananINT', 'bourse', 'trading', 'dividendes', 'marché', 'actions', 'Trading'],
+        category: 'guide',
+        tags: ['BananINT', 'Trading', 'Guide'],
+        author,
+        publishedAt: date,
+        updatedAt: date,
+        readingTime: '5 min',
+        content: `Accessible depuis l'onglet marché du [clicker](/clicker), la bourse de BananINT est une simulation économique en temps réel. Les cours oscillent sous l'influence combinée d'un algorithme de retour à la moyenne (*mean reversion*) et des transactions massives opérées par les joueurs.
 
-## Choisir un actif
+## Les trois Tiers d'actifs financiers
 
-Le [marché du jeu](/clicker) permet de sélectionner une action. Sa fiche montre un prix actuel et un historique sous forme de graphique. On peut passer d’une vue en chandeliers à une vue en courbe et changer la période observée. Ces vues racontent les mêmes échanges avec des niveaux de détail différents ; aucune ne prédit la suite.
+Le marché est structuré en trois paliers de capitalisation pour correspondre aux différentes phases de progression des joueurs :
 
-## Acheter, vendre, relire son portefeuille
+### Tier 1 : Retail Penny Market (Début de partie : 1 000 à 10M 🍌)
+- **BNDAQ (BanaNASDAQ)** :
+  - *Type* : Actif stable.
+  - *Prix de base* : 15 🍌 | *Volatilité* : Faible (5%).
+  - *Rendement de dividende* : **3% régulier**.
+  - *Profil* : La valeur refuge de départ pour sécuriser ses premiers profits.
+- **BG (BanaGone)** :
+  - *Type* : Actif spéculatif (meme coin).
+  - *Prix de base* : 150 🍌 | *Volatilité* : Très élevée (40%).
+  - *Rendement de dividende* : 0%.
+  - *Profil* : Idéal pour des opérations d'achat/revente rapides sur de fortes amplitudes.
 
-Avant de valider un achat, vérifie la quantité saisie et le prix indiqué. Après l’opération, le portefeuille permet de voir ce que tu détiens. La vente est une autre décision : il vaut mieux la prendre en regardant sa position plutôt qu’en réagissant à une seule bougie rouge ou verte.
+### Tier 2 : Institutional Tech Market (Milieu de partie : 10M à 10B 🍌)
+- **OGM (OGM BioTech)** :
+  - *Type* : Actif de croissance stable.
+  - *Prix de base* : 50 000 🍌 | *Volatilité* : Modérée (20%).
+  - *Rendement de dividende* : **2% régulier**.
+  - *Profil* : Laboratoire de recherche génétique garantissant des rentes substantielles.
+- **CYBR (TorBanana Cybernetics)** :
+  - *Type* : Actif technologique volatile.
+  - *Prix de base* : 250 000 🍌 | *Volatilité* : Élevée (35%).
+  - *Rendement de dividende* : 0%.
+  - *Profil* : Valeur technologique réagissant fortement aux cycles de marché.
 
-Le marché est une mécanique de BananINT, pas un service financier réel. Les anciens articles du carnet donnaient des chiffres de rendement et des méthodes garanties sans preuve dans le jeu. On les a retirés. Ici, l’objectif est de savoir lire l’écran et de découvrir la mécanique par soi-même, sans promettre de gagner à chaque échange.
+### Tier 3 : Sovereign Whales Market (Fin de partie : 10B à 50T+ 🍌)
+- **FED (Banque Fédérale du Potassium)** :
+  - *Type* : Actif institutionnel ultra-stable.
+  - *Prix de base* : 10 000 000 🍌 | *Volatilité* : Très faible (8%).
+  - *Rendement de dividende* : **4% régulier**.
+  - *Profil* : Le placement ultime pour transformer des dizaines de milliards en flux passif permanent.
+- **QNTM (Quantum Singularity Corp)** :
+  - *Type* : Actif spéculatif pour baleines.
+  - *Prix de base* : 100 000 000 🍌 | *Volatilité* : Maximale (50%).
+  - *Rendement de dividende* : 0%.
+  - *Profil* : Conçu pour les portefeuilles massifs cherchant des swings spectaculaires.
+
+## Ordres au marché vs Ordres à cours limité (Limit Orders)
+
+L'interface de trading propose deux modes d'exécution :
+
+1. **Ordre au marché** : Vous achetez ou vendez instantanément au cours affiché sur la bougie actuelle. Vous subissez le spread immédiat.
+2. **Ordre à cours limité** : Vous définissez à l'avance un prix cible et un volume. L'ordre est enregistré dans le carnet d'ordres du moteur backend. Dès que le cours fluctue et touche votre seuil, la transaction s'exécute automatiquement, même si vous êtes hors ligne.
+
+## La stratégie de rente passive
+
+Contrairement à la production de clics qui requiert des achats constants de bâtiments, détenir des actions distributrices de dividendes (\`BNDAQ\`, \`OGM\`, \`FED\`) verse un pourcentage régulier de la valeur totale de votre ligne.
+
+En réinvestissant systématiquement ces dividendes dans de nouveaux titres, vous créez un effet d'intérêts composés indépendant de votre BPS classique.
 `,
     },
     {
-        id: 'guide-clans', slug: 'tutoriel-osint-guerre-de-clans',
-        title: 'Découvrir les clans et l’OSINT de BananINT',
-        subtitle: 'Un guide pour repérer les outils collectifs visibles dans le jeu, sans révéler leurs surprises.',
-        metaTitle: 'Clans et OSINT dans BananINT : premiers repères',
-        metaDescription: 'Les premiers repères sur les clans et l’OSINT dans BananINT : rejoindre un groupe et comprendre les panneaux du jeu sans spoiler les mécaniques cachées.',
-        keywords: ['BananINT', 'clans', 'OSINT', 'jeu collectif'],
-        category: 'strategie', tags: ['BananINT', 'Clans', 'Guide'],
-        author, publishedAt: date, updatedAt: date, readingTime: '3 min',
-        content: `Le clicker a commencé comme une course au classement. Les **clans** ajoutent une dimension collective : on ne regarde plus seulement son propre compteur. L’interface du jeu propose des outils dédiés au groupe et un panneau OSINT.
+        id: 'guide-clans',
+        slug: 'tutoriel-osint-guerre-de-clans',
+        title: 'Découvrir les clans et l’OSINT de BananINT : guide stratégique',
+        subtitle: 'Trésorerie commune, Taxe Potassium, hacking coopératif et roulette collective.',
+        metaTitle: 'Clans et OSINT dans BananINT : guide stratégique complet',
+        metaDescription: 'Guide stratégique des clans dans BananINT : gestion du coffre-fort, taxe potassium, bonus de loyauté, opérations OSINT et Ape Roulette.',
+        keywords: ['BananINT', 'clans', 'OSINT', 'stratégie', 'coopération', 'potassium tax'],
+        category: 'strategie',
+        tags: ['BananINT', 'Clans', 'Guide'],
+        author,
+        publishedAt: date,
+        updatedAt: date,
+        readingTime: '5 min',
+        content: `Les [clans](/clan) introduisent une dimension sociale et coopérative à l'économie de BananINT. Rejoindre une faction permet de mutualiser des fonds, de financer de nouveaux joueurs et de participer à des opérations coordonnées de renseignement (OSINT).
 
-## Commencer par le collectif
+## Création et administration d'un Clan
 
-Avant de chercher une stratégie compliquée, rejoins ou fonde un clan depuis [le jeu](/clan). Le panneau OSINT du clicker indique lui-même qu’un clan est nécessaire pour y accéder. C’est une bonne indication de l’esprit de cette partie : discuter, coordonner et comprendre ce que votre groupe veut faire.
+- **Coût de création** : La fondation d'un clan requiert un versement initial de **1 000 000 000 🍌** (1 Milliard).
+- **Régimes de confidentialité** :
+  - *Public* : Tout joueur sans clan peut rejoindre librement l'unité.
+  - *Sur invitation* : L'accès requiert une invitation émise par un membre existant.
+  - *Privé* : Les candidatures sont closes.
 
-## Lire l’interface avant d’agir
+## Le Coffre-fort et la Taxe Potassium
 
-Les possibilités du jeu évoluent. Certains vieux guides décrivaient des horaires d’attaque, des récompenses ou des effets exacts comme s’ils étaient gravés dans le marbre. Ce n’est pas fiable. Lis les conditions indiquées dans les panneaux au moment de jouer et traite les nombres qui y figurent comme la source la plus récente.
+Le coffre-fort de clan constitue la réserve financière collective de votre faction.
 
-Nous gardons volontairement les opérations précises hors de cette page. Le plaisir d’une mécanique collective tient aussi à la découverte avec les autres. Pour un point de départ plus calme, [commence par les bases du clicker](/blog/guide-debutant-clicker-bananint).
+### La Taxe Potassium volontaire
+Chaque joueur peut régler individuellement son curseur de **Taxe Potassium de 0% à 50%** :
+- Lors de chaque cycle de clics ou synchronisation, le pourcentage spécifié est automatiquement prélevé de vos gains et crédité sur la trésorerie du clan.
+- La taxe permet au clan de grimper au classement général des factions.
+
+### Le Bonus de Loyauté
+Le don de bananes n'est pas un sacrifice à perte : chaque tranche cumulée de **100 Millions 🍌** versée au coffre-fort octroie au joueur un bonus multiplicateur permanent de **+1% BPC et +1% BPS**, plafonné à un total de **+25%**.
+
+## Le Pack Nouveau (Starter Pack)
+
+Pour accélérer la montée en puissance des nouvelles recrues, les clans peuvent puiser dans leur trésorerie collective :
+- **Coût** : 5 000 000 000 🍌 (5 Milliards) prélevés du coffre.
+- **Critère d'éligibilité** : Le bénéficiaire doit posséder moins de 30 améliorations au total.
+- **Effet** : Octroie instantanément **+5 niveaux** sur les 4 premières améliorations de clic et automatiques du joueur cible (*Better Fingers, Stronger Arms, Banana Tree, Banana Harvester Bot*).
+
+## Terminal OSINT de groupe
+
+Depuis le centre des opérations de clan, les membres ont accès au terminal d'infiltration OSINT :
+- **Sélection des cibles** : Les joueurs scannent le réseau pour repérer des infrastructures d'entreprises vulnérables.
+- **Infiltration coopérative** : Une fois la cible verrouillée, tous les membres connectés peuvent injecter des cycles de calcul (CPU) pour réduire la durée de l'opération.
+- **Partage des récompenses** : Le piratage réussi débloque une manne massive de bananes partagée entre les participants et reversée en partie au trésor de clan.
+
+## L'Ape Roulette (Le barillet partagé)
+
+Pour les amateurs de prise de risque collective, l'Ape Roulette propose un jeu de barillet mécanique partagé entre les membres du clan :
+- **Mécanique** : Un barillet de 6 chambres contenant **5 chambres saines (\`SAFE\`)** et **1 chambre piégée (\`DUD\`)**.
+- **Coût par tirage** : 10 000 000 🍌 (10M). 10% de chaque mise alimente le Jackpot Mondial.
+- **Tirage réussi** : Paiement immédiat de **30 000 000 🍌** (multiplicateur x3), avec 1% de chance de déclencher un *Potassium Surge* empochant 5% de la cagnotte mondiale.
+- **Tirage piégé (1 chance sur 6)** : Explosion du pistolet à banane ! Le joueur subit le statut **« Couvert de suie »** pendant **5 minutes (300 secondes)**, lui interdisant tout accès aux jeux de hasard du casino pendant la durée du malus.
 `,
     },
 ];

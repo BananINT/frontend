@@ -169,9 +169,9 @@ En réinvestissant systématiquement ces dividendes dans de nouveaux titres, vou
         id: 'guide-clans',
         slug: 'tutoriel-osint-guerre-de-clans',
         title: 'Découvrir les clans et l’OSINT de BananINT : guide stratégique',
-        subtitle: 'Trésorerie commune, Taxe Potassium, hacking coopératif et roulette collective.',
+        subtitle: 'Trésorerie commune, Taxe Potassium, hacking coopératif, vol de coffre et roulette.',
         metaTitle: 'Clans et OSINT dans BananINT : guide stratégique complet',
-        metaDescription: 'Guide stratégique des clans dans BananINT : gestion du coffre-fort, taxe potassium, bonus de loyauté, opérations OSINT et Ape Roulette.',
+        metaDescription: 'Guide stratégique des clans dans BananINT : gestion du coffre-fort, taxe potassium, bonus de loyauté, opérations OSINT, atouts et Ape Roulette.',
         keywords: ['BananINT', 'clans', 'OSINT', 'stratégie', 'coopération', 'potassium tax'],
         category: 'strategie',
         tags: ['BananINT', 'Clans', 'Guide'],
@@ -179,7 +179,7 @@ En réinvestissant systématiquement ces dividendes dans de nouveaux titres, vou
         publishedAt: date,
         updatedAt: date,
         readingTime: '5 min',
-        content: `Les [clans](/clan) introduisent une dimension sociale et coopérative à l'économie de BananINT. Rejoindre une faction permet de mutualiser des fonds, de financer de nouveaux joueurs et de participer à des opérations coordonnées de renseignement (OSINT).
+        content: `Les [clans](/clan) introduisent une dimension sociale et coopérative à l'économie de BananINT. Rejoindre une faction permet de mutualiser des fonds, de financer de nouveaux joueurs, de développer des atouts collectifs et de mener des opérations offensives de renseignement (OSINT).
 
 ## Création et administration d'un Clan
 
@@ -208,12 +208,20 @@ Pour accélérer la montée en puissance des nouvelles recrues, les clans peuven
 - **Critère d'éligibilité** : Le bénéficiaire doit posséder moins de 30 améliorations au total.
 - **Effet** : Octroie instantanément **+5 niveaux** sur les 4 premières améliorations de clic et automatiques du joueur cible (*Better Fingers, Stronger Arms, Banana Tree, Banana Harvester Bot*).
 
-## Terminal OSINT de groupe
+## L'Arbre des Atouts de Clan (Clan Perks)
 
-Depuis le centre des opérations de clan, les membres ont accès au terminal d'infiltration OSINT :
-- **Sélection des cibles** : Les joueurs scannent le réseau pour repérer des infrastructures d'entreprises vulnérables.
-- **Infiltration coopérative** : Une fois la cible verrouillée, tous les membres connectés peuvent injecter des cycles de calcul (CPU) pour réduire la durée de l'opération.
-- **Partage des récompenses** : Le piratage réussi débloque une manne massive de bananes partagée entre les participants et reversée en partie au trésor de clan.
+La trésorerie commune finance des améliorations collectives permanentes qui profitent à chaque membre :
+- **Turbo-Mûrissement** : Réduit le coût des améliorations individuelles (clic et automatique) de **5% par niveau**.
+- **Bouclier Cyber** : Réduit de **10% par niveau** les pertes de bananes subies lors d'attaques cyber hostiles.
+- **Extracteur de Potassium** : Augmente la production de BPC et BPS de tous les membres du clan de **3% par niveau**.
+
+## Opérations OSINT & Piratage Inter-Clans
+
+Le terminal d'opérations permet de lancer des offensives coordonnées sur le réseau :
+- **Scan réseau** : Un scan coûte **100 000 000 🍌** prélevés de la trésorerie pour découvrir 3 cibles potentielles de difficulté 1 à 6.
+- **Entraide coordonnée** : Chaque membre connecté qui clique sur *Aider* réduit instantanément le compte à rebours de **15% de la durée totale** de l'opération.
+- **Le vol de coffre inter-clans (Difficulté ≥ 4)** : À haut niveau de difficulté, le système peut identifier comme cible la trésorerie d'un clan rival actif. Une infiltration réussie permet alors de **dérober jusqu'à 10% du coffre-fort du clan ciblé** et de transférer ce butin directement dans votre propre trésorerie !
+- **Contrats d'Élite** : Des missions temporaires de clan (dépôts de capital massifs, séries d'opérations OSINT) débloquant des primes de plusieurs milliards de bananes.
 
 ## L'Ape Roulette (Le barillet partagé)
 

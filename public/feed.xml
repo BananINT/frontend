@@ -5,7 +5,7 @@
     <link>https://bananint.fr/blog</link>
     <description>Vie étudiante à Télécom SudParis, repères sur le campus et coulisses de BananINT.</description>
     <language>fr-FR</language>
-    <lastBuildDate>Sat, 17 Oct 2026 10:22:23 GMT</lastBuildDate>
+    <lastBuildDate>Sat, 17 Oct 2026 12:57:37 GMT</lastBuildDate>
     <atom:link href="https://bananint.fr/feed.xml" rel="self" type="application/rss+xml"/>
     
     <item>
@@ -69,7 +69,7 @@
       <link>https://bananint.fr/blog/tutoriel-osint-guerre-de-clans</link>
       <guid isPermaLink="true">https://bananint.fr/blog/tutoriel-osint-guerre-de-clans</guid>
       <pubDate>Tue, 29 Sep 2026 08:00:00 GMT</pubDate>
-      <description>Guide stratégique des clans dans BananINT : gestion du coffre-fort, taxe potassium, bonus de loyauté, opérations OSINT et Ape Roulette.</description>
+      <description>Guide stratégique des clans dans BananINT : gestion du coffre-fort, taxe potassium, bonus de loyauté, opérations OSINT, atouts et Ape Roulette.</description>
       <category>strategie</category>
     </item>
   </channel>

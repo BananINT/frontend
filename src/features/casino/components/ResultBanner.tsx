@@ -124,8 +124,8 @@ export default function ResultBanner({
                         exit={{ opacity: 0 }}
                         className="text-center w-full"
                     >
-                        <p className="text-sm font-mono text-white/40 uppercase">{lossLabel}</p>
-                        {caption && <p className="text-xs font-mono text-white/25 mt-1">{caption}</p>}
+                        <p className="text-sm font-mono text-white/60 uppercase">{lossLabel}</p>
+                        {caption && <p className="text-xs font-mono text-white/60 mt-1">{caption}</p>}
                     </motion.div>
                 )}
             </AnimatePresence>

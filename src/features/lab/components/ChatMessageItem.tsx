@@ -53,7 +53,7 @@ export const ChatMessageItem = memo(function ChatMessageItem({
       >
         <div className="p-4 rounded-2xl border border-banan-primary/30 bg-gradient-to-br from-banan-primary/10 via-black/80 to-black/90 backdrop-blur-md text-white shadow-xl max-w-full break-words select-text">
           {/* User Author Header */}
-          <div className="flex items-center justify-between gap-3 mb-2 pb-1.5 border-b border-banan-primary/20 text-[10px] font-mono text-white/50 uppercase tracking-widest">
+          <div className="flex items-center justify-between gap-3 mb-2 pb-1.5 border-b border-banan-primary/20 text-[11px] font-mono text-white/50 uppercase tracking-widest">
             <div className="flex items-center gap-1.5 text-banan-primary font-bold">
               <User className="w-3.5 h-3.5" />
               <span>{displayName} (Vous)</span>
@@ -104,7 +104,7 @@ export const ChatMessageItem = memo(function ChatMessageItem({
         }`}
       >
         {/* Author Header & Actions Bar */}
-        <div className="flex items-center justify-between gap-2 mb-2.5 pb-2 border-b border-white/10 text-[10px] font-mono text-white/40">
+        <div className="flex items-center justify-between gap-2 mb-2.5 pb-2 border-b border-white/10 text-[11px] font-mono text-white/60">
           <div className="flex items-center gap-2">
             <span
               className={`font-black uppercase tracking-wider text-xs ${
@@ -115,13 +115,13 @@ export const ChatMessageItem = memo(function ChatMessageItem({
             </span>
 
             {!isPalantint && (
-              <span className={`px-1.5 py-0.5 rounded border font-mono font-bold text-[9px] ${theme.badgeClass}`}>
+              <span className={`px-1.5 py-0.5 rounded border font-mono font-bold text-[11px] ${theme.badgeClass}`}>
                 {theme.roleBadge}
               </span>
             )}
 
             {message.created_at && (
-              <span className="text-white/30 hidden sm:inline">
+              <span className="text-white/60 hidden sm:inline">
                 • {new Date(message.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </span>
             )}
@@ -129,14 +129,14 @@ export const ChatMessageItem = memo(function ChatMessageItem({
 
           {/* Hover Actions: Word Count & Copy Message */}
           <div className="flex items-center gap-2">
-            <span className="text-[9px] text-white/30 hidden md:inline">
+            <span className="text-[11px] text-white/60 hidden md:inline">
               {wordCount} mots
             </span>
 
             <button
               type="button"
               onClick={handleCopyMessage}
-              className="flex items-center gap-1 px-2 py-0.5 rounded text-[10px] bg-white/[0.04] hover:bg-white/10 text-white/50 hover:text-white transition-colors cursor-pointer"
+              className="flex items-center gap-1 px-2 py-0.5 rounded text-[11px] bg-white/[0.04] hover:bg-white/10 text-white/50 hover:text-white transition-colors cursor-pointer"
               title="Copier la réponse complète"
             >
               {copied ? (

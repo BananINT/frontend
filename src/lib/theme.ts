@@ -29,15 +29,6 @@ export function getCurrentTheme(): Theme {
 }
 
 /**
- * Hook or effect to initialize theme on app load.
- * Can be used in RootLayout or a high-level component.
- */
-export function initTheme() {
-    const theme = getCurrentTheme();
-    setTheme(theme);
-}
-
-/**
  * Add a listener for theme changes
  */
 export function addThemeListener(callback: (theme: Theme) => void) {

@@ -24,10 +24,10 @@ export function EnergyStatusCard({ currentEnergy, rateLimits }: EnergyStatusCard
       {/* Noyau d'Énergie */}
       <div className="flex flex-col gap-1.5">
         <div className="flex justify-between items-center text-white/80">
-          <span className="flex items-center gap-1.5 font-bold uppercase tracking-wider text-[10px]">
+          <span className="flex items-center gap-1.5 font-bold uppercase tracking-wider text-[11px]">
             <BatteryCharging className="w-3.5 h-3.5 text-banan-primary" />
             <span>Noyau d&apos;Énergie</span>
-            <span className="text-white/40 font-mono font-normal text-[9px] lowercase tracking-normal">
+            <span className="text-white/60 font-mono font-normal text-[11px] lowercase tracking-normal">
               (+{rechargePerHour}%/h)
             </span>
           </span>

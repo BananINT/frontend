@@ -152,7 +152,7 @@ export default function FuturesModal({ isOpen, onClose, stocks }: FuturesModalPr
                         key={t}
                         onClick={() => setTab(t)}
                         className={`flex-1 py-2 text-xs font-mono font-bold uppercase tracking-wider transition-colors
-                            ${tab === t ? 'text-banan-primary border-b-2 border-banan-primary' : 'text-white/30 hover:text-white/50'}`}
+                            ${tab === t ? 'text-banan-primary border-b-2 border-banan-primary' : 'text-white/60 hover:text-white/90'}`}
                     >
                         {t === 'trade' ? 'Trader' : t === 'open' ? `Positions (${futuresState?.open_positions.length || 0})` : t === 'history' ? 'Historique' : 'Hacks'}
                     </button>
@@ -164,7 +164,7 @@ export default function FuturesModal({ isOpen, onClose, stocks }: FuturesModalPr
                 <div className="space-y-4">
                     {/* Stock Selector */}
                     <div>
-                        <div className="text-[10px] font-mono text-white/50 uppercase tracking-wider mb-2">Actif</div>
+                        <div className="text-[11px] font-mono text-white/50 uppercase tracking-wider mb-2">Actif</div>
                         <div className="flex gap-2">
                             {stocks.map(s => (
                                 <button
@@ -176,7 +176,7 @@ export default function FuturesModal({ isOpen, onClose, stocks }: FuturesModalPr
                                     }`}
                                 >
                                     <div className="text-xs font-mono font-bold">{s.symbol}</div>
-                                    <div className="text-[10px] font-mono mt-1 flex items-center justify-center gap-1">{formatNumber(s.current_price)} <Banana className="h-2 w-2" /></div>
+                                    <div className="text-[11px] font-mono mt-1 flex items-center justify-center gap-1">{formatNumber(s.current_price)} <Banana className="h-2 w-2" /></div>
                                 </button>
                             ))}
                         </div>
@@ -184,13 +184,13 @@ export default function FuturesModal({ isOpen, onClose, stocks }: FuturesModalPr
 
                     {/* Direction */}
                     <div>
-                        <div className="text-[10px] font-mono text-white/50 uppercase tracking-wider mb-2">Direction</div>
+                        <div className="text-[11px] font-mono text-white/50 uppercase tracking-wider mb-2">Direction</div>
                         <div className="grid grid-cols-2 gap-2">
                             <button
                                 onClick={() => setDirection('long')}
                                 className={`p-3 border flex items-center justify-center gap-2 transition-all ${direction === 'long'
                                     ? 'border-green-500 bg-green-500/10 text-green-400'
-                                    : 'border-white/10 text-white/30 hover:border-white/30'
+                                    : 'border-white/10 text-white/60 hover:border-white/30'
                                 }`}
                             >
                                 <TrendingUp className="h-4 w-4" />
@@ -200,7 +200,7 @@ export default function FuturesModal({ isOpen, onClose, stocks }: FuturesModalPr
                                 onClick={() => setDirection('short')}
                                 className={`p-3 border flex items-center justify-center gap-2 transition-all ${direction === 'short'
                                     ? 'border-red-500 bg-red-500/10 text-red-400'
-                                    : 'border-white/10 text-white/30 hover:border-white/30'
+                                    : 'border-white/10 text-white/60 hover:border-white/30'
                                 }`}
                             >
                                 <TrendingDown className="h-4 w-4" />
@@ -211,7 +211,7 @@ export default function FuturesModal({ isOpen, onClose, stocks }: FuturesModalPr
 
                     {/* Leverage */}
                     <div>
-                        <div className="text-[10px] font-mono text-white/50 uppercase tracking-wider mb-2">Levier</div>
+                        <div className="text-[11px] font-mono text-white/50 uppercase tracking-wider mb-2">Levier</div>
                         <div className="flex gap-2">
                             {(futuresState?.allowed_leverages || [2, 5, 10]).map(l => (
                                 <button
@@ -219,7 +219,7 @@ export default function FuturesModal({ isOpen, onClose, stocks }: FuturesModalPr
                                     onClick={() => setLeverage(l)}
                                     className={`flex-1 py-3 border text-center text-sm font-mono font-bold transition-all ${leverage === l
                                         ? 'border-banan-primary bg-banan-primary/10 text-banan-primary'
-                                        : 'border-white/10 text-white/30 hover:border-white/30'
+                                        : 'border-white/10 text-white/60 hover:border-white/30'
                                     }`}
                                 >
                                     x{l}
@@ -227,7 +227,7 @@ export default function FuturesModal({ isOpen, onClose, stocks }: FuturesModalPr
                             ))}
                         </div>
                         {leverage >= 10 && (
-                            <div className="flex items-center gap-1 mt-1 text-[10px] font-mono text-red-400">
+                            <div className="flex items-center gap-1 mt-1 text-[11px] font-mono text-red-400">
                                 <AlertTriangle className="h-3 w-3" />
                                 Risque de liquidation très élevé
                             </div>
@@ -236,7 +236,7 @@ export default function FuturesModal({ isOpen, onClose, stocks }: FuturesModalPr
 
                     {/* Margin Input */}
                     <div>
-                        <div className="text-[10px] font-mono text-white/50 uppercase tracking-wider mb-2">
+                        <div className="text-[11px] font-mono text-white/50 uppercase tracking-wider mb-2">
                             <span className="flex items-center gap-1">Marge (Collatéral) — Disponible: {formatNumber(gameState.bananas)} <Banana className="h-3 w-3" /></span>
                         </div>
                         <div className="flex gap-2">
@@ -250,13 +250,13 @@ export default function FuturesModal({ isOpen, onClose, stocks }: FuturesModalPr
                             />
                             <button
                                 onClick={() => setMarginInput(Math.floor(gameState.bananas * 0.25).toString())}
-                                className="px-3 text-[10px] font-mono text-white/30 border border-white/10 hover:text-banan-primary hover:border-banan-primary transition-colors"
+                                className="px-3 text-[11px] font-mono text-white/60 border border-white/10 hover:text-banan-primary hover:border-banan-primary transition-colors"
                             >
                                 25%
                             </button>
                             <button
                                 onClick={() => setMarginInput(Math.floor(gameState.bananas * 0.5).toString())}
-                                className="px-3 text-[10px] font-mono text-white/30 border border-white/10 hover:text-banan-primary hover:border-banan-primary transition-colors"
+                                className="px-3 text-[11px] font-mono text-white/60 border border-white/10 hover:text-banan-primary hover:border-banan-primary transition-colors"
                             >
                                 50%
                             </button>
@@ -266,22 +266,22 @@ export default function FuturesModal({ isOpen, onClose, stocks }: FuturesModalPr
                     {/* Position Preview */}
                     {margin > 0 && selectedStock && (
                         <div className="border border-white/10 p-3 space-y-2 bg-white/5">
-                            <div className="text-[10px] font-mono text-white/50 uppercase tracking-wider">Aperçu de la position</div>
+                            <div className="text-[11px] font-mono text-white/50 uppercase tracking-wider">Aperçu de la position</div>
                             <div className="grid grid-cols-2 gap-2 text-xs font-mono">
                                 <div className="flex justify-between">
-                                    <span className="text-white/30">Valeur:</span>
+                                    <span className="text-white/60">Valeur:</span>
                                     <span className="text-white">{formatNumber(positionValue)} 🍌</span>
                                 </div>
                                 <div className="flex justify-between">
-                                    <span className="text-white/30">Parts:</span>
+                                    <span className="text-white/60">Parts:</span>
                                     <span className="text-white flex items-center gap-1">{formatNumber(positionValue)} <Banana className="h-2 w-2" /></span>
                                 </div>
-                                <div className="flex justify-between text-[10px] font-mono border-t border-white/5 pt-2">
-                                    <span className="text-white/30">Frais (0.5%)</span>
+                                <div className="flex justify-between text-[11px] font-mono border-t border-white/5 pt-2">
+                                    <span className="text-white/60">Frais (0.5%)</span>
                                     <span className="text-banan-red flex items-center gap-1">{formatNumber(estimatedFee)} <Banana className="h-2 w-2" /></span>
                                 </div>
                                 <div className="flex justify-between">
-                                    <span className="text-white/30">Liquidation:</span>
+                                    <span className="text-white/60">Liquidation:</span>
                                     <span className="text-red-400">
                                         ~{formatNumber(
                                             direction === 'long'
@@ -315,7 +315,7 @@ export default function FuturesModal({ isOpen, onClose, stocks }: FuturesModalPr
             {tab === 'open' && (
                 <div className="space-y-3">
                     {!futuresState?.open_positions.length ? (
-                        <div className="text-center text-white/30 text-xs font-mono uppercase py-8">
+                        <div className="text-center text-white/60 text-xs font-mono uppercase py-8">
                             Aucune position ouverte
                         </div>
                     ) : (
@@ -335,7 +335,7 @@ export default function FuturesModal({ isOpen, onClose, stocks }: FuturesModalPr
                                         <span className="flex items-center gap-1">{(p.unrealized_pnl || 0) >= 0 ? '+' : ''}{formatNumber(p.unrealized_pnl || 0)} <Banana className="h-2 w-2" /></span>
                                     </span>
                                 </div>
-                                <div className="grid grid-cols-3 gap-2 text-[10px] font-mono text-white/30">
+                                <div className="grid grid-cols-3 gap-2 text-[11px] font-mono text-white/60">
                                     <div>Entrée: {formatNumber(p.entry_price)}</div>
                                     <div>Actuel: {formatNumber(p.current_price || p.entry_price)}</div>
                                     <div className="text-red-400">Liq: {formatNumber(p.liquidation_price)}</div>
@@ -355,7 +355,7 @@ export default function FuturesModal({ isOpen, onClose, stocks }: FuturesModalPr
             {tab === 'history' && (
                 <div className="space-y-2">
                     {!futuresState?.closed_positions.length ? (
-                        <div className="text-center text-white/30 text-xs font-mono uppercase py-8">
+                        <div className="text-center text-white/60 text-xs font-mono uppercase py-8">
                             Aucun historique
                         </div>
                     ) : (

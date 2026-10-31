@@ -74,10 +74,10 @@ const NodeCard = ({ node, delay }: { node: Node, delay: number }) => {
                     <div className="inline-flex items-center justify-center p-2 sm:p-3 md:p-4 bg-white/5 rounded-full border border-white/10 mb-2 sm:mb-3 group-hover/node:scale-110 transition-transform">
                         <Icon className="w-5 h-5 sm:w-6 sm:h-6 md:w-8 md:h-8" style={{ color: node.color }} />
                     </div>
-                    <h3 className="font-mono text-[9px] sm:text-xs md:text-md font-bold text-white uppercase tracking-widest leading-tight mb-1">{node.title}</h3>
-                    <div className="text-white/60 font-mono text-[8px] sm:text-[10px] md:text-xs inline-flex flex-wrap items-center gap-1 sm:gap-2 justify-center w-full mt-1">
+                    <h3 className="font-mono text-[11px] sm:text-xs md:text-md font-bold text-white uppercase tracking-widest leading-tight mb-1">{node.title}</h3>
+                    <div className="text-white/60 font-mono text-[11px] md:text-xs inline-flex flex-wrap items-center gap-1 sm:gap-2 justify-center w-full mt-1">
                         <Activity className="w-2 h-2 sm:w-3 sm:h-3 text-banan-primary animate-pulse shrink-0" />
-                        <span className="truncate">{node.stack}</span>
+                        <span className="min-w-0 break-words leading-tight sm:truncate">{node.stack}</span>
                     </div>
                 </div>
 

@@ -21,11 +21,11 @@ export function SessionList({
 }: SessionListProps) {
   return (
     <div className="flex-1 overflow-y-auto p-3 flex flex-col gap-1 custom-scrollbar">
-      <span className="text-[10px] uppercase tracking-widest text-white/40 font-bold px-1 mb-1">
+      <span className="text-[11px] uppercase tracking-widest text-white/60 font-bold px-1 mb-1">
         Archives de Sessions
       </span>
       {sessions.length === 0 ? (
-        <div className="text-xs text-white/30 p-3 text-center italic">
+        <div className="text-xs text-white/60 p-3 text-center italic">
           Aucune archive enregistrée. Lancez un prompt pour initier une session.
         </div>
       ) : (
@@ -61,7 +61,7 @@ export function SessionList({
                 />
                 <span className="truncate">{sess.title}</span>
                 {isGenerating && (
-                  <span className="flex items-center gap-1 text-[8px] font-mono text-banan-primary bg-banan-primary/15 border border-banan-primary/30 px-1 py-0.5 rounded flex-shrink-0 animate-pulse">
+                  <span className="flex items-center gap-1 text-[11px] font-mono text-banan-primary bg-banan-primary/15 border border-banan-primary/30 px-1 py-0.5 rounded flex-shrink-0 animate-pulse">
                     <Activity className="w-2 h-2 animate-spin" />
                     <span>EN COURS</span>
                   </span>

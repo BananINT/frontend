@@ -21,7 +21,7 @@ export default function SootBanner({ variant = 'full', className = '' }: SootBan
     if (variant === 'compact') {
         return (
             <span
-                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-purple-500/40 bg-purple-900/20 text-purple-300 text-[10px] font-mono uppercase tracking-widest ${className}`}
+                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-purple-500/40 bg-purple-900/20 text-purple-300 text-[11px] font-mono uppercase tracking-widest ${className}`}
             >
                 <Skull className="h-3 w-3 animate-pulse" />
                 Suie · {label}
@@ -49,7 +49,7 @@ export default function SootBanner({ variant = 'full', className = '' }: SootBan
                     transition={{ duration: 0.9, ease: 'linear' }}
                 />
             </div>
-            <p className="text-[10px] font-mono text-purple-300/60 uppercase leading-relaxed">
+            <p className="text-[11px] font-mono text-purple-300/60 uppercase leading-relaxed">
                 Vos clics ne rapportent rien et les tables du casino sont verrouillées jusqu'à la fin du décompte.
             </p>
         </motion.div>

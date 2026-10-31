@@ -226,7 +226,7 @@ export default function Header() {
                                         transition={{ duration: 0.12 }}
                                         className="absolute top-full right-0 mt-1.5 w-48 bg-[#0e0e0e] border border-black/80 rounded shadow-2xl py-1 z-50 text-white overflow-hidden"
                                     >
-                                        <div className="text-[9px] font-mono uppercase tracking-widest text-white/40 px-3 py-1 border-b border-white/5">
+                                        <div className="text-[11px] font-mono uppercase tracking-widest text-white/60 px-3 py-1 border-b border-white/5">
                                             Navigation
                                         </div>
                                         {mainNavItems.map((item) => {
@@ -288,7 +288,7 @@ export default function Header() {
                                         transition={{ duration: 0.12 }}
                                         className="absolute top-full right-0 mt-1.5 w-52 bg-[#0e0e0e] border border-black/80 rounded shadow-2xl py-1 z-50 text-white overflow-hidden"
                                     >
-                                        <div className="text-[9px] font-mono uppercase tracking-widest text-white/40 px-3 py-1 border-b border-white/5">
+                                        <div className="text-[11px] font-mono uppercase tracking-widest text-white/60 px-3 py-1 border-b border-white/5">
                                             Modules
                                         </div>
                                         {gameNavItems.map((item) => {
@@ -315,7 +315,7 @@ export default function Header() {
                                                     </div>
                                                     <span
                                                         className={cn(
-                                                            "text-[9px] font-mono px-1 py-0.5 rounded",
+                                                            "text-[11px] font-mono px-1 py-0.5 rounded",
                                                             isActive
                                                                 ? "bg-white/20 text-white font-bold"
                                                                 : "bg-white/10 text-white/50"

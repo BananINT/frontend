@@ -54,7 +54,7 @@ export default function FairnessPage() {
             <div className="bg-black/60 border border-banan-osint/20 rounded-2xl overflow-hidden">
                 <div className="px-4 py-2 border-b border-white/10 flex items-center gap-2">
                     <Terminal className="w-3.5 h-3.5 text-banan-osint" />
-                    <span className="text-[10px] font-mono uppercase tracking-widest text-white/40">
+                    <span className="text-[11px] font-mono uppercase tracking-widest text-white/60">
                         verify.py
                     </span>
                 </div>
@@ -65,7 +65,7 @@ export default function FairnessPage() {
 
             <FairnessPanel />
 
-            <p className="text-[11px] font-mono text-white/30 uppercase text-center leading-relaxed">
+            <p className="text-[11px] font-mono text-white/60 uppercase text-center leading-relaxed">
                 Ce panneau est également disponible sous chaque table du casino.
             </p>
         </GameLayout>

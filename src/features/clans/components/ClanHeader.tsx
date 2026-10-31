@@ -114,7 +114,7 @@ export default function ClanHeader({
             {/* Room nameplate: the fastest way to tell the two apart. */}
             <div className="relative z-10 h-5 flex items-center justify-center">
                 <span
-                    className={`inline-flex items-center gap-2 px-2.5 py-0.5 rounded border ${skin.eyebrowBorder} ${skin.eyebrowText} text-[9px] md:text-[10px] font-mono uppercase tracking-[0.3em] whitespace-nowrap`}
+                    className={`inline-flex items-center gap-2 px-2.5 py-0.5 rounded border ${skin.eyebrowBorder} ${skin.eyebrowText} text-[11px] font-mono uppercase tracking-[0.3em] whitespace-nowrap`}
                 >
                     {skin.eyebrow}
                 </span>
@@ -128,20 +128,20 @@ export default function ClanHeader({
                 <Crest className="h-6 w-6 md:h-8 md:w-8 shrink-0" />
             </h1>
 
-            <p className="relative z-10 mt-2 h-8 md:h-9 max-w-xl mx-auto text-[10px] md:text-xs font-mono text-white/50 uppercase leading-tight flex items-center justify-center overflow-hidden">
+            <p className="relative z-10 mt-2 h-8 md:h-9 max-w-xl mx-auto text-[11px] md:text-xs font-mono text-white/50 uppercase leading-tight flex items-center justify-center overflow-hidden">
                 <span className="line-clamp-2">{subtitle}</span>
             </p>
 
             <div className="relative z-10 mt-2 h-8 flex items-center justify-center gap-x-4 md:gap-x-7 overflow-hidden">
                 <div className="flex items-center gap-1.5 shrink-0">
-                    <span className="text-[9px] md:text-xs font-mono text-white/50 uppercase">Solde:</span>
+                    <span className="text-[11px] md:text-xs font-mono text-white/50 uppercase">Solde:</span>
                     <span className="text-sm md:text-xl font-sans font-bold text-banan-primary flex items-center gap-1 tabular-nums">
                         {formatNumber(gameState.bananas)} <Banana className="w-3.5 h-3.5 md:w-5 md:h-5" />
                     </span>
                 </div>
                 {stats.map(stat => (
                     <div key={stat.label} className="flex items-center gap-1.5 shrink-0">
-                        <span className="text-[9px] md:text-xs font-mono text-white/50 uppercase">
+                        <span className="text-[11px] md:text-xs font-mono text-white/50 uppercase">
                             {stat.label}:
                         </span>
                         <span
@@ -167,7 +167,7 @@ export default function ClanHeader({
                                     key={tab.to}
                                     to={tab.to}
                                     aria-current={active ? 'page' : undefined}
-                                    className={`relative inline-flex items-center gap-2 px-4 md:px-5 rounded-lg text-[10px] md:text-[11px] font-mono uppercase tracking-widest transition-colors ${
+                                    className={`relative inline-flex items-center gap-2 px-4 md:px-5 rounded-lg text-[11px] font-mono uppercase tracking-widest transition-colors ${
                                         active ? 'text-black font-bold' : 'text-white/50 hover:text-white'
                                     }`}
                                 >
@@ -192,7 +192,7 @@ export default function ClanHeader({
             </div>
 
             {refreshing && (
-                <div className="absolute top-2 right-2 text-[10px] font-mono text-banan-primary animate-pulse z-10">
+                <div className="absolute top-2 right-2 text-[11px] font-mono text-banan-primary animate-pulse z-10">
                     SYNC...
                 </div>
             )}

@@ -127,7 +127,7 @@ export default function MinesPage() {
                         key={stat.label}
                         className="rounded-xl border border-emerald-900/60 bg-black/50 px-3 py-2.5 text-center"
                     >
-                        <p className="text-[9px] font-mono uppercase tracking-[0.18em] text-white/35">
+                        <p className="text-[11px] font-mono uppercase tracking-[0.18em] text-white/60">
                             {stat.label}
                         </p>
                         <p className={`text-lg font-black tabular-nums ${stat.tone}`}>{stat.value}</p>
@@ -252,7 +252,7 @@ export default function MinesPage() {
                     <span className="text-[9px] font-mono uppercase tracking-[0.25em] text-emerald-400/40">
                         BANAN-PCB · REV.2
                     </span>
-                    <span className="text-[9px] font-mono uppercase tracking-[0.25em] text-emerald-400/40">
+                    <span className="text-[11px] font-mono uppercase tracking-[0.25em] text-emerald-400/80">
                         {revealed.length}/{TILES - bugs} pastilles
                     </span>
                 </div>
@@ -290,7 +290,7 @@ export default function MinesPage() {
                             initial={{ opacity: 0, y: -6 }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0 }}
-                            className="absolute inset-0 text-center text-xs md:text-sm font-mono text-white/30 uppercase tracking-[0.2em] flex items-center justify-center"
+                            className="absolute inset-0 text-center text-xs md:text-sm font-mono text-white/60 uppercase tracking-[0.2em] flex items-center justify-center"
                         >
                             Marquez au moins une pastille
                         </motion.p>

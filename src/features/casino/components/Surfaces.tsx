@@ -131,7 +131,7 @@ export function Readout({
 }) {
     return (
         <div className="flex flex-col items-center gap-0.5">
-            <span className="text-[9px] font-mono uppercase tracking-[0.2em] text-white/35">{label}</span>
+            <span className="text-[11px] font-mono uppercase tracking-[0.2em] text-white/60">{label}</span>
             <span className={`font-black tabular-nums leading-none ${size} ${tone}`}>{value}</span>
         </div>
     );

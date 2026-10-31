@@ -347,14 +347,14 @@ export default function RadioOverlay() {
                         </div>
                     ))}
                     {filteredManifest.length === 0 && (
-                        <div className="text-center py-12 text-white/20 text-xs tracking-widest uppercase font-mono">
+                        <div className="text-center py-12 text-white/60 text-xs tracking-widest uppercase font-mono">
                             No entries found in database
                         </div>
                     )}
                 </div>
 
                 {/* Modal Footer */}
-                <div className="p-3 bg-white/5 border-t border-white/10 flex justify-between text-[8px] text-white/40 tracking-[0.3em] uppercase font-mono">
+                <div className="p-3 bg-white/5 border-t border-white/10 flex justify-between text-[11px] text-white/60 tracking-[0.3em] uppercase font-mono">
                     <span>RECORDS: {audioManifest.length}</span>
                     <span>DATABASE_SCAN_COMPLETE</span>
                 </div>
@@ -374,7 +374,7 @@ export default function RadioOverlay() {
                 <div className="flex items-center justify-between px-3 py-1 bg-white/5 border-b border-white/10">
                     <div className="flex items-center gap-2 font-mono">
                         <Music size={12} style={{ color: COLORS.primary }} />
-                        <span className="text-[10px] font-bold tracking-[0.2em]" style={{ color: COLORS.primary }}>
+                        <span className="text-[11px] font-bold tracking-[0.2em]" style={{ color: COLORS.primary }}>
                             RADIO SYSTEM
                         </span>
                     </div>
@@ -418,7 +418,7 @@ export default function RadioOverlay() {
                                         onClick={() => setIsListOpen(true)}
                                         onPointerDownCapture={(e) => e.stopPropagation()}
                                     >
-                                        <span className="block text-[9px] text-white/40 uppercase mb-1 cursor-pointer hover:text-banan-primary transition-colors">
+                                        <span className="block text-[11px] text-white/60 uppercase mb-1 cursor-pointer hover:text-banan-primary transition-colors">
                                             {error ? <span className="text-banan-red font-bold">SYSTEM ERROR</span> : "RUNNING / CLICK TO SWITCH"}
                                         </span>
                                         <span className="block text-xs font-bold truncate w-full tracking-wider cursor-pointer transition-all" style={{ color: error ? 'var(--color-banan-red)' : COLORS.primary }}>
@@ -493,7 +493,7 @@ export default function RadioOverlay() {
                             </div>
 
                             {/* Systematic Footer */}
-                            <div className="px-3 py-1 flex justify-between border-t border-white/5 opacity-30 text-[8px] uppercase tracking-widest text-white">
+                            <div className="px-3 py-1 flex justify-between border-t border-white/5 opacity-60 text-[11px] uppercase tracking-widest text-white">
                                 <span>{formatTime(currentTime)} / {formatTime(duration)}</span>
                                 <span>{isPlaying ? 'STREAMING' : 'STANDBY'}</span>
                                 <span>FAC-ID-022</span>

@@ -406,7 +406,7 @@ function LeanToolAccordionItem({ tool, isLive }: { tool: ToolCallDetail; isLive?
             </span>
 
             {inlinePreview && (
-              <span className="text-[10px] text-banan-primary/80 font-mono truncate max-w-[200px] sm:max-w-xs">
+              <span className="text-[11px] text-banan-primary/80 font-mono truncate max-w-[200px] sm:max-w-xs">
                 ({inlinePreview})
               </span>
             )}
@@ -416,17 +416,17 @@ function LeanToolAccordionItem({ tool, isLive }: { tool: ToolCallDetail; isLive?
         {/* Minimalist Status Badge & Chevron */}
         <div className="flex items-center gap-2 flex-shrink-0">
           {isRunning ? (
-            <span className="flex items-center gap-1 text-[10px] text-amber-300 font-mono">
+            <span className="flex items-center gap-1 text-[11px] text-amber-300 font-mono">
               <Activity className="w-2.5 h-2.5 animate-spin" />
               <span>En cours</span>
             </span>
           ) : isError ? (
-            <span className="flex items-center gap-1 text-[10px] text-red-400 font-mono font-bold">
+            <span className="flex items-center gap-1 text-[11px] text-red-400 font-mono font-bold">
               <AlertCircle className="w-2.5 h-2.5" />
               <span>Échec</span>
             </span>
           ) : (
-            <span className="flex items-center gap-1 text-[10px] text-emerald-400 font-mono">
+            <span className="flex items-center gap-1 text-[11px] text-emerald-400 font-mono">
               <CheckCircle2 className="w-2.5 h-2.5" />
               <span>Terminé</span>
             </span>
@@ -446,10 +446,10 @@ function LeanToolAccordionItem({ tool, isLive }: { tool: ToolCallDetail; isLive?
           {/* Optional Arguments */}
           {hasArgs && (
             <div className="flex flex-col gap-1">
-              <span className="text-[9px] uppercase tracking-wider text-white/40 font-bold">
+              <span className="text-[11px] uppercase tracking-wider text-white/60 font-bold">
                 Paramètres
               </span>
-              <pre className="p-2 rounded bg-black/90 border border-white/10 text-white/80 overflow-x-auto custom-scrollbar text-[10px] leading-relaxed select-text">
+              <pre className="p-2 rounded bg-black/90 border border-white/10 text-white/80 overflow-x-auto custom-scrollbar text-[11px] leading-relaxed select-text">
                 <code>{JSON.stringify(tool.arguments, null, 2)}</code>
               </pre>
             </div>
@@ -457,7 +457,7 @@ function LeanToolAccordionItem({ tool, isLive }: { tool: ToolCallDetail; isLive?
 
           {/* Error Alert Display */}
           {errorMessage && (
-            <div className="p-2 rounded bg-red-950/40 border border-red-500/30 text-red-200 text-[10px] flex items-start gap-1.5 font-mono select-text">
+            <div className="p-2 rounded bg-red-950/40 border border-red-500/30 text-red-200 text-[11px] flex items-start gap-1.5 font-mono select-text">
               <AlertCircle className="w-3.5 h-3.5 text-red-400 flex-shrink-0 mt-0.5" />
               <span>{errorMessage}</span>
             </div>
@@ -467,13 +467,13 @@ function LeanToolAccordionItem({ tool, isLive }: { tool: ToolCallDetail; isLive?
           {hasResult ? (
             <div className="flex flex-col gap-1">
               <div className="flex items-center justify-between">
-                <span className="text-[9px] uppercase tracking-wider text-white/40 font-bold">
+                <span className="text-[11px] uppercase tracking-wider text-white/60 font-bold">
                   Résultat
                 </span>
                 <button
                   type="button"
                   onClick={handleCopyResult}
-                  className="flex items-center gap-1 text-[9px] text-white/50 hover:text-white transition-colors cursor-pointer"
+                  className="flex items-center gap-1 text-[11px] text-white/50 hover:text-white transition-colors cursor-pointer"
                   title="Copier les données JSON"
                 >
                   {copiedResult ? (
@@ -490,12 +490,12 @@ function LeanToolAccordionItem({ tool, isLive }: { tool: ToolCallDetail; isLive?
                 </button>
               </div>
 
-              <pre className="p-2 rounded bg-black/90 border border-white/10 text-white/85 max-h-44 overflow-y-auto custom-scrollbar text-[10px] leading-relaxed font-mono select-text">
+              <pre className="p-2 rounded bg-black/90 border border-white/10 text-white/85 max-h-44 overflow-y-auto custom-scrollbar text-[11px] leading-relaxed font-mono select-text">
                 <code>{JSON.stringify(tool.result, null, 2)}</code>
               </pre>
             </div>
           ) : isRunning ? (
-            <div className="flex items-center gap-1.5 p-2 rounded bg-white/[0.02] border border-white/5 text-[10px] text-amber-300/80 animate-pulse font-mono">
+            <div className="flex items-center gap-1.5 p-2 rounded bg-white/[0.02] border border-white/5 text-[11px] text-amber-300/80 animate-pulse font-mono">
               <Activity className="w-2.5 h-2.5 animate-spin" />
               <span>Exécution de l&apos;action système...</span>
             </div>

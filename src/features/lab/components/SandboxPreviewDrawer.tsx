@@ -208,7 +208,7 @@ export function SandboxPreviewDrawer({ previewApp, onClose }: SandboxPreviewDraw
         </div>
 
         {/* Footer Status Bar */}
-        <footer className="h-7 px-3 border-t border-white/10 bg-black/60 flex items-center justify-between text-[10px] text-white/50 font-mono flex-shrink-0">
+        <footer className="h-7 px-3 border-t border-white/10 bg-black/60 flex items-center justify-between text-[11px] text-white/50 font-mono flex-shrink-0">
           <div className="flex items-center gap-1.5 text-emerald-400">
             <ShieldCheck className="w-3 h-3" />
             <span>SANDBOX SÉCURISÉE ISOLÉE</span>

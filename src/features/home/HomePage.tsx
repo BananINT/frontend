@@ -163,18 +163,18 @@ export default function HomePage() {
                             <div className="flex min-w-0 flex-col items-center justify-center overflow-hidden border-t-2 border-banan-primary bg-black/65 p-3 shadow-[0_10px_40px_rgba(0,0,0,0.4)] backdrop-blur-md sm:p-6">
                                 <Users className="w-8 h-8 text-banan-primary mb-2" />
                                 <div className="max-w-full font-black text-white"><FlipNumber value={stats.total_players} compact /></div>
-                                <div className="text-[10px] font-mono uppercase tracking-widest text-white/50">Membres</div>
+                                <div className="text-[11px] font-mono uppercase tracking-widest text-white/50">Membres</div>
                             </div>
                             <div className="flex min-w-0 flex-col items-center justify-center overflow-hidden border-t-2 border-banan-primary bg-black/65 p-3 shadow-[0_10px_40px_rgba(0,0,0,0.4)] backdrop-blur-md sm:p-6">
                                 <Banana className="w-8 h-8 text-banan-primary mb-2" />
                                 <div className="max-w-full font-black text-white"><FlipNumber value={stats.total_bananas} compact /></div>
-                                <div className="text-[10px] font-mono uppercase tracking-widest text-white/50">Bananes</div>
+                                <div className="text-[11px] font-mono uppercase tracking-widest text-white/50">Bananes</div>
                             </div>
                         </div>
 
                         {/* Left Stat - Floating on PC */}
                         <div className="group absolute left-0 top-[42%] z-20 hidden w-64 -translate-y-1/2 overflow-hidden border-l-2 border-banan-primary bg-black/70 p-6 text-left shadow-[0_20px_60px_rgba(0,0,0,0.5)] backdrop-blur-xl lg:block xl:w-72">
-                            <div className="mb-6 flex items-center justify-between text-banan-primary"><span className="font-mono text-[10px] uppercase tracking-[0.25em]">Sur le campus</span><Users className="h-7 w-7 transition-transform group-hover:scale-110" /></div>
+                            <div className="mb-6 flex items-center justify-between text-banan-primary"><span className="font-mono text-[11px] uppercase tracking-[0.25em]">Sur le campus</span><Users className="h-7 w-7 transition-transform group-hover:scale-110" /></div>
                             <div className="font-black text-white"><FlipNumber value={stats.total_players} fontSize="clamp(2rem, 2.5vw, 2.5rem)" /></div>
                             <div className="mt-3 font-mono text-xs uppercase tracking-widest text-white/55">Membres actifs</div>
                         </div>
@@ -190,7 +190,7 @@ export default function HomePage() {
 
                         {/* Right Stat - Floating on PC */}
                         <div className="group absolute right-0 top-[42%] z-20 hidden w-64 -translate-y-1/2 overflow-hidden border-r-2 border-banan-primary bg-black/70 p-6 text-right shadow-[0_20px_60px_rgba(0,0,0,0.5)] backdrop-blur-xl lg:block xl:w-72">
-                            <div className="mb-6 flex items-center justify-between text-banan-primary"><Banana className="h-7 w-7 transition-transform group-hover:-rotate-12" /><span className="font-mono text-[10px] uppercase tracking-[0.25em]">Au compteur</span></div>
+                            <div className="mb-6 flex items-center justify-between text-banan-primary"><Banana className="h-7 w-7 transition-transform group-hover:-rotate-12" /><span className="font-mono text-[11px] uppercase tracking-[0.25em]">Au compteur</span></div>
                             <div className="font-black text-white"><FlipNumber value={stats.total_bananas} fontSize="clamp(2rem, 2.5vw, 2.5rem)" /></div>
                             <div className="mt-3 font-mono text-xs uppercase tracking-widest text-white/55">Bananes farmées</div>
                         </div>

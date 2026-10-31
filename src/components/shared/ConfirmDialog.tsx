@@ -72,21 +72,21 @@ export default function ConfirmDialog({ request, busy = false, onCancel, onConfi
                 </div>
 
                 {showLedger && (
-                    <div className="rounded-xl border border-white/10 bg-black/40 p-3 space-y-1.5 font-mono text-[10px]">
+                    <div className="rounded-xl border border-white/10 bg-black/40 p-3 space-y-1.5 font-mono text-[11px]">
                         <div className="flex justify-between">
-                            <span className="text-white/40 uppercase">Coût</span>
+                            <span className="text-white/60 uppercase">Coût</span>
                             <span className="text-white font-bold tabular-nums flex items-center gap-1">
                                 {formatNumber(request.cost ?? 0)} <Banana className="h-3 w-3" />
                             </span>
                         </div>
                         <div className="flex justify-between">
-                            <span className="text-white/40 uppercase">{PURSE_LABELS[purse]}</span>
+                            <span className="text-white/60 uppercase">{PURSE_LABELS[purse]}</span>
                             <span className="text-white/60 tabular-nums">
                                 {formatNumber(request.balance ?? 0)} 🍌
                             </span>
                         </div>
                         <div className="flex justify-between pt-1.5 border-t border-white/10">
-                            <span className="text-white/40 uppercase">Après</span>
+                            <span className="text-white/60 uppercase">Après</span>
                             <span
                                 className={`font-bold tabular-nums ${short ? 'text-red-400' : 'text-banan-primary'}`}
                             >

@@ -23,7 +23,7 @@ export default function CasinoPageHeader({ icon: Icon, title, subtitle, accent, 
             <div className="relative z-10">
                 <Link
                     to="/casino"
-                    className="inline-flex items-center gap-2 text-xs font-mono text-white/40 hover:text-white uppercase tracking-widest mb-4 md:mb-6 group transition-colors"
+                    className="inline-flex items-center gap-2 text-xs font-mono text-white/60 hover:text-white uppercase tracking-widest mb-4 md:mb-6 group transition-colors"
                 >
                     <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
                     Retour au Casino

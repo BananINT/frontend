@@ -86,7 +86,7 @@ export default function Panel({
                         {title}
                     </h2>
                     {subtitle && (
-                        <p className="mt-1.5 font-mono text-[10px] text-white/40 uppercase leading-relaxed">
+                        <p className="mt-1.5 font-mono text-[11px] text-white/60 uppercase leading-relaxed">
                             {subtitle}
                         </p>
                     )}

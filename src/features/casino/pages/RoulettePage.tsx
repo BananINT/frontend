@@ -115,15 +115,15 @@ export default function RoulettePage() {
                     ) : (
                         <>
                             <div className="text-center space-y-2">
-                                <p className="text-[10px] font-mono text-white/50 uppercase leading-relaxed max-w-sm mx-auto">
+                                <p className="text-[11px] font-mono text-white/50 uppercase leading-relaxed max-w-sm mx-auto">
                                     6 chambres. 5 saines (Gagnez 30M 🍌), 1 pourrie (SUIE + CLICS 0 pendant 5 minutes). Le barillet est partagé par le clan !
                                 </p>
                                 <div className="bg-black/50 border border-white/10 p-4 rounded-2xl max-w-xs mx-auto text-center space-y-1">
-                                    <div className="text-[10px] font-mono text-white/40 uppercase">Chambres restantes</div>
+                                    <div className="text-[11px] font-mono text-white/60 uppercase">Chambres restantes</div>
                                     <div className="text-3xl font-black text-banan-primary">
                                         {rouletteState?.remaining_chambers !== undefined ? rouletteState.remaining_chambers : 6} / 6
                                     </div>
-                                    <div className="text-[10px] font-mono text-red-500 uppercase font-bold tracking-widest">
+                                    <div className="text-[11px] font-mono text-red-500 uppercase font-bold tracking-widest">
                                         Risque d'explosion : {rouletteState?.dud_chance !== undefined ? rouletteState.dud_chance : '16.7'}%
                                     </div>
                                 </div>
@@ -136,10 +136,10 @@ export default function RoulettePage() {
                             />
 
                             {/* Logs Terminal */}
-                            <div className="bg-black/70 border border-white/10 p-3 rounded-xl font-mono text-[10px] text-banan-primary/80 h-24 overflow-y-auto">
-                                <div className="text-white/30 uppercase border-b border-white/5 pb-1 mb-1 font-bold">Flux de l'Unité</div>
+                            <div className="bg-black/70 border border-white/10 p-3 rounded-xl font-mono text-[11px] text-banan-primary/80 h-24 overflow-y-auto">
+                                <div className="text-white/60 uppercase border-b border-white/5 pb-1 mb-1 font-bold">Flux de l'Unité</div>
                                 {recentPulls.length === 0 ? (
-                                    <div className="text-white/20 italic">Aucun tirage récent...</div>
+                                    <div className="text-white/60 italic">Aucun tirage récent...</div>
                                 ) : (
                                     recentPulls.map((line, idx) => (
                                         <div key={idx} className="truncate">{`> ${line}`}</div>
@@ -183,16 +183,16 @@ export default function RoulettePage() {
                                                             : '💥 BOOM ! Le pistolet a explosé !'}
                                                     </div>
                                                     {hitJackpot && (
-                                                        <div className="relative z-10 text-[10px] text-cyan-300 font-extrabold animate-pulse mt-1">
+                                                        <div className="relative z-10 text-[11px] text-cyan-300 font-extrabold animate-pulse mt-1">
                                                             ⚡ SURGE DE POTASSIUM ACTIVÉE ! +{formatNumber(rouletteOutcome.global_jackpot_won!)} 🍌 DU JACKPOT ⚡
                                                         </div>
                                                     )}
                                                     {hitDud && (
-                                                        <p className="relative z-10 text-[10px] text-red-400/50 mt-1">Vous êtes couvert de suie</p>
+                                                        <p className="relative z-10 text-[11px] text-red-400/80 mt-1">Vous êtes couvert de suie</p>
                                                     )}
                                                     <button
                                                         onClick={() => setRouletteOutcome(null)}
-                                                        className="relative z-10 mt-3 text-[10px] underline text-white/50 hover:text-white"
+                                                        className="relative z-10 mt-3 text-[11px] underline text-white/50 hover:text-white"
                                                     >
                                                         Fermer
                                                     </button>
@@ -205,7 +205,7 @@ export default function RoulettePage() {
                                 {/* Right above the trigger, so the player never has
                                     to look away from the cylinder to check their
                                     balance against the 10M stake. */}
-                                <div className="flex justify-between items-center text-[10px] font-mono uppercase text-white/35 mb-2">
+                                <div className="flex justify-between items-center text-[11px] font-mono uppercase text-white/60 mb-2">
                                     <span>Solde disponible</span>
                                     <span
                                         className={`flex items-center gap-1 tabular-nums ${

@@ -104,7 +104,7 @@ export function MermaidRenderer({ code }: MermaidRendererProps) {
   return (
     <div className="my-3 rounded-xl border border-white/15 bg-[#0a0a0a] overflow-hidden shadow-2xl font-mono">
       {/* Header Bar */}
-      <div className="flex items-center justify-between px-3 py-1.5 bg-white/[0.04] border-b border-white/10 text-[10px] text-white/70">
+      <div className="flex items-center justify-between px-3 py-1.5 bg-white/[0.04] border-b border-white/10 text-[11px] text-white/70">
         <div className="flex items-center gap-2">
           <Network className="w-3.5 h-3.5 text-banan-primary" />
           <span className="font-bold uppercase tracking-wider text-white/90">Diagramme Mermaid</span>
@@ -116,7 +116,7 @@ export function MermaidRenderer({ code }: MermaidRendererProps) {
             <button
               type="button"
               onClick={() => setViewMode(viewMode === 'diagram' ? 'code' : 'diagram')}
-              className="flex items-center gap-1 px-2 py-0.5 rounded text-[9px] bg-white/10 hover:bg-white/20 text-white/90 transition-all cursor-pointer"
+              className="flex items-center gap-1 px-2 py-0.5 rounded text-[11px] bg-white/10 hover:bg-white/20 text-white/90 transition-all cursor-pointer"
               title={viewMode === 'diagram' ? 'Afficher la source Mermaid' : 'Afficher le diagramme rendu'}
             >
               {viewMode === 'diagram' ? (
@@ -138,7 +138,7 @@ export function MermaidRenderer({ code }: MermaidRendererProps) {
             <button
               type="button"
               onClick={() => setIsExpanded(!isExpanded)}
-              className="flex items-center gap-1 px-2 py-0.5 rounded text-[9px] bg-white/10 hover:bg-white/20 text-white/90 transition-all cursor-pointer"
+              className="flex items-center gap-1 px-2 py-0.5 rounded text-[11px] bg-white/10 hover:bg-white/20 text-white/90 transition-all cursor-pointer"
               title={isExpanded ? 'Réduire la hauteur' : 'Afficher en plein format'}
             >
               {isExpanded ? (
@@ -159,7 +159,7 @@ export function MermaidRenderer({ code }: MermaidRendererProps) {
           <button
             type="button"
             onClick={handleCopy}
-            className="flex items-center gap-1 px-2 py-0.5 rounded hover:bg-white/10 text-white/60 hover:text-white transition-colors cursor-pointer text-[9px]"
+            className="flex items-center gap-1 px-2 py-0.5 rounded hover:bg-white/10 text-white/60 hover:text-white transition-colors cursor-pointer text-[11px]"
             title="Copier le code Mermaid"
           >
             {copied ? (
@@ -207,7 +207,7 @@ export function MermaidRenderer({ code }: MermaidRendererProps) {
               dangerouslySetInnerHTML={{ __html: displaySvg }}
             />
           ) : (
-            <div className="text-white/40 text-xs flex items-center gap-2 py-6">
+            <div className="text-white/60 text-xs flex items-center gap-2 py-6">
               <span className="w-2 h-2 rounded-full bg-banan-primary animate-ping" />
               <span>Génération du diagramme...</span>
             </div>

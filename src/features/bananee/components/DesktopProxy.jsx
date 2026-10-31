@@ -133,7 +133,7 @@ export default function DesktopProxy({ url }) {
 
       {/* Orientation Hint (Only show if we are actively playing) */}
       {!needsInteraction && dimensions.height > dimensions.width && (
-         <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-black/50 text-banan-primary text-[10px] px-2 py-1 rounded border border-banan-primary pointer-events-none animate-pulse z-[10001]">
+         <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-black/50 text-banan-primary text-[11px] px-2 py-1 rounded border border-banan-primary pointer-events-none animate-pulse z-[10001]">
            Tournez l'écran ⟳
          </div>
       )}

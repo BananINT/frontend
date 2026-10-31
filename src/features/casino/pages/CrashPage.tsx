@@ -137,7 +137,7 @@ export default function CrashPage() {
 
                 {/* Instrument header */}
                 <div className="relative flex items-center justify-between px-4 py-2 border-b border-white/10 bg-black/40">
-                    <span className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-[0.25em] text-white/40">
+                    <span className="flex items-center gap-2 text-[11px] font-mono uppercase tracking-[0.25em] text-white/60">
                         <motion.span
                             animate={running ? { opacity: [1, 0.2, 1] } : { opacity: 0.3 }}
                             transition={{ repeat: Infinity, duration: 1 }}
@@ -145,7 +145,7 @@ export default function CrashPage() {
                         />
                         {running ? 'Acquisition' : 'Veille'}
                     </span>
-                    <span className="text-[10px] font-mono uppercase tracking-[0.25em] text-white/25">
+                    <span className="text-[11px] font-mono uppercase tracking-[0.25em] text-white/60">
                         T+{drawT.toFixed(1)}s
                     </span>
                 </div>
@@ -357,7 +357,7 @@ export default function CrashPage() {
                             disabled={running}
                             className="w-24 bg-black/40 border border-white/10 rounded-lg px-3 py-1.5 text-sm font-mono text-banan-primary text-right focus:border-banan-primary outline-none disabled:opacity-40"
                         />
-                        <span className="text-sm font-mono text-white/40">×</span>
+                        <span className="text-sm font-mono text-white/60">×</span>
                     </div>
                 </div>
             </BetControls>

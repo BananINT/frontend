@@ -39,10 +39,10 @@ export default function FallenBananiers() {
                         >
                             <div className="mb-2 md:mb-0">
                                 <span className="text-left text-banan-primary font-bold block transition-colors">{user.name}</span>
-                                <span className="text-left text-white/50 text-[10px] md:text-xs font-mono transition-colors">RECORD: {user.record}</span>
+                                <span className="text-left text-white/50 text-[11px] md:text-xs font-mono transition-colors">RECORD: {user.record}</span>
                             </div>
                             <div className="text-left">
-                                <span className="text-red-500/80 text-[10px] md:text-xs block uppercase font-mono memorial-pulse">FATAL 0xERROR: {user.reason}</span>
+                                <span className="text-red-500/80 text-[11px] md:text-xs block uppercase font-mono memorial-pulse">FATAL 0xERROR: {user.reason}</span>
                             </div>
                         </motion.div>
                     ))}

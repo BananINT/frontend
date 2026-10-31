@@ -32,7 +32,7 @@ export default function Footer() {
 
                     {/* Navigation */}
                     <div className="space-y-4">
-                        <h4 className="text-sm font-bold uppercase text-white/40 tracking-widest">Navigation</h4>
+                        <h4 className="text-sm font-bold uppercase text-white/60 tracking-widest">Navigation</h4>
                         <ul className="space-y-2 text-sm">
                             <li>
                                 <Link to="/" className="text-white/70 hover:text-banan-primary transition-colors flex items-center gap-2 group">
@@ -75,7 +75,7 @@ export default function Footer() {
 
                     {/* Reseaux */}
                     <div className="space-y-4">
-                        <h4 className="text-sm font-bold uppercase text-white/40 tracking-widest">Réseaux</h4>
+                        <h4 className="text-sm font-bold uppercase text-white/60 tracking-widest">Réseaux</h4>
                         <div className="flex gap-4">
                             <a href="https://www.instagram.com/bananint" target="_blank" rel="noreferrer" className="w-10 h-10 flex items-center justify-center rounded-xl bg-white/5 border border-white/10 hover:bg-banan-primary hover:text-black hover:border-banan-primary transition-all group">
                                 <InstagramIcon className="w-5 h-5" />
@@ -88,9 +88,9 @@ export default function Footer() {
                 </div>
 
                 {/* Bottom Bar */}
-                <div className="pt-8 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-4 text-[10px] uppercase font-bold tracking-widest text-white/40">
+                <div className="pt-8 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-4 text-[11px] uppercase font-bold tracking-widest text-white/60">
                     <div className="flex items-center gap-4">
-                        <span className="hover:text-white/40 transition-colors">
+                        <span className="hover:text-white transition-colors">
                             {new Date().getFullYear()} BananINT©
                         </span>
                         <span className="hidden md:inline text-white/20">|</span>

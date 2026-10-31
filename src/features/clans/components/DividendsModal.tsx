@@ -86,47 +86,47 @@ export default function DividendsModal({ clan, members, userId, onClose }: Divid
                     </button>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3 font-mono text-[10px]">
+                <div className="grid grid-cols-2 gap-3 font-mono text-[11px]">
                     <div className="rounded-xl border border-white/10 bg-black/40 p-3 space-y-1">
-                        <p className="text-white/40 uppercase">Trésor total</p>
+                        <p className="text-white/60 uppercase">Trésor total</p>
                         <p className="text-sm font-bold text-white tabular-nums">{formatNumber(treasury)} 🍌</p>
                     </div>
                     <div className="rounded-xl border border-white/10 bg-black/40 p-3 space-y-1">
-                        <p className="text-white/40 uppercase">Intérêt quotidien (1%)</p>
+                        <p className="text-white/60 uppercase">Intérêt quotidien (1%)</p>
                         <p className="text-sm font-bold text-banan-primary tabular-nums">
                             +{formatNumber(dailyInterest)} 🍌
                         </p>
                     </div>
                     <div className="rounded-xl border border-white/10 bg-black/40 p-3 space-y-1">
-                        <p className="text-white/40 uppercase">Votre part de dons</p>
+                        <p className="text-white/60 uppercase">Votre part de dons</p>
                         <p className="text-sm font-bold text-white tabular-nums">
                             {(share * 100).toFixed(2)}%
                         </p>
                     </div>
                     <div className="rounded-xl border border-white/10 bg-black/40 p-3 space-y-1">
-                        <p className="text-white/40 uppercase">Dividende estimé / jour</p>
+                        <p className="text-white/60 uppercase">Dividende estimé / jour</p>
                         <p className="text-sm font-bold text-green-400 tabular-nums">
                             +{formatNumber(myDividend)} 🍌
                         </p>
                     </div>
                 </div>
 
-                <div className="text-[9px] font-mono text-white/50 bg-white/5 p-2.5 border border-white/10 rounded-lg leading-relaxed">
+                <div className="text-[11px] font-mono text-white/50 bg-white/5 p-2.5 border border-white/10 rounded-lg leading-relaxed">
                     💡 <span className="text-banan-primary font-bold">FONCTIONNEMENT :</span> 1% d'intérêt
                     est calculé et distribué toutes les 24 heures à minuit, au prorata de votre
                     contribution au trésor.
                 </div>
 
                 <div className="flex-1 overflow-y-auto space-y-2 pr-1 min-h-[140px]">
-                    <h4 className="text-[10px] font-mono font-bold uppercase text-white/40 tracking-wider">
+                    <h4 className="text-[11px] font-mono font-bold uppercase text-white/60 tracking-wider">
                         Historique de l'unité
                     </h4>
                     {loading ? (
-                        <p className="text-[10px] font-mono text-white/30 text-center py-6 animate-pulse">
+                        <p className="text-[11px] font-mono text-white/60 text-center py-6 animate-pulse">
                             Chargement...
                         </p>
                     ) : transactions.length === 0 ? (
-                        <p className="text-[10px] font-mono text-white/30 text-center py-6">
+                        <p className="text-[11px] font-mono text-white/60 text-center py-6">
                             Aucune transaction enregistrée.
                         </p>
                     ) : (
@@ -137,12 +137,12 @@ export default function DividendsModal({ clan, members, userId, onClose }: Divid
                             return (
                                 <div
                                     key={tx.id}
-                                    className="flex justify-between items-center bg-black/30 border border-white/5 p-2 rounded-lg font-mono text-[9px]"
+                                    className="flex justify-between items-center bg-black/30 border border-white/5 p-2 rounded-lg font-mono text-[11px]"
                                 >
                                     <div className="space-y-0.5 min-w-0">
                                         <div className="flex items-center gap-1.5">
                                             <span
-                                                className={`font-bold px-1 rounded text-[8px] uppercase ${
+                                                className={`font-bold px-1 rounded text-[11px] uppercase ${
                                                     isCredit
                                                         ? 'text-green-400 bg-green-500/10'
                                                         : 'text-red-400 bg-red-500/10'
@@ -154,12 +154,12 @@ export default function DividendsModal({ clan, members, userId, onClose }: Divid
                                                 <span className="text-white/60 truncate">par {tx.username}</span>
                                             )}
                                         </div>
-                                        <p className="text-white/30 text-[8px]">
+                                        <p className="text-white/60 text-[11px]">
                                             {new Date(tx.timestamp).toLocaleString()}
                                         </p>
                                     </div>
                                     <span
-                                        className={`text-[10px] font-bold tabular-nums shrink-0 ${
+                                        className={`text-[11px] font-bold tabular-nums shrink-0 ${
                                             isCredit ? 'text-green-400' : 'text-red-400'
                                         }`}
                                     >

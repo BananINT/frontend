@@ -216,17 +216,17 @@ function GameCard({ game, index }: { game: Game; index: number }) {
                             {game.title}
                         </h3>
                     </div>
-                    <p className="font-mono text-[11px] text-white/45 leading-relaxed">{game.description}</p>
+                    <p className="font-mono text-[11px] text-white/60 leading-relaxed">{game.description}</p>
                 </div>
 
                 <div className="relative z-10 mt-4 flex items-center justify-between">
                     <span
-                        className={`font-mono text-[10px] ${c.cta} uppercase font-bold flex items-center gap-1.5 group-hover:gap-2.5 transition-all`}
+                        className={`font-mono text-[11px] ${c.cta} uppercase font-bold flex items-center gap-1.5 group-hover:gap-2.5 transition-all`}
                     >
                         Jouer <span className="text-sm">→</span>
                     </span>
                     {game.tag && (
-                        <span className="font-mono text-[9px] uppercase text-white/30 border border-white/10 rounded px-1.5 py-0.5">
+                        <span className="font-mono text-[11px] uppercase text-white/60 border border-white/10 rounded px-1.5 py-0.5">
                             {game.tag}
                         </span>
                     )}
@@ -329,11 +329,11 @@ export default function CasinoPage() {
                                 {section.title}
                             </h2>
                             <div className="h-px bg-white/10 flex-1" />
-                            <span className="font-mono text-[10px] text-white/25 uppercase">
+                            <span className="font-mono text-[11px] text-white/60 uppercase">
                                 {section.games.length} table{section.games.length > 1 ? 's' : ''}
                             </span>
                         </div>
-                        <p className="font-mono text-[11px] text-white/35 uppercase mb-5">{section.blurb}</p>
+                        <p className="font-mono text-[11px] text-white/60 uppercase mb-5">{section.blurb}</p>
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                             {section.games.map((game, index) => (

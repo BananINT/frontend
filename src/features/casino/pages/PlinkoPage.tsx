@@ -224,7 +224,7 @@ export default function PlinkoPage() {
                             className="w-2 h-2 rounded-full bg-banan-primary"
                         />
                     ))}
-                    <span className="text-[9px] font-mono uppercase tracking-[0.3em] text-white/25">
+                    <span className="text-[11px] font-mono uppercase tracking-[0.3em] text-white/60">
                         Profil {risk}
                         {balls.length > 1 && ` · ${balls.length} billes`}
                     </span>

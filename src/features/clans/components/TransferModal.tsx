@@ -59,7 +59,7 @@ export default function TransferModal({ recipient, onClose, onDone }: TransferMo
                 </div>
 
                 <div className="space-y-3">
-                    <label className="text-[10px] font-mono text-white/50 uppercase tracking-widest block">
+                    <label className="text-[11px] font-mono text-white/50 uppercase tracking-widest block">
                         Montant à transférer
                     </label>
                     <div className="relative">
@@ -77,16 +77,16 @@ export default function TransferModal({ recipient, onClose, onDone }: TransferMo
                             <button
                                 key={share}
                                 onClick={() => setAmount(Math.floor(gameState.bananas * share))}
-                                className="py-1.5 rounded-lg border border-white/10 bg-black/30 text-[10px] font-mono uppercase text-white/60 hover:text-white hover:border-white/40 transition-colors"
+                                className="py-1.5 rounded-lg border border-white/10 bg-black/30 text-[11px] font-mono uppercase text-white/60 hover:text-white hover:border-white/40 transition-colors"
                             >
                                 {share === 1 ? 'Max' : `${share * 100}%`}
                             </button>
                         ))}
                     </div>
-                    <div className="text-[10px] font-mono text-white/30 uppercase">
+                    <div className="text-[11px] font-mono text-white/60 uppercase">
                         Votre solde : {formatNumber(gameState.bananas)} 🍌
                     </div>
-                    {error && <p className="text-[10px] font-mono text-red-400 uppercase">{error}</p>}
+                    {error && <p className="text-[11px] font-mono text-red-400 uppercase">{error}</p>}
                 </div>
 
                 <div className="flex gap-3">

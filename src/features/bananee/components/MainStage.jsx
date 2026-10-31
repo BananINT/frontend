@@ -323,7 +323,7 @@ export default function MainStage() {
                 </h2>
                 <div className="flex items-center justify-center gap-2 sm:gap-4 mt-2">
                   <span className="hidden sm:block h-[1px] w-8 bg-banan-primary/50" />
-                  <p className="text-white/70 font-mono text-[10px] sm:text-xs uppercase tracking-[0.2em]">
+                  <p className="text-white/70 font-mono text-[11px] sm:text-xs uppercase tracking-[0.2em]">
                     Téléportation...
                   </p>
                   <span className="hidden sm:block h-[1px] w-8 bg-banan-primary/50" />
@@ -369,7 +369,7 @@ export default function MainStage() {
           <Oracle />
 
           <div className="flex flex-col items-center justify-center text-center">
-            <div className="text-gray-600 text-[10px] font-mono mb-2 uppercase tracking-widest">Identification du Sujet</div>
+            <div className="text-gray-400 text-[11px] font-mono mb-2 uppercase tracking-widest">Identification du Sujet</div>
             <button 
               onClick={promptForUsername}
               className="text-banan-primary font-bold font-mono text-xs hover:bg-banan-primary hover:text-banan-background px-4 py-2 border border-banan-primary transition-all uppercase"

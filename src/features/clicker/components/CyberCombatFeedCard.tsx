@@ -35,7 +35,7 @@ export default function CyberCombatFeedCard() {
             className="border-t-0 p-4 md:p-6 justify-between h-full"
             headerClassName="mb-4"
             rightElement={
-                <span className="font-mono text-[9px] text-white/40">
+                <span className="font-mono text-[11px] text-white/60">
                     INTERCEPTIONS EN CONTINU
                 </span>
             }
@@ -47,7 +47,7 @@ export default function CyberCombatFeedCard() {
                     className="flex-1 overflow-y-auto space-y-2 max-h-[260px] pr-1"
                 >
                     {feed.length === 0 ? (
-                        <div className="py-12 text-center text-xs font-mono text-white/30 uppercase">
+                        <div className="py-12 text-center text-xs font-mono text-white/60 uppercase">
                             Écoute des fréquences tactiques en cours...
                         </div>
                     ) : (
@@ -71,7 +71,7 @@ export default function CyberCombatFeedCard() {
                                         {!isPolice && !isDarknet && <Zap className="h-3.5 w-3.5 text-yellow-400" />}
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                        <div className="flex items-center justify-between text-[9px] font-mono text-white/40 mb-0.5">
+                                        <div className="flex items-center justify-between text-[11px] font-mono text-white/60 mb-0.5">
                                             <span className="uppercase font-bold tracking-wider">{entry.type}</span>
                                             <span>{entry.time}</span>
                                         </div>
@@ -86,7 +86,7 @@ export default function CyberCombatFeedCard() {
                 </div>
             </div>
 
-            <div className="pt-4 text-[9px] font-mono text-white/30 leading-tight border-t border-white/10 mt-4 flex items-center justify-between">
+            <div className="pt-4 text-[11px] font-mono text-white/60 leading-tight border-t border-white/10 mt-4 flex items-center justify-between">
                 <span>Flux chiffré AES-256</span>
                 <span className="text-banan-primary">CANAL 108.4 MHz</span>
             </div>

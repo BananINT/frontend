@@ -13,7 +13,7 @@ interface FairnessPanelProps {
 function Row({ label, value }: { label: string; value: string }) {
     return (
         <div className="flex items-start gap-3 py-1.5 border-b border-white/5 last:border-0">
-            <span className="text-[10px] font-mono text-white/40 uppercase w-32 shrink-0 pt-0.5">{label}</span>
+            <span className="text-[11px] font-mono text-white/60 uppercase w-32 shrink-0 pt-0.5">{label}</span>
             <span className="text-[11px] font-mono text-white/70 break-all flex-1">{value}</span>
             <button
                 onClick={() => navigator.clipboard?.writeText(value)}
@@ -59,7 +59,7 @@ export default function FairnessPanel({ proof }: FairnessPanelProps) {
                     RNG Vérifiable
                 </span>
                 {proof && (
-                    <span className="text-[10px] font-mono text-white/30 hidden sm:inline">
+                    <span className="text-[11px] font-mono text-white/60 hidden sm:inline">
                         nonce {proof.nonce}
                     </span>
                 )}
@@ -77,7 +77,7 @@ export default function FairnessPanel({ proof }: FairnessPanelProps) {
                         className="overflow-hidden"
                     >
                         <div className="px-5 pb-5 pt-1">
-                            <p className="text-[11px] font-mono text-white/40 leading-relaxed mb-3">
+                            <p className="text-[11px] font-mono text-white/60 leading-relaxed mb-3">
                                 Chaque tirage vient de HMAC-SHA256(graine serveur, « graine client:nonce »).
                                 L'empreinte de la graine serveur est publiée <em>avant</em> votre mise. Faites
                                 tourner la paire pour révéler la graine et rejouer tous vos tirages.
@@ -114,7 +114,7 @@ export default function FairnessPanel({ proof }: FairnessPanelProps) {
 
                             {state?.history && state.history.length > 0 && (
                                 <div className="mt-4">
-                                    <p className="text-[10px] font-mono text-white/30 uppercase tracking-widest mb-2">
+                                    <p className="text-[11px] font-mono text-white/60 uppercase tracking-widest mb-2">
                                         Graines révélées ({state.history.length})
                                     </p>
                                     <div className="bg-black/40 rounded-xl px-4 py-2 max-h-48 overflow-y-auto">
@@ -122,7 +122,7 @@ export default function FairnessPanel({ proof }: FairnessPanelProps) {
                                             <div key={entry.server_seed} className="py-2 border-b border-white/5 last:border-0">
                                                 <Row label="Graine serveur" value={entry.server_seed} />
                                                 <Row label="Son empreinte" value={entry.server_seed_hash} />
-                                                <p className="text-[10px] font-mono text-white/25 mt-1">
+                                                <p className="text-[11px] font-mono text-white/60 mt-1">
                                                     {entry.rolls} tirage(s) sous la graine client « {entry.client_seed} »
                                                 </p>
                                             </div>

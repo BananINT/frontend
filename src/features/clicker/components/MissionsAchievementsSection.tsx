@@ -57,7 +57,7 @@ export default function MissionsAchievementsSection() {
             className="w-full border-t border-white/10 p-0"
             headerClassName="p-4 mb-0"
             rightElement={
-                <div className="font-mono text-[10px] text-white/50 flex items-center gap-2">
+                <div className="font-mono text-[11px] text-white/50 flex items-center gap-2">
                     <Medal className="h-3 w-3 text-banan-primary" />
                     ACCOMPLISSEMENT GLOBAL : <span className="font-bold text-banan-primary">{unlockedAchievementsCount}/{totalAchievements} ({achPercent}%)</span>
                 </div>
@@ -77,16 +77,16 @@ export default function MissionsAchievementsSection() {
                         <div className="flex border border-white/10">
                             <button
                                 onClick={() => setMissionTab('personal')}
-                                className={`px-3 py-1 text-[10px] font-mono font-bold uppercase transition-colors ${
-                                    missionTab === 'personal' ? 'bg-banan-primary text-black' : 'text-white/40 hover:text-white'
+                                className={`px-3 py-1 text-[11px] font-mono font-bold uppercase transition-colors ${
+                                    missionTab === 'personal' ? 'bg-banan-primary text-black' : 'text-white/60 hover:text-white'
                                 }`}
                             >
                                 Personnelles
                             </button>
                             <button
                                 onClick={() => setMissionTab('clan')}
-                                className={`px-3 py-1 text-[10px] font-mono font-bold uppercase transition-colors flex items-center gap-1 ${
-                                    missionTab === 'clan' ? 'bg-banan-primary text-black' : 'text-white/40 hover:text-white'
+                                className={`px-3 py-1 text-[11px] font-mono font-bold uppercase transition-colors flex items-center gap-1 ${
+                                    missionTab === 'clan' ? 'bg-banan-primary text-black' : 'text-white/60 hover:text-white'
                                 }`}
                             >
                                 <Users className="h-3 w-3" /> Unité (Clan)
@@ -96,7 +96,7 @@ export default function MissionsAchievementsSection() {
 
                     <div className="space-y-3 overflow-y-auto max-h-[480px] pr-1">
                         {filteredMissions.length === 0 ? (
-                            <div className="p-8 text-center text-xs font-mono text-white/30 uppercase">
+                            <div className="p-8 text-center text-xs font-mono text-white/60 uppercase">
                                 {missionTab === 'clan' && !gameState.clan_id
                                     ? "Rejoignez un clan pour débloquer les missions d'unité."
                                     : "Aucune mission en cours dans cette catégorie."}
@@ -125,7 +125,7 @@ export default function MissionsAchievementsSection() {
                                                     <Target className="h-3.5 w-3.5 text-banan-primary" />
                                                     <span className="font-bold font-mono text-xs uppercase text-white">{mission.name}</span>
                                                 </div>
-                                                <p className="text-[10px] text-white/50 mt-1 font-mono">{mission.desc}</p>
+                                                <p className="text-[11px] text-white/50 mt-1 font-mono">{mission.desc}</p>
                                             </div>
                                             <div className="text-right">
                                                 <span className="text-xs font-bold text-banan-primary font-mono flex items-center gap-1">
@@ -135,7 +135,7 @@ export default function MissionsAchievementsSection() {
                                         </div>
 
                                         <div className="mt-2">
-                                            <div className="flex justify-between text-[9px] font-mono text-white/60 mb-1">
+                                            <div className="flex justify-between text-[11px] font-mono text-white/60 mb-1">
                                                 <span>{hasPersonal ? 'PROGRESSION CLAN' : 'PROGRESSION'}</span>
                                                 <span>{formatNumber(progress)} / {formatNumber(mission.target)} ({percent}%)</span>
                                             </div>
@@ -147,7 +147,7 @@ export default function MissionsAchievementsSection() {
                                             </div>
                                             {hasPersonal && (
                                                 <>
-                                                    <div className="flex justify-between text-[9px] font-mono text-white/60 mt-2 mb-1">
+                                                    <div className="flex justify-between text-[11px] font-mono text-white/60 mt-2 mb-1">
                                                         <span>VOTRE CONTRIBUTION</span>
                                                         <span>{formatNumber(personalProgress)} / {formatNumber(personalTarget)} ({personalPercent}%)</span>
                                                     </div>
@@ -170,7 +170,7 @@ export default function MissionsAchievementsSection() {
                                             </button>
                                         )}
                                         {isClaimed && (
-                                            <div className="mt-3 w-full bg-black/60 border border-banan-primary/30 text-banan-primary/60 font-bold font-mono text-[10px] uppercase py-1.5 text-center flex items-center justify-center gap-1.5">
+                                            <div className="mt-3 w-full bg-black/60 border border-banan-primary/30 text-banan-primary/60 font-bold font-mono text-[11px] uppercase py-1.5 text-center flex items-center justify-center gap-1.5">
                                                 <CheckCircle2 className="h-3.5 w-3.5" /> REÇU
                                             </div>
                                         )}
@@ -190,7 +190,7 @@ export default function MissionsAchievementsSection() {
                                 Dossier Mérite & Distinctions
                             </h3>
                         </div>
-                        <div className="text-[10px] font-mono text-white/40">
+                        <div className="text-[11px] font-mono text-white/60">
                             {unlockedAchievementsCount} / {totalAchievements} ACQUIS
                         </div>
                     </div>
@@ -255,12 +255,12 @@ export default function MissionsAchievementsSection() {
                                         }`}>
                                             {ach.label}
                                         </div>
-                                        <div className="text-[10px] font-mono text-white/40 truncate mt-0.5">
+                                        <div className="text-[11px] font-mono text-white/60 truncate mt-0.5">
                                             {ach.description}
                                         </div>
                                     </div>
                                     {isUnlocked && (
-                                        <span className="text-[9px] font-mono font-bold text-banan-primary border border-banan-primary/40 bg-banan-primary/10 px-2 py-0.5 rounded uppercase tracking-wider shrink-0">
+                                        <span className="text-[11px] font-mono font-bold text-banan-primary border border-banan-primary/40 bg-banan-primary/10 px-2 py-0.5 rounded uppercase tracking-wider shrink-0">
                                             ACQUIS
                                         </span>
                                     )}

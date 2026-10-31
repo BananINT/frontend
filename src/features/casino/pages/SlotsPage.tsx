@@ -194,7 +194,7 @@ export default function SlotsPage() {
                                         + <AnimatedCounter value={resultData.payout} /> 🍌
                                     </motion.h3>
                                     {hitJackpot && (
-                                        <div className="relative z-10 text-[10px] md:text-xs font-mono text-cyan-300 font-black uppercase tracking-widest animate-pulse mt-1">
+                                        <div className="relative z-10 text-[11px] md:text-xs font-mono text-cyan-300 font-black uppercase tracking-widest animate-pulse mt-1">
                                             ⚡ MEGA JACKPOT GLOBAL ACCORDÉ ! ⚡
                                         </div>
                                     )}
@@ -223,7 +223,7 @@ export default function SlotsPage() {
                                     animate={{ opacity: 1 }}
                                     className="text-center w-full"
                                 >
-                                    <p className="text-sm font-mono text-white/40 uppercase">Rien cette fois...</p>
+                                    <p className="text-sm font-mono text-white/60 uppercase">Rien cette fois...</p>
                                 </motion.div>
                             )}
                         </AnimatePresence>
@@ -266,7 +266,7 @@ export default function SlotsPage() {
 
                         {/* Right above the spin button, so the player never has
                             to look away from the reels to check their balance. */}
-                        <div className="flex justify-between items-center text-[10px] font-mono uppercase text-white/35">
+                        <div className="flex justify-between items-center text-[11px] font-mono uppercase text-white/60">
                             <span>Solde disponible</span>
                             <span
                                 className={`flex items-center gap-1 tabular-nums ${

@@ -99,12 +99,12 @@ export default function BetControls({
                 </button>
             </div>
 
-            {hint && <p className="text-[10px] font-mono text-white/30 uppercase leading-relaxed">{hint}</p>}
+            {hint && <p className="text-[11px] font-mono text-white/60 uppercase leading-relaxed">{hint}</p>}
 
             {/* Right above the play button, so the player never has to look
                 away from the table (or scroll up to the lobby header) to
                 check what they can safely stake. */}
-            <div className="flex justify-between items-center text-[10px] font-mono uppercase text-white/35">
+            <div className="flex justify-between items-center text-[11px] font-mono uppercase text-white/60">
                 <span>Solde disponible</span>
                 <span
                     className={`flex items-center gap-1 tabular-nums ${

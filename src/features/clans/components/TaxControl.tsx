@@ -58,7 +58,7 @@ export default function TaxControl() {
         <div className="space-y-4">
             <div className="flex items-end justify-between gap-3">
                 <div>
-                    <div className="text-[10px] font-mono text-white/40 uppercase tracking-widest">
+                    <div className="text-[11px] font-mono text-white/60 uppercase tracking-widest">
                         Taux appliqué
                     </div>
                     <div className="text-3xl font-black text-banan-primary tabular-nums flex items-center">
@@ -72,7 +72,7 @@ export default function TaxControl() {
                             initial={{ opacity: 0, y: 6 }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0 }}
-                            className="inline-flex items-center gap-1.5 text-[10px] font-mono uppercase text-green-400"
+                            className="inline-flex items-center gap-1.5 text-[11px] font-mono uppercase text-green-400"
                         >
                             <Check className="h-3 w-3" /> Enregistré
                         </motion.span>
@@ -80,7 +80,7 @@ export default function TaxControl() {
                 </AnimatePresence>
             </div>
 
-            <p className="text-[10px] font-mono text-white/40 uppercase leading-relaxed">
+            <p className="text-[11px] font-mono text-white/60 uppercase leading-relaxed">
                 Prélève automatiquement une part de vos gains (clics et BPS) et la verse au trésor
                 de l'unité. Elle compte comme un don.
             </p>
@@ -118,22 +118,22 @@ export default function TaxControl() {
                     className="w-full accent-banan-primary cursor-pointer"
                     aria-label="Taux de taxe personnalisé"
                 />
-                <div className="flex items-center justify-between text-[9px] font-mono text-white/30 uppercase">
+                <div className="flex items-center justify-between text-[11px] font-mono text-white/60 uppercase">
                     <span>0%</span>
                     <span>Réglage fin : {draft}%</span>
                     <span>{MAX_TAX_PERCENT}%</span>
                 </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-2 text-[10px] font-mono">
+            <div className="grid grid-cols-2 gap-2 text-[11px] font-mono">
                 <div className="rounded-lg border border-white/10 bg-black/30 p-2.5">
-                    <div className="text-white/30 uppercase">Par seconde</div>
+                    <div className="text-white/60 uppercase">Par seconde</div>
                     <div className="text-banan-primary font-bold tabular-nums">
                         {formatNumber(perSecond)} 🍌
                     </div>
                 </div>
                 <div className="rounded-lg border border-white/10 bg-black/30 p-2.5">
-                    <div className="text-white/30 uppercase">Par clic</div>
+                    <div className="text-white/60 uppercase">Par clic</div>
                     <div className="text-banan-primary font-bold tabular-nums">
                         {formatNumber(perClick)} 🍌
                     </div>
@@ -155,7 +155,7 @@ export default function TaxControl() {
             </AnimatePresence>
 
             {error && (
-                <p className="text-[10px] font-mono text-red-400 uppercase leading-relaxed">{error}</p>
+                <p className="text-[11px] font-mono text-red-400 uppercase leading-relaxed">{error}</p>
             )}
         </div>
     );

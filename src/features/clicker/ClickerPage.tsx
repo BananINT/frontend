@@ -98,7 +98,7 @@ export default function ClickerPage() {
                                 Vous avez été piraté par <span className="text-red-400 font-bold">{attack.attacker}</span>.<br/>
                                 <span className="text-red-500 font-black text-sm">-{formatNumber(attack.stolen)} 🍌</span>
                                 {attack.mitigated > 0 && (
-                                    <div className="text-blue-400 mt-1 text-[10px]">
+                                    <div className="text-blue-400 mt-1 text-[11px]">
                                         (Pare-feu a bloqué {formatNumber(attack.mitigated)}🍌 supplémentaires)
                                     </div>
                                 )}
@@ -165,7 +165,7 @@ export default function ClickerPage() {
                         {activeTab === 'prestige' && (
                             <div className="p-3 bg-banan-primary/10 border-b border-banan-primary/20 flex flex-col gap-1">
                                 <div className="flex items-center justify-between">
-                                    <span className="text-[10px] font-mono uppercase text-white/50 tracking-wider flex items-center gap-1.5">
+                                    <span className="text-[11px] font-mono uppercase text-white/50 tracking-wider flex items-center gap-1.5">
                                         <Dna className="w-3.5 h-3.5 text-banan-primary" />
                                         Solde ADN
                                     </span>
@@ -173,7 +173,7 @@ export default function ClickerPage() {
                                         {formatNumber(gameState.banana_dna)} 🧬
                                     </span>
                                 </div>
-                                <div className="text-[9px] font-mono text-white/40 leading-tight">
+                                <div className="text-[11px] font-mono text-white/60 leading-tight">
                                     Améliorations génétiques permanentes conservées lors de l'Ascension.
                                 </div>
                             </div>
@@ -181,7 +181,7 @@ export default function ClickerPage() {
 
                         <div className="flex-1 overflow-y-auto">
                             {availableUpgrades.filter(u => u.type === activeTab).length === 0 ? (
-                                <div className="p-8 text-center text-xs font-mono text-white/30 uppercase">
+                                <div className="p-8 text-center text-xs font-mono text-white/60 uppercase">
                                     Aucune amélioration disponible
                                 </div>
                             ) : (
@@ -207,14 +207,14 @@ export default function ClickerPage() {
                                                 <div className="font-bold font-mono text-xs uppercase tracking-wider mb-1 flex items-center gap-2">
                                                     {(() => { const Icon = UPGRADE_ICONS[item.type]; return Icon ? <Icon className="h-3.5 w-3.5 text-white/40" /> : null; })()}
                                                     {item.name}
-                                                    {!isPrestige && <span className="text-white/30 ml-2">x{item.owned}</span>}
+                                                    {!isPrestige && <span className="text-white/60 ml-2">x{item.owned}</span>}
                                                 </div>
-                                                <div className="text-[10px] font-mono opacity-50">
+                                                <div className="text-[11px] font-mono opacity-50">
                                                     {item.desc || `+${item.value} ${item.type === 'click' ? '/CLICK' : '/SEC'}`}
                                                 </div>
                                             </div>
                                             {isAcquired ? (
-                                                <span className="text-[10px] font-mono font-bold text-banan-primary border border-banan-primary/40 bg-banan-primary/10 px-2 py-0.5 rounded uppercase tracking-wider">
+                                                <span className="text-[11px] font-mono font-bold text-banan-primary border border-banan-primary/40 bg-banan-primary/10 px-2 py-0.5 rounded uppercase tracking-wider">
                                                     ACQUIS
                                                 </span>
                                             ) : (
@@ -245,7 +245,7 @@ export default function ClickerPage() {
                                 <div className="text-[clamp(3rem,16vw,6rem)] md:text-9xl font-black font-sans text-banan-primary tracking-tighter leading-none select-none">
                                     {formatNumber(gameState.bananas)}
                                 </div>
-                                <div className="text-[10px] font-mono text-white/40 uppercase tracking-[1em] mt-4 border-t border-white/10 pt-2 inline-block">
+                                <div className="text-[11px] font-mono text-white/60 uppercase tracking-[1em] mt-4 border-t border-white/10 pt-2 inline-block">
                                     Bananes totales
                                 </div>
                             </div>
@@ -308,23 +308,23 @@ export default function ClickerPage() {
                         {/* Stats Footer */}
                         <div className={`h-16 border-t border-white/10 grid ${(gameState.prestigeCount > 0 || gameState.banana_dna > 0) ? 'grid-cols-3' : 'grid-cols-2'} divide-x divide-white/10 backdrop-blur-sm z-10 relative`}>
                             <div className="flex items-center justify-between px-4 sm:px-6">
-                                <span className="text-[10px] font-mono uppercase text-white/50">Efficacité</span>
+                                <span className="text-[11px] font-mono uppercase text-white/50">Efficacité</span>
                                 <span className="text-lg sm:text-xl font-bold font-sans text-white">{gameState.clickValue}</span>
                             </div>
                             <div className="flex items-center justify-between px-4 sm:px-6">
-                                <span className="text-[10px] font-mono uppercase text-white/50">Automatisation</span>
+                                <span className="text-[11px] font-mono uppercase text-white/50">Automatisation</span>
                                 <span className="text-lg sm:text-xl font-bold font-sans text-white">{gameState.autoClickers}/s</span>
                             </div>
                             {(gameState.prestigeCount > 0 || gameState.banana_dna > 0) && (
                                 <div className="flex items-center justify-between px-4 sm:px-6">
-                                    <span className="text-[10px] font-mono uppercase text-banan-primary flex items-center gap-1">
+                                    <span className="text-[11px] font-mono uppercase text-banan-primary flex items-center gap-1">
                                         <Dna className="w-3.5 h-3.5" />
                                         ADN & Prestige
                                     </span>
                                     <span className="text-lg sm:text-xl font-bold font-sans text-banan-primary flex items-center gap-1.5">
                                         {formatNumber(gameState.banana_dna)} 🧬
                                         {gameState.prestigeCount > 0 && (
-                                            <span className="text-xs text-white/40 font-mono">★{gameState.prestigeCount}</span>
+                                            <span className="text-xs text-white/60 font-mono">★{gameState.prestigeCount}</span>
                                         )}
                                     </span>
                                 </div>
@@ -350,17 +350,17 @@ export default function ClickerPage() {
                                     return (
                                     <div key={`${entry.name}-${idx}`} className="flex items-center justify-between p-4 border-b border-white/10 hover:bg-white/5 transition-colors">
                                         <div className="flex items-center gap-4">
-                                            <span className={`font-mono font-bold w-6 text-center text-xs ${idx === 0 ? 'text-banan-primary' : 'text-white/30'}`}>
+                                            <span className={`font-mono font-bold w-6 text-center text-xs ${idx === 0 ? 'text-banan-primary' : 'text-white/60'}`}>
                                                 {(idx + 1).toString().padStart(2, '0')}
                                             </span>
                                             <span className={`font-mono text-xs ${isCurrentUser ? 'text-banan-primary font-bold' : 'text-white/70'}`}>
                                                 {entry.name || `BANANIER_${idx + 1}00`}
                                                 {entry.prestigeCount > 0 && (
-                                                    <span className="ml-2 text-[10px] text-banan-primary" title={`Prestige ${entry.prestigeCount}`}>
+                                                    <span className="ml-2 text-[11px] text-banan-primary" title={`Prestige ${entry.prestigeCount}`}>
                                                         ★ {entry.prestigeCount}
                                                     </span>
                                                 )}
-                                                {isCurrentUser && <span className="ml-2 text-[10px] opacity-70">(VOUS)</span>}
+                                                {isCurrentUser && <span className="ml-2 text-[11px] opacity-70">(VOUS)</span>}
                                             </span>
                                         </div>
                                         <span className="font-mono text-banan-primary text-xs font-bold">
@@ -370,12 +370,12 @@ export default function ClickerPage() {
                                     );
                                 })
                             ) : (
-                                <div className="p-8 text-center text-xs font-mono text-white/30 uppercase">
+                                <div className="p-8 text-center text-xs font-mono text-white/60 uppercase">
                                     Aucun classement disponible
                                 </div>
                             )}
                         </div>
-                        <div className="p-4 text-[10px] font-mono text-white/30 text-center uppercase">
+                        <div className="p-4 text-[11px] font-mono text-white/60 text-center uppercase">
                             Mise à jour en temps réel...
                         </div>
                     </GameSection>

@@ -62,8 +62,8 @@ export default function LiveHub() {
                                 <li key={event.id} className="relative border-b border-white/10 py-5 first:pt-0">
                                     <span className="absolute -left-[31px] top-7 h-3 w-3 rounded-full border-2 border-banan-primary bg-black sm:-left-[39px]" aria-hidden="true" />
                                     <div className="mb-2 flex flex-wrap items-center gap-x-3 gap-y-1">
-                                        <span className={`border px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider ${eventColor(event.type)}`}>{event.type}</span>
-                                        <time dateTime={event.timestamp} className="font-mono text-xs tabular-nums text-white/40">{event.timestamp.slice(11, 16)}</time>
+                                        <span className={`border px-2 py-0.5 font-mono text-[11px] font-bold uppercase tracking-wider ${eventColor(event.type)}`}>{event.type}</span>
+                                        <time dateTime={event.timestamp} className="font-mono text-xs tabular-nums text-white/60">{event.timestamp.slice(11, 16)}</time>
                                     </div>
                                     <p className="break-words text-sm leading-relaxed text-white/80 sm:text-base">{event.message}</p>
                                 </li>

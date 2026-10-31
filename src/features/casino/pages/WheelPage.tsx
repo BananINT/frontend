@@ -165,7 +165,7 @@ export default function WheelPage() {
                                         animate={{ rotate: 360 }}
                                         transition={{ repeat: Infinity, duration: 0.5, ease: 'linear' }}
                                     >
-                                        <Disc3 className="w-7 h-7 text-white/25" />
+                                        <Disc3 className="w-7 h-7 text-white/60" />
                                     </motion.div>
                                 ) : (
                                     <span

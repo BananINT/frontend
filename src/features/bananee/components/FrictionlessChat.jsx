@@ -110,7 +110,7 @@ export default function FrictionlessChat({ ws, isFolded, onToggleFold, username,
           <div ref={messagesRef} className="flex-1 overflow-y-auto p-4 pb-0 space-y-3 font-mono text-sm scrollbar-hide">
             {messages.map(m => (
               <div key={m.id} className="border-l-2 border-gray-700 pl-2 hover:border-banan-primary transition-colors">
-                <span className="text-gray-500 text-xs block opacity-50">{m.user}</span>
+                <span className="text-gray-400 text-xs block">{m.user}</span>
                 <span className="text-banan-primary">{m.text}</span>
               </div>
             ))}

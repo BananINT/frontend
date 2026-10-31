@@ -31,7 +31,7 @@ export function EmptyStateSuggestions({
   if (isPalantint) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center text-center select-none py-12">
-        <span className="font-mono text-xs sm:text-sm tracking-[0.45em] text-white/35 uppercase">
+        <span className="font-mono text-xs sm:text-sm tracking-[0.45em] text-white/60 uppercase">
           p̷a̸l̶a̸n̷t̶i̸n̷t̶
         </span>
       </div>
@@ -59,7 +59,7 @@ export function EmptyStateSuggestions({
 
       {/* Quick Prompt Presets */}
       <div className="flex flex-col gap-2 w-full mt-2">
-        <span className="text-[10px] uppercase tracking-widest text-white/40 font-bold text-left flex items-center gap-1.5">
+        <span className="text-[11px] uppercase tracking-widest text-white/60 font-bold text-left flex items-center gap-1.5">
           <Radio className={`w-3 h-3 ${theme.headerText}`} />
           <span>Suggestions de Protocoles</span>
         </span>

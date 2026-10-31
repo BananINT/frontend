@@ -94,7 +94,7 @@ const STATIC_MARKDOWN_COMPONENTS: Components = {
     </div>
   ),
   thead: ({ children }) => (
-    <thead className="bg-white/[0.05] text-white/90 font-mono font-bold border-b border-white/15 text-[10px] uppercase tracking-wider">
+    <thead className="bg-white/[0.05] text-white/90 font-mono font-bold border-b border-white/15 text-[11px] uppercase tracking-wider">
       {children}
     </thead>
   ),
@@ -181,7 +181,7 @@ function CodeBlock({
   return (
     <div className="my-3 rounded-xl border border-white/15 bg-[#0a0a0a] overflow-hidden shadow-2xl font-mono">
       {/* Terminal Window Header (Minimalist Monochrome - Compact) */}
-      <div className="flex items-center justify-between px-2.5 py-1.5 bg-white/[0.03] border-b border-white/10 text-[9px] uppercase text-white/50 tracking-wider">
+      <div className="flex items-center justify-between px-2.5 py-1.5 bg-white/[0.03] border-b border-white/10 text-[11px] uppercase text-white/50 tracking-wider">
         <div className="flex items-center gap-2">
           {/* Minimalist Monochrome Window Dots */}
           <div className="flex items-center gap-1 opacity-60">
@@ -192,7 +192,7 @@ function CodeBlock({
 
           <div className="flex items-center gap-1.5 pl-0.5">
             <span className="font-bold text-white/80">{language}</span>
-            <span className="text-white/30 text-[8px]">
+            <span className="text-white/60 text-[11px]">
               ({lineCount} {lineCount > 1 ? 'lignes' : 'ligne'})
             </span>
           </div>
@@ -203,7 +203,7 @@ function CodeBlock({
             <button
               type="button"
               onClick={handleLaunchPreview}
-              className="flex items-center gap-1 text-[9px] font-bold px-2 py-0.5 rounded bg-white/10 border border-white/20 text-white hover:bg-white/20 transition-all cursor-pointer shadow-sm active:scale-95"
+              className="flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded bg-white/10 border border-white/20 text-white hover:bg-white/20 transition-all cursor-pointer shadow-sm active:scale-95"
               title="Lancer le jeu dans la Sandbox Split View"
             >
               <Play className="w-2.5 h-2.5 fill-current" />
@@ -214,7 +214,7 @@ function CodeBlock({
           <button
             type="button"
             onClick={handleCopy}
-            className="flex items-center gap-1 text-[9px] px-1.5 py-0.5 rounded hover:bg-white/10 text-white/60 hover:text-white transition-colors cursor-pointer"
+            className="flex items-center gap-1 text-[11px] px-1.5 py-0.5 rounded hover:bg-white/10 text-white/60 hover:text-white transition-colors cursor-pointer"
             title="Copier le code"
           >
             {copied ? (
@@ -248,7 +248,7 @@ function CodeBlock({
 
       {/* Collapse / Expand Toggle Bar */}
       {lineCount > 15 && (
-        <div className="border-t border-white/10 bg-white/[0.02] px-3 py-1 flex items-center justify-between text-[9px] font-mono text-white/60">
+        <div className="border-t border-white/10 bg-white/[0.02] px-3 py-1 flex items-center justify-between text-[11px] font-mono text-white/60">
           <button
             type="button"
             onClick={() => setUserCollapsed(!isCollapsed)}

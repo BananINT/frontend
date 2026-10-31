@@ -16,7 +16,7 @@ interface Stock {
 
 function PriceChart({ prices, rising }: { prices: number[]; rising: boolean }) {
     if (prices.length < 2) {
-        return <div className="flex h-44 items-center justify-center border-y border-white/10 font-mono text-xs text-white/40">Historique pas encore disponible</div>;
+        return <div className="flex h-44 items-center justify-center border-y border-white/10 font-mono text-xs text-white/60">Historique pas encore disponible</div>;
     }
     const low = Math.min(...prices);
     const spread = Math.max(...prices) - low || 1;
@@ -89,7 +89,7 @@ export default function MarketTicker() {
                                 <p className="mt-1 text-sm text-white/55">{selected.name}</p>
                             </div>
                             <div className="text-left sm:text-right">
-                                <p className="font-mono text-xs uppercase tracking-widest text-white/45">Prix actuel</p>
+                                <p className="font-mono text-xs uppercase tracking-widest text-white/60">Prix actuel</p>
                                 <p className="mt-2 flex items-center gap-2 font-mono text-3xl font-bold tabular-nums text-white sm:justify-end sm:text-4xl">{formatNumber(selected.current_price)} <Banana className="h-5 w-5 shrink-0 text-banan-primary" aria-label="bananes" /></p>
                                 <p className={`mt-2 inline-flex items-center gap-1 font-mono text-sm font-bold ${rising ? 'text-lime-400' : 'text-rose-400'}`}>
                                     {rising ? <TrendingUp size={16} /> : <TrendingDown size={16} />}
@@ -98,17 +98,17 @@ export default function MarketTicker() {
                             </div>
                         </div>
                         <div className="mt-8"><PriceChart prices={selected.history || []} rising={rising} /></div>
-                        <p className="mt-3 font-mono text-[11px] uppercase tracking-widest text-white/40">Cours récents · {selected.stock_type}</p>
+                        <p className="mt-3 font-mono text-[11px] uppercase tracking-widest text-white/60">Cours récents · {selected.stock_type}</p>
                     </div>
                     <div className="min-w-0">
-                        <p className="mb-3 font-mono text-xs uppercase tracking-[0.25em] text-white/45">Sur le marché</p>
+                        <p className="mb-3 font-mono text-xs uppercase tracking-[0.25em] text-white/60">Sur le marché</p>
                         <div className="border-t border-white/20">
                             {stocks.map(stock => {
                                 const active = stock.symbol === selected.symbol;
                                 const up = stock.change_24h >= 0;
                                 return (
                                     <button key={stock.symbol} type="button" aria-pressed={active} onClick={() => setSelectedSymbol(stock.symbol)} className={`group grid w-full min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b px-2 py-5 text-left transition-colors focus-visible:outline-2 focus-visible:outline-banan-primary ${active ? 'border-banan-primary bg-banan-primary/5' : 'border-white/15 hover:border-white/50 hover:bg-white/[0.03]'}`}>
-                                        <span className="min-w-0"><span className={`block text-lg font-black ${active ? 'text-banan-primary' : 'text-white'}`}>{stock.symbol}</span><span className="block truncate text-xs text-white/45">{stock.name}</span></span>
+                                        <span className="min-w-0"><span className={`block text-lg font-black ${active ? 'text-banan-primary' : 'text-white'}`}>{stock.symbol}</span><span className="block truncate text-xs text-white/60">{stock.name}</span></span>
                                         <span className="text-right"><span className="inline-flex items-center justify-end gap-1 font-mono text-sm font-bold tabular-nums text-white">{formatNumber(stock.current_price)} <Banana className="h-3.5 w-3.5 shrink-0 text-banan-primary" aria-label="bananes" /></span><span className={`block font-mono text-xs tabular-nums ${up ? 'text-lime-400' : 'text-rose-400'}`}>{up ? '+' : ''}{stock.change_24h.toFixed(2)}%</span></span>
                                     </button>
                                 );

@@ -23,7 +23,7 @@ export default function SystemTelemetryCard() {
             className="border-t-0 p-4 md:p-6 justify-between h-full"
             headerClassName="mb-4"
             rightElement={
-                <span className="flex items-center gap-1.5 font-mono text-[9px] text-green-400 bg-green-950/30 border border-green-500/30 px-2 py-0.5 rounded font-bold">
+                <span className="flex items-center gap-1.5 font-mono text-[11px] text-green-400 bg-green-950/30 border border-green-500/30 px-2 py-0.5 rounded font-bold">
                     <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
                     LIVE
                 </span>
@@ -34,7 +34,7 @@ export default function SystemTelemetryCard() {
                 {/* Stats 2x2 Grid */}
                 <div className="grid grid-cols-2 gap-2">
                     <div className="p-3 bg-white/5 border border-white/10">
-                        <div className="text-[9px] font-mono text-white/40 uppercase flex items-center gap-1">
+                        <div className="text-[11px] font-mono text-white/60 uppercase flex items-center gap-1">
                             <Banana className="h-3 w-3 text-banan-primary" />
                             Production Totale
                         </div>
@@ -44,7 +44,7 @@ export default function SystemTelemetryCard() {
                     </div>
 
                     <div className="p-3 bg-white/5 border border-white/10">
-                        <div className="text-[9px] font-mono text-white/40 uppercase flex items-center gap-1">
+                        <div className="text-[11px] font-mono text-white/60 uppercase flex items-center gap-1">
                             <MousePointerClick className="h-3 w-3 text-cyan-400" />
                             Clics Manuels
                         </div>
@@ -54,7 +54,7 @@ export default function SystemTelemetryCard() {
                     </div>
 
                     <div className="p-3 bg-white/5 border border-white/10">
-                        <div className="text-[9px] font-mono text-white/40 uppercase flex items-center gap-1">
+                        <div className="text-[11px] font-mono text-white/60 uppercase flex items-center gap-1">
                             <Zap className="h-3 w-3 text-yellow-400" />
                             Efficacité Clic
                         </div>
@@ -64,7 +64,7 @@ export default function SystemTelemetryCard() {
                     </div>
 
                     <div className="p-3 bg-white/5 border border-white/10">
-                        <div className="text-[9px] font-mono text-white/40 uppercase flex items-center gap-1">
+                        <div className="text-[11px] font-mono text-white/60 uppercase flex items-center gap-1">
                             <Activity className="h-3 w-3 text-green-400" />
                             Automatisation
                         </div>
@@ -78,7 +78,7 @@ export default function SystemTelemetryCard() {
                 {(gameState.prestigeCount > 0 || gameState.banana_dna > 0) && (
                     <div className="p-3 bg-banan-primary/5 border border-banan-primary/30 flex items-center justify-between">
                         <div>
-                            <div className="text-[9px] font-mono text-white/50 uppercase">ADN Mutagène & Ascensions</div>
+                            <div className="text-[11px] font-mono text-white/50 uppercase">ADN Mutagène & Ascensions</div>
                             <div className="font-mono text-xs font-black text-banan-primary mt-0.5">
                                 {formatNumber(gameState.banana_dna || 0)} 🧬 • ★{gameState.prestigeCount || 0} Ascensions
                             </div>
@@ -88,7 +88,7 @@ export default function SystemTelemetryCard() {
                 )}
 
                 {/* Network Diagnostics */}
-                <div className="p-3 bg-white/5 border border-white/10 flex items-center justify-between text-[10px] font-mono">
+                <div className="p-3 bg-white/5 border border-white/10 flex items-center justify-between text-[11px] font-mono">
                     <span className="text-white/50 flex items-center gap-1.5">
                         <Radio className="h-3 w-3 text-banan-primary" />
                         Ping Serveur WebSocket :
@@ -99,7 +99,7 @@ export default function SystemTelemetryCard() {
                 </div>
             </div>
 
-            <div className="pt-4 text-[9px] font-mono text-white/30 leading-tight border-t border-white/10 mt-4">
+            <div className="pt-4 text-[11px] font-mono text-white/60 leading-tight border-t border-white/10 mt-4">
                 Fréquence d'échantillonnage : 10Hz. Synchronisation prioritaire garantie par le protocole WebSocket BananINT.
             </div>
         </GameSection>

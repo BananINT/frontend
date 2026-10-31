@@ -44,11 +44,11 @@ const PodiumCard = ({ op }: { op: Bananier }) => {
                 <h3 className={`font-black uppercase tracking-widest text-xs sm:text-lg md:text-xl mb-1 truncate ${isFirst ? 'text-white' : 'text-white/80'}`}>
                     {op.name}
                 </h3>
-                <p className="font-mono text-[10px] sm:text-xs text-white/50 mb-2 truncate">
+                <p className="font-mono text-[11px] sm:text-xs text-white/50 mb-2 truncate">
                     {formatNumber(op.bananas)} BANANES
                 </p>
                 {op.prestige > 0 && (
-                    <div className="flex items-center justify-center gap-1.5 text-[9px] sm:text-[10px] font-mono text-banan-teal bg-banan-teal/10 border border-banan-teal/20 rounded px-2 py-0.5 w-fit mx-auto">
+                    <div className="flex items-center justify-center gap-1.5 text-[11px] font-mono text-banan-teal bg-banan-teal/10 border border-banan-teal/20 rounded px-2 py-0.5 w-fit mx-auto">
                         <Hexagon className="w-3 h-3 shrink-0" />
                         PRESTIGE {op.prestige}
                     </div>

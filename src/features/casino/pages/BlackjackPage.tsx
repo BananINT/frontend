@@ -90,7 +90,7 @@ function ChipStack({ amount, doubled }: { amount: number; doubled?: boolean }) {
                     );
                 })}
             </div>
-            <span className="text-[10px] font-mono uppercase tracking-widest text-[#f5d76e]/70 tabular-nums truncate max-w-full">
+            <span className="text-[11px] font-mono uppercase tracking-widest text-[#f5d76e]/70 tabular-nums truncate max-w-full">
                 {formatNumber(amount)}
                 {doubled && ' ×2'}
             </span>
@@ -138,12 +138,12 @@ export default function BlackjackPage() {
                     {/* Dealer */}
                     <div>
                         <div className="flex items-baseline justify-center gap-3 mb-2">
-                            <span className="text-[10px] font-mono uppercase tracking-[0.3em] text-white/40">
+                            <span className="text-[11px] font-mono uppercase tracking-[0.3em] text-white/60">
                                 Croupier
                             </span>
                             <span className="text-xl font-black tabular-nums text-white/80">
                                 {result ? result.dealer_total : '—'}
-                                {playing && <span className="text-white/30 text-sm ml-1">+?</span>}
+                                {playing && <span className="text-white/60 text-sm ml-1">+?</span>}
                             </span>
                         </div>
                         <Fan cards={result?.dealer ?? []} faceDown={playing ? 1 : result ? 0 : 2} />
@@ -152,7 +152,7 @@ export default function BlackjackPage() {
                     {/* Printed table rule, curved across the felt */}
                     <div className="relative py-1">
                         <div className="h-px bg-gradient-to-r from-transparent via-[#c9a227]/35 to-transparent" />
-                        <p className="text-center text-[9px] md:text-[10px] font-mono uppercase tracking-[0.35em] text-[#f5d76e]/40 mt-2">
+                        <p className="text-center text-[11px] font-mono uppercase tracking-[0.35em] text-[#f5d76e]/75 mt-2">
                             Le blackjack paie 3 pour 2 · L'assurance n'est pas proposée
                         </p>
                     </div>
@@ -161,7 +161,7 @@ export default function BlackjackPage() {
                     <div className="flex items-end justify-center gap-2 md:gap-10">
                         <div className="flex-1 max-w-md">
                             <div className="flex items-baseline justify-center gap-3 mb-2">
-                                <span className="text-[10px] font-mono uppercase tracking-[0.3em] text-white/40">
+                                <span className="text-[11px] font-mono uppercase tracking-[0.3em] text-white/60">
                                     Vous
                                 </span>
                                 <span

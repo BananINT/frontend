@@ -144,7 +144,7 @@ export default function DicePage() {
                             <div className="px-4 py-1 rounded-md bg-black/70 border border-white/10">
                                 <span
                                     className={`text-2xl font-black tabular-nums ${
-                                        detail ? (won ? 'text-green-400' : 'text-red-500') : 'text-white/25'
+                                        detail ? (won ? 'text-green-400' : 'text-red-500') : 'text-white/60'
                                     }`}
                                 >
                                     {detail ? roll.toFixed(2) : '--.--'}
@@ -176,7 +176,7 @@ export default function DicePage() {
                             />
                         )}
                     </div>
-                    <div className="flex justify-between text-[9px] font-mono text-white/25 mb-5">
+                    <div className="flex justify-between text-[11px] font-mono text-white/60 mb-5">
                         <span>0.00</span>
                         <span>SEUIL {target}</span>
                         <span>99.99</span>

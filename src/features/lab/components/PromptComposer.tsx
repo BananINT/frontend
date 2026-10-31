@@ -118,12 +118,12 @@ export function PromptComposer({
             {/* Left Side: Length Counter & Security Reminder Link */}
             <div className="flex items-center gap-2.5 sm:gap-3">
               <span
-                className={`text-[10px] font-mono ${
+                className={`text-[11px] font-mono ${
                   promptCharCount > 3500
                     ? 'text-red-400 font-bold'
                     : promptCharCount > 2000
                     ? 'text-amber-400'
-                    : 'text-white/40'
+                    : 'text-white/60'
                 }`}
               >
                 {promptCharCount} / 4000
@@ -133,7 +133,7 @@ export function PromptComposer({
                 <button
                   type="button"
                   onClick={onOpenWarningModal}
-                  className="flex items-center gap-1.5 px-2 py-0.5 rounded-lg border border-red-500/30 hover:border-red-500/60 bg-red-950/30 hover:bg-red-900/40 text-red-400 hover:text-red-300 text-[10px] font-mono transition-all cursor-pointer shadow-sm active:scale-95 group"
+                  className="flex items-center gap-1.5 px-2 py-0.5 rounded-lg border border-red-500/30 hover:border-red-500/60 bg-red-950/30 hover:bg-red-900/40 text-red-400 hover:text-red-300 text-[11px] font-mono transition-all cursor-pointer shadow-sm active:scale-95 group"
                   title="Consulter l'avertissement de non-confidentialité (ne jamais saisir de mots de passe, tokens ou données privées)"
                 >
                   <ShieldAlert className="w-3.5 h-3.5 text-red-400 group-hover:scale-110 transition-transform flex-shrink-0" />
@@ -141,7 +141,7 @@ export function PromptComposer({
                   <span className="font-bold underline underline-offset-2">Sécurité & PII</span>
                 </button>
               ) : (
-                <span className="text-[10px] text-white/35 font-mono hidden md:inline">
+                <span className="text-[11px] text-white/60 font-mono hidden md:inline">
                   Entrée pour envoyer • Maj + Entrée pour saut
                 </span>
               )}
@@ -179,7 +179,7 @@ export function PromptComposer({
                 <span>{promptEnergyCost}%</span>
                 <span className="hidden sm:inline">Énergie</span>
                 {promptCharCount > 1000 && !isPalantint && promptEnergyCost > baseEnergyCost && (
-                  <span className="text-[9px] opacity-75 hidden sm:inline">
+                  <span className="text-[11px] opacity-75 hidden sm:inline">
                     (+{promptEnergyCost - baseEnergyCost}%)
                   </span>
                 )}

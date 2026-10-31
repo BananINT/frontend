@@ -111,7 +111,7 @@ export default function PrestigeRitual({ isOpen, onClose }: PrestigeRitualProps)
                                     </div>
                                 </div>
                             ) : (
-                                <div className="text-xs font-mono text-white/40 uppercase tracking-widest mb-8 bg-banan-primary/10 border border-banan-primary/30 rounded-2xl p-4">
+                                <div className="text-xs font-mono text-white/60 uppercase tracking-widest mb-8 bg-banan-primary/10 border border-banan-primary/30 rounded-2xl p-4">
                                     ADN gagné à l'ascension
                                     <div className="text-3xl font-black text-banan-primary mt-1">+{previewDnaGain} 🧬</div>
                                 </div>

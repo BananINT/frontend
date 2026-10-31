@@ -104,13 +104,13 @@ export function CyberLabHeader({
 
             {/* Thematic Role Badge matching persona card colors */}
             <span
-              className={`text-[9px] sm:text-[10px] px-1.5 py-0.5 rounded border font-mono font-bold flex-shrink-0 transition-colors ${theme.badgeClass}`}
+              className={`text-[11px] px-1.5 py-0.5 rounded border font-mono font-bold flex-shrink-0 transition-colors ${theme.badgeClass}`}
             >
               {theme.roleBadge}
             </span>
           </div>
 
-          <p className="text-[10px] text-white/50 truncate max-w-xs xl:max-w-md hidden xl:block mt-0.5">
+          <p className="text-[11px] text-white/50 truncate max-w-xs xl:max-w-md hidden xl:block mt-0.5">
             {activePersona?.tagline}
           </p>
         </div>

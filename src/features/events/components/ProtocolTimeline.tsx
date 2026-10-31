@@ -93,7 +93,7 @@ export default function ProtocolTimeline() {
                                         <Plus aria-hidden="true" className="h-4 w-4 shrink-0 transition-transform group-open:rotate-45" />
                                     </summary>
                                     <div className="mb-3 border-l-2 border-banan-primary bg-white/[0.035] px-4 py-5 sm:px-6">
-                                        <p className="border-b border-white/10 pb-4 font-mono text-[10px] font-bold uppercase tracking-[0.15em] text-white/45">{event.file}</p>
+                                        <p className="border-b border-white/10 pb-4 font-mono text-[11px] font-bold uppercase tracking-[0.15em] text-white/60">{event.file}</p>
                                         <ul className="space-y-3 py-5 font-mono text-xs leading-relaxed text-white/75 sm:text-sm">
                                             {event.log.map((line, lineIndex) => <li key={line}><span className="mr-3 text-banan-primary/60">{String(lineIndex + 1).padStart(2, '0')} /</span>{line}</li>)}
                                         </ul>

@@ -15,7 +15,7 @@ export function PersonaSelector({
 }: PersonaSelectorProps) {
   return (
     <div className="flex flex-col gap-1.5">
-      <span className="text-[10px] uppercase tracking-widest text-white/40 font-bold px-0.5">
+      <span className="text-[11px] uppercase tracking-widest text-white/60 font-bold px-0.5">
         Personas Déployés
       </span>
       <div className="grid grid-cols-2 gap-1.5">
@@ -38,7 +38,7 @@ export function PersonaSelector({
                   name={p.icon || p.avatar} 
                   className={`w-4 h-4 ${isSelected ? theme.headerText : 'text-white/70'}`} 
                 />
-                <span className={`text-[9px] px-1.5 py-0.5 rounded font-mono font-bold border ${theme.badgeClass}`}>
+                <span className={`text-[11px] px-1.5 py-0.5 rounded font-mono font-bold border ${theme.badgeClass}`}>
                   {theme.roleBadge}
                 </span>
               </div>

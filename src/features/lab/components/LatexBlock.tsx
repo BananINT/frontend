@@ -42,7 +42,7 @@ export function LatexBlock({ code }: LatexBlockProps) {
   return (
     <div className="my-3 rounded-xl border border-white/15 bg-[#0a0a0a] overflow-hidden shadow-2xl">
       {/* Header Bar */}
-      <div className="flex items-center justify-between px-3 py-1.5 bg-white/[0.04] border-b border-white/10 text-[10px] text-white/70 font-mono">
+      <div className="flex items-center justify-between px-3 py-1.5 bg-white/[0.04] border-b border-white/10 text-[11px] text-white/70 font-mono">
         <div className="flex items-center gap-2">
           <Sigma className="w-3.5 h-3.5 text-banan-primary" />
           <span className="font-bold uppercase tracking-wider text-white/90">Formule LaTeX</span>
@@ -51,7 +51,7 @@ export function LatexBlock({ code }: LatexBlockProps) {
         <button
           type="button"
           onClick={handleCopy}
-          className="flex items-center gap-1 px-2 py-0.5 rounded hover:bg-white/10 text-white/60 hover:text-white transition-colors cursor-pointer text-[9px]"
+          className="flex items-center gap-1 px-2 py-0.5 rounded hover:bg-white/10 text-white/60 hover:text-white transition-colors cursor-pointer text-[11px]"
           title="Copier le code LaTeX"
         >
           {copied ? (

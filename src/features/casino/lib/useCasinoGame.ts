@@ -3,6 +3,7 @@ import { socketManager } from '@app/lib/socket';
 import { useGame } from '@app/context/GameContext';
 import { fireWinConfetti, fireJackpotConfetti } from '@app/utils/confetti';
 import type { CasinoResult, CasinoResultBase, GambleState } from './types';
+import { claimCasinoError, trackCasinoPending } from './casinoErrorClaims';
 
 interface Options {
     /** Extra game keys whose results this page should also accept. */
@@ -37,6 +38,15 @@ export function useCasinoGame<R extends CasinoResultBase = CasinoResult>(
     // catch-all 'error' carries no game key, so it only lands on the table
     // while one of its own requests is outstanding.
     const pendingRef = useRef(0);
+    const markSent = useCallback(() => {
+        pendingRef.current += 1;
+        trackCasinoPending(1);
+    }, []);
+    const markSettled = useCallback(() => {
+        if (pendingRef.current === 0) return;
+        pendingRef.current -= 1;
+        trackCasinoPending(-1);
+    }, []);
 
     // Which game keys this page will render. `gamble` is always accepted since
     // the Double ou Rien bolt-on hangs off every table.
@@ -52,7 +62,7 @@ export function useCasinoGame<R extends CasinoResultBase = CasinoResult>(
                 const data = msg.data as R;
                 if (!accepted.includes(data.game)) return;
 
-                pendingRef.current = Math.max(0, pendingRef.current - 1);
+                markSettled();
                 setBusy(false);
                 setError(null);
                 setGamble((data.gamble as GambleState | null) ?? null);
@@ -69,15 +79,18 @@ export function useCasinoGame<R extends CasinoResultBase = CasinoResult>(
                 }
             } else if (msg.type === 'casino_error') {
                 if (msg.game && !accepted.includes(msg.game)) return;
-                pendingRef.current = Math.max(0, pendingRef.current - 1);
+                markSettled();
                 setBusy(false);
                 setError(msg.message ?? 'Erreur inconnue');
             } else if (msg.type === 'error') {
                 // The socket's catch-all. Without this the table would sit on
                 // "..." forever whenever a handler failed before it could reply.
                 // Errors from unrelated actions elsewhere in the app are ignored.
+                // A claimed frame keeps the global ERROR modal from showing it
+                // a second time (see casinoErrorClaims).
                 if (pendingRef.current === 0) return;
-                pendingRef.current -= 1;
+                claimCasinoError(msg);
+                markSettled();
                 setBusy(false);
                 setError(msg.message ?? 'Erreur inconnue');
             }
@@ -85,27 +98,37 @@ export function useCasinoGame<R extends CasinoResultBase = CasinoResult>(
 
         socketManager.subscribe(handle);
         return () => socketManager.unsubscribe(handle);
-    }, [game, confetti, accepted]);
+    }, [game, confetti, accepted, markSettled]);
+
+    // A table that unmounts mid-request will never hear back; release its
+    // share so the global modal is not muted afterwards.
+    useEffect(
+        () => () => {
+            trackCasinoPending(-pendingRef.current);
+            pendingRef.current = 0;
+        },
+        []
+    );
 
     const play = useCallback(
         (bet: number, params: Record<string, unknown> = {}) => {
             if (!concurrent && busy) return;
             if (!concurrent) setBusy(true);
             setError(null);
-            pendingRef.current += 1;
+            markSent();
             socketManager.send('casino_play', { game, bet, params });
         },
-        [game, busy, concurrent]
+        [game, busy, concurrent, markSent]
     );
 
     const act = useCallback(
         (action: string, params: Record<string, unknown> = {}, targetGame = game) => {
             setBusy(true);
             setError(null);
-            pendingRef.current += 1;
+            markSent();
             socketManager.send('casino_action', { game: targetGame, action, params });
         },
-        [game]
+        [game, markSent]
     );
 
     /** Silent variant used for crash polling, which must not toggle `busy`. */
@@ -118,9 +141,9 @@ export function useCasinoGame<R extends CasinoResultBase = CasinoResult>(
 
     const playGamble = useCallback(() => {
         setBusy(true);
-        pendingRef.current += 1;
+        markSent();
         socketManager.send('casino_action', { game: 'gamble', action: 'play', params: {} });
-    }, []);
+    }, [markSent]);
 
     const reset = useCallback(() => {
         setResult(null);

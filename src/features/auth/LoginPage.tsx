@@ -48,12 +48,12 @@ const LoginPage: React.FC = () => {
           <div className="space-y-2 mb-10">
             <div className="flex items-center justify-center gap-2 mb-2">
               <ShieldAlert className="w-4 h-4 text-banan-primary" />
-              <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-banan-primary/60">Protocole de Sécurité v4.20</span>
+              <span className="font-mono text-[11px] uppercase tracking-[0.3em] text-banan-primary/60">Protocole de Sécurité v4.20</span>
             </div>
             <h1 className="text-2xl font-sans font-black uppercase tracking-tighter leading-none text-white">
               Authentification <span className="text-banan-primary">Requise</span>
             </h1>
-            <p className="font-mono text-xs text-white/40 uppercase tracking-widest mt-4">
+            <p className="font-mono text-xs text-white/60 uppercase tracking-widest mt-4">
               Accès réservé au personnel autorisé. La connexion via le service CAS est nécessaire pour accéder aux protocoles bananiers.
             </p>
           </div>
@@ -73,7 +73,7 @@ const LoginPage: React.FC = () => {
 
           <div className="mt-8 flex flex-col gap-2">
             <div className="w-full h-px bg-white/5"></div>
-            <div className="flex justify-between items-center font-mono text-[9px] uppercase tracking-tighter text-white/30">
+            <div className="flex justify-between items-center font-mono text-[11px] uppercase tracking-tighter text-white/60">
               <span>Statut : En attente d'authentification</span>
               <span>Enc: OIDC/S256</span>
             </div>

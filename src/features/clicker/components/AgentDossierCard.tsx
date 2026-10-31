@@ -50,7 +50,7 @@ export default function AgentDossierCard() {
             className="border-t-0 p-4 md:p-6 justify-between h-full"
             headerClassName="mb-4"
             rightElement={
-                <span className="font-mono text-[9px] text-white/40 border border-white/10 px-2 py-0.5 rounded">
+                <span className="font-mono text-[11px] text-white/60 border border-white/10 px-2 py-0.5 rounded">
                     MATRICULE : #{serial}
                 </span>
             }
@@ -60,7 +60,7 @@ export default function AgentDossierCard() {
                 {/* Clearance Level */}
                 <div className="p-3 bg-white/5 border border-white/10 flex items-center justify-between">
                     <div>
-                        <div className="text-[9px] font-mono text-white/40 uppercase">Accréditation de Sécurité</div>
+                        <div className="text-[11px] font-mono text-white/60 uppercase">Accréditation de Sécurité</div>
                         <div className={`font-mono text-xs mt-0.5 ${clearanceColor}`}>
                             {clearance}
                         </div>
@@ -70,7 +70,7 @@ export default function AgentDossierCard() {
 
                 {/* Name Edit Input */}
                 <div className="space-y-1.5">
-                    <label className="text-[10px] font-mono text-white/50 uppercase tracking-widest flex items-center gap-1.5">
+                    <label className="text-[11px] font-mono text-white/50 uppercase tracking-widest flex items-center gap-1.5">
                         <BadgeCheck className="h-3.5 w-3.5 text-banan-primary" />
                         Nom d'Appel / Call-Sign
                     </label>
@@ -95,7 +95,7 @@ export default function AgentDossierCard() {
                 </div>
 
                 {/* Clan status */}
-                <div className="flex items-center justify-between text-[10px] font-mono p-2 bg-white/5 border border-white/10 rounded">
+                <div className="flex items-center justify-between text-[11px] font-mono p-2 bg-white/5 border border-white/10 rounded">
                     <span className="text-white/50 flex items-center gap-1">
                         <Shield className="h-3 w-3 text-banan-primary" />
                         Unité Tactique (Clan) :
@@ -106,7 +106,7 @@ export default function AgentDossierCard() {
                 </div>
             </div>
 
-            <div className="pt-4 text-[9px] font-mono text-white/30 leading-tight border-t border-white/10 mt-4">
+            <div className="pt-4 text-[11px] font-mono text-white/60 leading-tight border-t border-white/10 mt-4">
                 Identité chiffrée par le réseau central BananINT. Retransmise en continu sur les terminaux satellites.
             </div>
         </GameSection>

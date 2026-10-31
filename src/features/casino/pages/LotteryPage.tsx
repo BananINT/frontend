@@ -137,7 +137,7 @@ export default function LotteryPage() {
             <div className="flex-1 p-4 md:p-10 flex items-start justify-center relative z-10">
                 <div className="w-full max-w-3xl">
                     {!lotteryState ? (
-                        <div className="text-center text-white/30 text-xs font-mono uppercase py-8">
+                        <div className="text-center text-white/60 text-xs font-mono uppercase py-8">
                             Chargement de la loterie...
                         </div>
                     ) : (
@@ -145,7 +145,7 @@ export default function LotteryPage() {
                             {/* Jackpot Displays */}
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div className="text-center border border-banan-primary/30 bg-banan-primary/5 p-4 sm:p-6 rounded-2xl">
-                                    <div className="text-[10px] font-mono text-white/50 uppercase tracking-[0.2em] mb-1">
+                                    <div className="text-[11px] font-mono text-white/50 uppercase tracking-[0.2em] mb-1">
                                         Jackpot Tirage
                                     </div>
                                     <motion.div
@@ -156,7 +156,7 @@ export default function LotteryPage() {
                                     >
                                         {formatNumber(lotteryState.current_draw.jackpot)}
                                     </motion.div>
-                                    <div className="text-[9px] font-mono text-white/30 uppercase mt-1 flex items-center justify-center gap-1">
+                                    <div className="text-[11px] font-mono text-white/60 uppercase mt-1 flex items-center justify-center gap-1">
                                         <Banana className="h-3 w-3 text-banan-primary" /> Bananes
                                     </div>
                                 </div>
@@ -166,7 +166,7 @@ export default function LotteryPage() {
                                     <div className="absolute top-2 right-2">
                                         <Sparkles className="h-3 w-3 text-cyan-400 animate-pulse" />
                                     </div>
-                                    <div className="text-[10px] font-mono text-white/50 uppercase tracking-[0.2em] mb-1 relative z-10">
+                                    <div className="text-[11px] font-mono text-white/50 uppercase tracking-[0.2em] mb-1 relative z-10">
                                         Jackpot Global Potassium
                                     </div>
                                     <motion.div
@@ -177,7 +177,7 @@ export default function LotteryPage() {
                                     >
                                         {formatNumber(lotteryState.global_jackpot)}
                                     </motion.div>
-                                    <div className="text-[9px] font-mono text-cyan-400/50 uppercase mt-1 flex items-center justify-center gap-1 relative z-10">
+                                    <div className="text-[11px] font-mono text-cyan-400/80 uppercase mt-1 flex items-center justify-center gap-1 relative z-10">
                                         <Sparkles className="h-3 w-3" /> Casino & Tirages
                                     </div>
                                 </div>
@@ -195,11 +195,11 @@ export default function LotteryPage() {
                                     >
                                         {formatTime(countdown)}
                                     </motion.span>
-                                    <span className="text-[10px] font-mono text-white/30 uppercase">
+                                    <span className="text-[11px] font-mono text-white/60 uppercase">
                                         avant le tirage
                                     </span>
                                 </div>
-                                <div className="text-[9px] font-mono text-white/30 mt-1 uppercase">
+                                <div className="text-[11px] font-mono text-white/60 mt-1 uppercase">
                                     Tirage #{lotteryState.current_draw.draw_number} — {lotteryState.current_draw.total_tickets} ticket(s) vendus
                                 </div>
                             </div>
@@ -209,20 +209,20 @@ export default function LotteryPage() {
                                 <div className="flex border border-white/15 p-1 bg-black/60 rounded-xl gap-1">
                                     <button
                                         onClick={() => { setIsClanMode(false); setSelectedNumber(null); }}
-                                        className={`flex-1 py-2 text-center text-[10px] font-mono uppercase font-bold transition-all border rounded-lg ${
+                                        className={`flex-1 py-2 text-center text-[11px] font-mono uppercase font-bold transition-all border rounded-lg ${
                                             !isClanMode
                                                 ? 'bg-banan-primary text-black border-banan-primary'
-                                                : 'border-transparent text-white/40 hover:text-white'
+                                                : 'border-transparent text-white/60 hover:text-white'
                                         }`}
                                     >
                                         Ticket Personnel
                                     </button>
                                     <button
                                         onClick={() => { setIsClanMode(true); setSelectedNumber(null); }}
-                                        className={`flex-1 py-2 text-center text-[10px] font-mono uppercase font-bold transition-all border rounded-lg ${
+                                        className={`flex-1 py-2 text-center text-[11px] font-mono uppercase font-bold transition-all border rounded-lg ${
                                             isClanMode
                                                 ? 'bg-purple-600 text-white border-purple-500 shadow-[0_0_10px_rgba(147,51,234,0.3)]'
-                                                : 'border-transparent text-white/40 hover:text-purple-400'
+                                                : 'border-transparent text-white/60 hover:text-purple-400'
                                         }`}
                                     >
                                         Pool de Clan ({formatNumber(lotteryState.clan_treasury_balance)} 🍌)
@@ -241,13 +241,7 @@ export default function LotteryPage() {
                                         animate={{ opacity: 1, y: 0 }}
                                         exit={{ opacity: 0, y: 24 }}
                                         transition={{ type: 'spring', stiffness: 300, damping: 26 }}
-                                        // The card carries `marquee-border`, which forces
-                                        // `position: relative` — so the fixed placement has to
-                                        // live on this wrapper or the panel falls back in flow.
-                                        className="fixed z-50 left-1/2 -translate-x-1/2 bottom-[max(1rem,env(safe-area-inset-bottom))] w-[min(24rem,calc(100vw-2rem))]"
-                                    >
-                                    <div
-                                        className={`overflow-hidden border border-banan-primary bg-black/95 backdrop-blur-md rounded-2xl p-5 sm:p-6 text-center shadow-[0_20px_60px_rgba(0,0,0,0.8),0_0_40px_rgba(250,222,0,0.15)] ${showResult?.winner ? 'marquee-border' : ''}`}
+                                        className={`fixed z-50 left-1/2 -translate-x-1/2 bottom-[max(1rem,env(safe-area-inset-bottom))] w-[min(24rem,calc(100vw-2rem))] overflow-hidden border border-banan-primary bg-black/95 backdrop-blur-md rounded-2xl p-5 sm:p-6 text-center shadow-[0_20px_60px_rgba(0,0,0,0.8),0_0_40px_rgba(250,222,0,0.15)] ${showResult?.winner ? 'marquee-border' : ''}`}
                                     >
                                         {isSpinning ? (
                                             <div className="space-y-3">
@@ -258,7 +252,7 @@ export default function LotteryPage() {
                                             </div>
                                         ) : showResult ? (
                                             <div className="relative z-10 space-y-3">
-                                                <div className="text-[10px] font-mono text-white/50 uppercase">
+                                                <div className="text-[11px] font-mono text-white/50 uppercase">
                                                     Numéro gagnant
                                                 </div>
                                                 <motion.div
@@ -284,20 +278,19 @@ export default function LotteryPage() {
                                                 )}
                                                 <button
                                                     onClick={() => setShowResult(null)}
-                                                    className="text-[10px] font-mono text-white/30 hover:text-banan-primary uppercase mt-2 border border-white/10 rounded-lg px-3 py-1 hover:bg-white/5 transition-colors"
+                                                    className="text-[11px] font-mono text-white/60 hover:text-banan-primary uppercase mt-2 border border-white/10 rounded-lg px-3 py-1 hover:bg-white/5 transition-colors"
                                                 >
                                                     Fermer
                                                 </button>
                                             </div>
                                         ) : null}
-                                    </div>
                                     </motion.div>
                                 )}
                             </AnimatePresence>
 
                             {/* Number Picker */}
                             <div>
-                                <div className="text-[10px] font-mono text-white/50 uppercase tracking-wider mb-3 flex items-center justify-between">
+                                <div className="text-[11px] font-mono text-white/50 uppercase tracking-wider mb-3 flex items-center justify-between">
                                     <span className="flex items-center gap-2"><Hash className="h-3 w-3" /> Choisissez votre numéro (1-50)</span>
                                     {isClanMode && <span className="text-purple-400 font-bold">MODE CLAN ACTIF</span>}
                                 </div>
@@ -319,7 +312,7 @@ export default function LotteryPage() {
                                                 onClick={() => !isOwned && setSelectedNumber(num)}
                                                 disabled={isOwned}
                                                 className={`
-                                                    aspect-square flex items-center justify-center text-[10px] font-mono font-bold transition-all border rounded-md
+                                                    aspect-square flex items-center justify-center text-[11px] font-mono font-bold transition-all border rounded-md
                                                     ${isOwned
                                                         ? isClanMode
                                                             ? 'bg-purple-900/60 text-purple-200 border-purple-500 cursor-not-allowed'
@@ -346,7 +339,7 @@ export default function LotteryPage() {
                             {/* Right above the buy button, so the player never has
                                 to look away from the number grid to check their
                                 balance against the ticket cost. */}
-                            <div className="flex justify-between items-center text-[10px] font-mono uppercase text-white/35">
+                            <div className="flex justify-between items-center text-[11px] font-mono uppercase text-white/60">
                                 <span>Solde disponible</span>
                                 <span
                                     className={`flex items-center gap-1 tabular-nums ${
@@ -373,7 +366,7 @@ export default function LotteryPage() {
                                         ? (lotteryState.clan_treasury_balance < lotteryState.clan_ticket_cost || lotteryState.clan_tickets.length >= lotteryState.max_clan_tickets)
                                         : (gameState.bananas < lotteryState.ticket_cost || lotteryState.user_tickets.length >= lotteryState.max_tickets))
                                 }
-                                className={`w-full h-[4.25rem] px-3 flex items-center justify-center gap-3 border rounded-xl font-black uppercase tracking-wider text-[10px] sm:text-xs leading-tight transition-all disabled:opacity-30 disabled:cursor-not-allowed ${
+                                className={`w-full h-[4.25rem] px-3 flex items-center justify-center gap-3 border rounded-xl font-black uppercase tracking-wider text-[11px] sm:text-xs leading-tight transition-all disabled:opacity-30 disabled:cursor-not-allowed ${
                                     selectedNumber !== null ? 'marquee-border' : ''
                                 } ${
                                     isClanMode
@@ -396,12 +389,12 @@ export default function LotteryPage() {
                             {/* Ticket Lists */}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
-                                    <div className="text-[9px] font-mono text-white/50 uppercase tracking-wider mb-2 flex items-center gap-2">
+                                    <div className="text-[11px] font-mono text-white/50 uppercase tracking-wider mb-2 flex items-center gap-2">
                                         <Ticket className="h-3 w-3 text-banan-primary" />
                                         Vos tickets ({lotteryState.user_tickets.length}/{lotteryState.max_tickets})
                                     </div>
                                     {lotteryState.user_tickets.length === 0 ? (
-                                        <div className="p-3 bg-white/5 border border-white/5 rounded-xl text-[9px] font-mono text-white/30 uppercase text-center">
+                                        <div className="p-3 bg-white/5 border border-white/5 rounded-xl text-[11px] font-mono text-white/60 uppercase text-center">
                                             Aucun ticket personnel
                                         </div>
                                     ) : (
@@ -409,7 +402,7 @@ export default function LotteryPage() {
                                             {lotteryState.user_tickets.map(t => (
                                                 <div
                                                     key={t.id}
-                                                    className="px-2.5 py-1 bg-banan-primary/10 border border-banan-primary/30 rounded text-banan-primary text-[10px] font-mono font-bold"
+                                                    className="px-2.5 py-1 bg-banan-primary/10 border border-banan-primary/30 rounded text-banan-primary text-[11px] font-mono font-bold"
                                                 >
                                                     #{t.number}
                                                 </div>
@@ -420,12 +413,12 @@ export default function LotteryPage() {
 
                                 {gameState.clan_id && (
                                     <div>
-                                        <div className="text-[9px] font-mono text-white/50 uppercase tracking-wider mb-2 flex items-center gap-2">
+                                        <div className="text-[11px] font-mono text-white/50 uppercase tracking-wider mb-2 flex items-center gap-2">
                                             <Trophy className="h-3 w-3 text-purple-400" />
                                             Pool du Clan ({lotteryState.clan_tickets.length}/{lotteryState.max_clan_tickets})
                                         </div>
                                         {lotteryState.clan_tickets.length === 0 ? (
-                                            <div className="p-3 bg-white/5 border border-white/5 rounded-xl text-[9px] font-mono text-white/30 uppercase text-center">
+                                            <div className="p-3 bg-white/5 border border-white/5 rounded-xl text-[11px] font-mono text-white/60 uppercase text-center">
                                                 Aucun ticket de clan
                                             </div>
                                         ) : (
@@ -433,11 +426,11 @@ export default function LotteryPage() {
                                                 {lotteryState.clan_tickets.map(t => (
                                                     <div
                                                         key={t.id}
-                                                        className="px-2.5 py-1 bg-purple-600/15 border border-purple-500/30 rounded text-purple-400 text-[10px] font-mono font-bold flex flex-col items-center justify-center gap-0.5"
+                                                        className="px-2.5 py-1 bg-purple-600/15 border border-purple-500/30 rounded text-purple-400 text-[11px] font-mono font-bold flex flex-col items-center justify-center gap-0.5"
                                                         title={`Acheté par ${t.buyer}`}
                                                     >
                                                         <span>#{t.number}</span>
-                                                        <span className="text-[6px] text-white/40 uppercase truncate max-w-[50px]">{t.buyer}</span>
+                                                        <span className="text-[11px] text-white/60 uppercase truncate max-w-[50px]">{t.buyer}</span>
                                                     </div>
                                                 ))}
                                             </div>
@@ -449,7 +442,7 @@ export default function LotteryPage() {
                             {/* History */}
                             {lotteryState.history.length > 0 && (
                                 <div>
-                                    <div className="text-[9px] font-mono text-white/50 uppercase tracking-wider mb-2 flex items-center gap-2">
+                                    <div className="text-[11px] font-mono text-white/50 uppercase tracking-wider mb-2 flex items-center gap-2">
                                         <Trophy className="h-3 w-3 text-banan-primary" />
                                         Historique des tirages
                                     </div>
@@ -457,9 +450,9 @@ export default function LotteryPage() {
                                         {lotteryState.history.map(h => (
                                             <div
                                                 key={h.draw_number}
-                                                className="flex items-center justify-between p-2 bg-white/5 text-[10px] font-mono border border-white/5 rounded-lg"
+                                                className="flex items-center justify-between p-2 bg-white/5 text-[11px] font-mono border border-white/5 rounded-lg"
                                             >
-                                                <span className="text-white/30 font-bold">#{h.draw_number}</span>
+                                                <span className="text-white/60 font-bold">#{h.draw_number}</span>
                                                 <span className="text-banan-primary font-bold text-xs bg-black/40 px-2 py-0.5 rounded border border-banan-primary/20">{h.winning_number}</span>
                                                 <span className={`font-semibold ${
                                                     h.winner
@@ -470,7 +463,7 @@ export default function LotteryPage() {
                                                 }`}>
                                                     {h.winner || 'Rollover'}
                                                 </span>
-                                                <span className="text-white/40 flex items-center gap-1">{formatNumber(h.jackpot)} <Banana className="h-2.5 w-2.5" /></span>
+                                                <span className="text-white/60 flex items-center gap-1">{formatNumber(h.jackpot)} <Banana className="h-2.5 w-2.5" /></span>
                                             </div>
                                         ))}
                                     </div>

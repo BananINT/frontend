@@ -81,10 +81,10 @@ export function CyberLabWarningModal({ isOpen, onClose }: CyberLabWarningModalPr
               </div>
               <div className="min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-[10px] sm:text-xs font-mono font-black uppercase tracking-widest px-2 py-0.5 rounded bg-red-500 text-black">
+                  <span className="text-[11px] sm:text-xs font-mono font-black uppercase tracking-widest px-2 py-0.5 rounded bg-red-500 text-black">
                     PROTOCOLE DE SÉCURITÉ OPÉRATIONNELLE
                   </span>
-                  <span className="text-[10px] font-mono text-red-400/80 font-bold">
+                  <span className="text-[11px] font-mono text-red-400/80 font-bold">
                     [ZONE NON CONFIDENTIELLE]
                   </span>
                 </div>

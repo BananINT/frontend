@@ -1,5 +1,5 @@
 @import "tailwindcss";
-@import url('https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&family=Syne:wght@400..800&display=swap');
+/* Google Fonts (Space Mono + Syne) are loaded from index.html with preconnect. */
 
 /* Dynamic Theme Variable Registration */
 @property --banan-primary {
@@ -275,9 +275,13 @@ html {
   to { --marquee-angle: 360deg; }
 }
 
-.marquee-border {
-  position: relative;
-  isolation: isolate;
+/* Layered so Tailwind position utilities (fixed, absolute, sticky) on the same
+   element win; elements without one still get `relative` for the ::before ring. */
+@layer components {
+  .marquee-border {
+    position: relative;
+    isolation: isolate;
+  }
 }
 
 .marquee-border::before {
@@ -298,6 +302,42 @@ html {
 @keyframes float-bob {
   0%, 100% { transform: translateY(0) rotate(var(--float-rot, 0deg)); }
   50% { transform: translateY(-22px) rotate(calc(var(--float-rot, 0deg) * -1)); }
+}
+
+/* Reduced motion: the decorative loops calm down, nothing disappears. Each
+   rule leaves the element on a visible resting frame. `!important` is needed
+   to beat inline animation styles and CSS from lazily loaded chunks. */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  /* Themes keep their palette; rainbow still drifts, just very slowly. */
+  [data-theme="rainbow"] {
+    animation-duration: 240s !important;
+  }
+
+  [data-theme="golden"] {
+    animation: none !important;
+  }
+
+  .marquee-border::before,
+  .shiny-text,
+  .animate-pulse,
+  .animate-ping,
+  .animate-bounce,
+  .animate-float,
+  .animate-pulse-glow,
+  [class*="animate-[shimmer"],
+  [style*="float-bob"],
+  [style*="radio-bounce"] {
+    animation: none !important;
+  }
+
+  /* Loading spinners still say "busy", at a gentler pace. */
+  .animate-spin {
+    animation-duration: 3s !important;
+  }
 }
 
 @media print {

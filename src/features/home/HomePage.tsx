@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import ShinyText from '@app/components/ui/ShinyText';
 import Aurora from '@app/components/ui/Aurora';
 import LavaLamp from '@app/components/ui/LavaLamp';
@@ -7,7 +7,6 @@ import { Link } from 'react-router';
 import { useEffect, useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import SplitFlapDisplay from '@app/components/ui/SplitFlap';
-import Globe from '@app/components/ui/Globe';
 import { formatNumber } from '@app/utils/format';
 import MarketTicker from './components/MarketTicker';
 import ShowcaseSection from './components/ShowcaseSection';
@@ -17,6 +16,11 @@ import HardwareStack from './components/HardwareStack';
 import BananierLogs from './components/BananierLogs';
 import RecruitmentHub from './components/RecruitmentHub';
 import WikINTAd from '@app/features/events/components/WikINTAd';
+import GlobeStill from './components/GlobeStill';
+
+// three.js + three-globe are the heaviest dependencies on the page; the still
+// image holds the exact same spot until the live globe chunk arrives.
+const Globe = lazy(() => import('@app/components/ui/Globe'));
 
 
 const FlipNumber = ({ value, flaps = 3, fontSize = '3rem', compact = false }: { value: number, flaps?: number, fontSize?: string, compact?: boolean }) => (
@@ -27,23 +31,48 @@ const FlipNumber = ({ value, flaps = 3, fontSize = '3rem', compact = false }: { 
 
 const TeamCardsGroup = ({ children }: { children: React.ReactNode }) => {
     const containerRef = useRef<HTMLDivElement>(null);
+    // Card rects are cached while the pointer is over the group and dropped on
+    // scroll/resize, so a mousemove costs one rAF write pass instead of N layout reads.
+    const cardsRef = useRef<{ el: HTMLElement, rect: DOMRect }[] | null>(null);
+    const pointerRef = useRef({ x: 0, y: 0 });
+    const frameRef = useRef<number | null>(null);
+
+    const measure = () => {
+        const container = containerRef.current;
+        if (!container) return [];
+        cardsRef.current = Array.from(container.querySelectorAll<HTMLElement>('.team-card'))
+            .map(el => ({ el, rect: el.getBoundingClientRect() }));
+        return cardsRef.current;
+    };
+
+    useEffect(() => {
+        const invalidate = () => { cardsRef.current = null; };
+        window.addEventListener('resize', invalidate);
+        window.addEventListener('scroll', invalidate, { passive: true, capture: true });
+        return () => {
+            window.removeEventListener('resize', invalidate);
+            window.removeEventListener('scroll', invalidate, { capture: true });
+            if (frameRef.current !== null) cancelAnimationFrame(frameRef.current);
+        };
+    }, []);
 
     const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-        if (!containerRef.current) return;
-        const cards = containerRef.current.querySelectorAll('.team-card');
-        cards.forEach((card) => {
-            const htmlCard = card as HTMLElement;
-            const rect = htmlCard.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-            htmlCard.style.setProperty('--mouse-x', `${x}px`);
-            htmlCard.style.setProperty('--mouse-y', `${y}px`);
+        pointerRef.current = { x: e.clientX, y: e.clientY };
+        if (frameRef.current !== null) return;
+        frameRef.current = requestAnimationFrame(() => {
+            frameRef.current = null;
+            const { x: px, y: py } = pointerRef.current;
+            (cardsRef.current ?? measure()).forEach(({ el, rect }) => {
+                el.style.setProperty('--mouse-x', `${px - rect.left}px`);
+                el.style.setProperty('--mouse-y', `${py - rect.top}px`);
+            });
         });
     };
 
     return (
         <div 
             ref={containerRef}
+            onMouseEnter={measure}
             onMouseMove={handleMouseMove}
             className="group/cards grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
         >
@@ -95,7 +124,7 @@ export default function HomePage() {
 
 
     return (
-        <div className="min-h-[calc(100vh-6rem)] bg-black text-white overflow-x-hidden relative font-sans">
+        <div className="min-h-[calc(100dvh-6rem)] bg-black text-white overflow-x-hidden relative font-sans">
             <Aurora>
                 <div className="relative z-20 flex flex-col items-center pt-12 pb-12 px-4 text-center">
 
@@ -153,7 +182,9 @@ export default function HomePage() {
                         {/* Globe Center - Full Width */}
                         <div className="w-[calc(100%+2rem)] -mx-4 lg:w-full lg:mx-0 h-[450px] lg:h-[800px] flex items-center justify-center relative pointer-events-none -mt-16 lg:-mt-24">
                             <div className="absolute inset-0 z-10 flex items-center justify-center pointer-events-none opacity-80 mix-blend-screen overflow-visible scale-[1.15] lg:scale-[1.3]">
-                                <Globe />
+                                <Suspense fallback={<GlobeStill />}>
+                                    <Globe />
+                                </Suspense>
                             </div>
                         </div>
 
@@ -270,7 +301,7 @@ export default function HomePage() {
                         <TeamCardsGroup>
                             <TeamCard glowColor="rgba(var(--banan-green-rgb), 0.15)">
                                 <div className="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-banan-green to-banan-green/50 rounded-full flex items-center justify-center text-white shadow-[0_0_30px_rgba(var(--banan-green-rgb),0.3)] overflow-hidden">
-                                    <img src="/img/team/luc.webp" alt="Lucas Thuries" className="w-full h-full object-cover" />
+                                    <img src="/img/team/luc.webp" alt="Lucas Thuries" width={512} height={512} loading="lazy" decoding="async" className="w-full h-full object-cover" />
                                 </div>
                                 <div className="text-center">
                                     <h3 className="text-2xl font-black text-white uppercase mb-1">Lucas Thuries</h3>
@@ -282,7 +313,7 @@ export default function HomePage() {
 
                             <TeamCard className="border-banan-primary/30" glowColor="rgba(var(--banan-primary-rgb), 0.15)">
                                 <div className="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-banan-primary to-banan-primary/50 rounded-full flex items-center justify-center text-black shadow-[0_0_30px_rgba(var(--banan-primary-rgb),0.3)] overflow-hidden">
-                                    <img src="/img/team/dim.webp" alt="Dimitri Fajal" className="w-full h-full object-cover" />
+                                    <img src="/img/team/dim.webp" alt="Dimitri Fajal" width={512} height={512} loading="lazy" decoding="async" className="w-full h-full object-cover" />
                                 </div>
                                 <div className="text-center">
                                     <h3 className="text-2xl font-black text-white uppercase mb-1">Dimitri Fajal</h3>
@@ -294,7 +325,7 @@ export default function HomePage() {
 
                             <TeamCard glowColor="rgba(var(--banan-teal-rgb), 0.15)">
                                 <div className="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-banan-teal to-banan-teal/50 rounded-full flex items-center justify-center text-white shadow-[0_0_30px_rgba(var(--banan-teal-rgb),0.3)] overflow-hidden">
-                                    <img src="/img/team/flo.webp" alt="Florian Rivière" className="w-full h-full object-cover" />
+                                    <img src="/img/team/flo.webp" alt="Florian Rivière" width={512} height={512} loading="lazy" decoding="async" className="w-full h-full object-cover" />
                                 </div>
                                 <div className="text-center">
                                     <h3 className="text-2xl font-black text-white uppercase mb-1">Florian Rivière</h3>
@@ -306,7 +337,7 @@ export default function HomePage() {
 
                             <TeamCard glowColor="rgba(245, 158, 11, 0.15)">
                                 <div className="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-amber-400 to-amber-600/50 rounded-full flex items-center justify-center text-white shadow-[0_0_30px_rgba(245,158,11,0.3)] overflow-hidden">
-                                    <img src="/img/team/theo.webp" alt="Théo Darvoux" className="w-full h-full object-cover" />
+                                    <img src="/img/team/theo.webp" alt="Théo Darvoux" width={512} height={512} loading="lazy" decoding="async" className="w-full h-full object-cover" />
                                 </div>
                                 <div className="text-center">
                                     <h3 className="text-2xl font-black text-white uppercase mb-1">Théo Darvoux</h3>

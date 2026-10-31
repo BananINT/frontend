@@ -86,6 +86,12 @@ export default function Header() {
 
     return (
         <header className="sticky top-0 z-50 w-full text-banan-background border-b border-banan-background select-none">
+            <a
+                href="#main"
+                className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-2 focus:z-[100] focus:rounded-full focus:border-2 focus:border-banan-background focus:bg-banan-primary focus:px-5 focus:py-2 focus:font-mono focus:text-sm focus:font-bold focus:uppercase focus:tracking-widest focus:text-banan-background focus:outline-none focus:ring-2 focus:ring-white"
+            >
+                Aller au contenu
+            </a>
             <div className="container z-50 bg-banan-primary flex h-12 items-center justify-between px-2 min-[375px]:px-3 sm:px-4 max-w-[1920px] mx-auto relative min-w-0">
                 {/* ============================================================== */}
                 {/* WIDE SCREENS (xl: >= 1280px): Full horizontal desktop bar      */}

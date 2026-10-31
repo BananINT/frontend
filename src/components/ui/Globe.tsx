@@ -118,6 +118,26 @@ function getGlobeCameraDistance(containerHeight: number): number {
     return Math.max(150, Math.min(rawDistance, 500));
 }
 
+const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)';
+// Render budget before a reduced-motion globe freezes on its static frame
+// (covers the async globe-ready step and the first data digest).
+const REDUCED_MOTION_SETTLE_MS = 1200;
+const MAX_PIXEL_RATIO = 1.5;
+
+function usePrefersReducedMotion() {
+    const [reduced, setReduced] = useState(() =>
+        typeof window !== 'undefined' && !!window.matchMedia?.(REDUCED_MOTION_QUERY).matches
+    );
+    useEffect(() => {
+        const mql = window.matchMedia?.(REDUCED_MOTION_QUERY);
+        if (!mql) return;
+        const onChange = () => setReduced(mql.matches);
+        mql.addEventListener('change', onChange);
+        return () => mql.removeEventListener('change', onChange);
+    }, []);
+    return reduced;
+}
+
 export default function Globe() {
     const containerRef = useRef<HTMLDivElement>(null);
     const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
@@ -129,6 +149,7 @@ export default function Globe() {
     const [geoJson, setGeoJson] = useState<{ features: { geometry: unknown, properties: unknown }[] } | null>(null);
     const [loaded, setLoaded] = useState(false);
     const { theme } = useTheme();
+    const reducedMotion = usePrefersReducedMotion();
 
     // Fetch Data
     useEffect(() => {
@@ -146,6 +167,7 @@ export default function Globe() {
 
         let isMounted = true;
         let fadeTimeout: ReturnType<typeof setTimeout>;
+        let teardownLoop: (() => void) | null = null;
 
         // Delay the heavy Three.js instantiation to allow the browser to paint
         // the rest of the page layout and initial animations without hitching.
@@ -168,7 +190,7 @@ export default function Globe() {
             // 1. Setup Scene, Camera, Renderer
             const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
             renderer.setClearColor(0x000000, 0);
-            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, MAX_PIXEL_RATIO));
             renderer.setSize(w, h);
             currentContainer.appendChild(renderer.domElement);
             renderer.domElement.style.background = 'transparent';
@@ -202,7 +224,7 @@ export default function Globe() {
             controls.enableZoom = false; // Disable Zoom
             controls.enablePan = false;  // Disable Pan
             controls.enableRotate = false; // Disable Manual Rotation
-            controls.autoRotate = GLOBE_CONFIG.autoRotate;
+            controls.autoRotate = GLOBE_CONFIG.autoRotate && !reducedMotion;
             controls.autoRotateSpeed = GLOBE_CONFIG.autoRotateSpeed;
             controls.minDistance = 150;
             controls.maxDistance = 600;
@@ -225,7 +247,7 @@ export default function Globe() {
             scene.add(pLight);
 
             // 3. Init Globe - THIS IS THE HEAVY SYNCHRONOUS OPERATION
-            const globe = new ThreeGlobe()
+            const globe = new ThreeGlobe({ animateIn: !reducedMotion })
                 .hexPolygonsData(geoJson.features)
                 .hexPolygonResolution(3)
                 .hexPolygonMargin(0.7)
@@ -285,14 +307,44 @@ export default function Globe() {
                 .ringPropagationSpeed(3)
                 .ringRepeatPeriod(GLOBE_CONFIG.arcTime * GLOBE_CONFIG.arcLength / GLOBE_CONFIG.rings);
 
+            if (reducedMotion) {
+                globe.hexPolygonsTransitionDuration(0).arcsTransitionDuration(0).pointsTransitionDuration(0);
+            }
+
             scene.add(globe);
 
-            // Animation Loop
-            const animate = () => {
-                if (!isMounted) return;
-                animationFrameId.current = requestAnimationFrame(animate);
+            // Animation Loop: runs only while the globe is on screen and the tab
+            // is visible. With reduced motion it settles, then holds one static frame.
+            let inView = true;
+            let frozen = false;
+            let firstFrameAt: number | null = null;
+
+            const renderFrame = () => {
                 controls.update();
                 renderer.render(scene, camera);
+            };
+
+            const stopLoop = () => {
+                if (animationFrameId.current !== null) {
+                    cancelAnimationFrame(animationFrameId.current);
+                    animationFrameId.current = null;
+                }
+                globe.pauseAnimation();
+            };
+
+            const animate = (now: number) => {
+                if (!isMounted) return;
+                animationFrameId.current = requestAnimationFrame(animate);
+                renderFrame();
+
+                if (reducedMotion) {
+                    firstFrameAt ??= now;
+                    if (now - firstFrameAt > REDUCED_MOTION_SETTLE_MS) {
+                        frozen = true;
+                        stopLoop();
+                    }
+                    return;
+                }
 
                 // Randomly add rings
                 if (Math.random() > 0.97) {
@@ -300,7 +352,28 @@ export default function Globe() {
                     globe.ringsData(uniquePoints.filter((_, i) => numberOfRings.includes(i)));
                 }
             };
-            animate();
+
+            const syncLoop = () => {
+                const shouldRun = isMounted && inView && !document.hidden && !frozen;
+                if (shouldRun && animationFrameId.current === null) {
+                    globe.resumeAnimation();
+                    animationFrameId.current = requestAnimationFrame(animate);
+                } else if (!shouldRun && animationFrameId.current !== null) {
+                    stopLoop();
+                } else if (!shouldRun) {
+                    globe.pauseAnimation();
+                }
+            };
+
+            const observer = typeof IntersectionObserver !== 'undefined'
+                ? new IntersectionObserver(([entry]) => {
+                    inView = entry.isIntersecting;
+                    syncLoop();
+                }, { rootMargin: '200px' })
+                : null;
+            observer?.observe(currentContainer);
+            document.addEventListener('visibilitychange', syncLoop);
+            syncLoop();
 
             // Reveal the globe smoothly
             fadeTimeout = setTimeout(() => {
@@ -326,12 +399,18 @@ export default function Globe() {
                 } else {
                     cameraRef.current.position.setLength(targetDistance);
                 }
+                // A paused or frozen globe still needs a fresh frame at the new size.
+                if (animationFrameId.current === null) renderFrame();
             };
 
             window.addEventListener('resize', handleResize);
 
-            // Attach resize handler to window so we can clean it up
-            (window as Window & { _globeHandleResize?: () => void })._globeHandleResize = handleResize;
+            teardownLoop = () => {
+                observer?.disconnect();
+                document.removeEventListener('visibilitychange', syncLoop);
+                window.removeEventListener('resize', handleResize);
+                stopLoop();
+            };
 
         }, 1500); // Wait 1.5s for the initial page reveals and split-flap animations to fully finish!
 
@@ -339,14 +418,9 @@ export default function Globe() {
             isMounted = false;
             clearTimeout(initTimeout);
             clearTimeout(fadeTimeout);
-            
-            const win = window as Window & { _globeHandleResize?: () => void };
-            if (win._globeHandleResize) {
-                window.removeEventListener('resize', win._globeHandleResize);
-                delete win._globeHandleResize;
-            }
-            
-            if (animationFrameId.current) cancelAnimationFrame(animationFrameId.current);
+            teardownLoop?.();
+            if (animationFrameId.current !== null) cancelAnimationFrame(animationFrameId.current);
+            animationFrameId.current = null;
             if (controlsRef.current) {
                 controlsRef.current.dispose();
                 controlsRef.current = null;
@@ -363,7 +437,7 @@ export default function Globe() {
             }
         };
 
-    }, [geoJson, theme]);
+    }, [geoJson, theme, reducedMotion]);
 
 
     return (
@@ -371,7 +445,9 @@ export default function Globe() {
             <img
                 src="/img/globe-still.webp"
                 alt=""
-                decoding="async"
+                width={1000}
+                height={1000}
+                fetchPriority="high"
                 className={`absolute left-1/2 top-1/2 w-[min(100vw,950px)] h-auto -translate-x-1/2 -translate-y-1/2 transition-opacity duration-700 ${loaded ? 'opacity-0' : 'opacity-100'}`}
             />
             <div

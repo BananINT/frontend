@@ -11,8 +11,9 @@ import rehypeKatex from 'rehype-katex';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const ROOT_DIR = path.resolve(__dirname, '..');
-const DIST_DIR = path.resolve(ROOT_DIR, 'dist');
-const BASE_URL = 'https://bananint.fr';
+// The output directory defaults to dist/; pass another one as the first argument
+// (e.g. `node --experimental-strip-types scripts/generate-seo.js /tmp/out`).
+const DIST_DIR = path.resolve(process.argv[2] || path.resolve(ROOT_DIR, 'dist'));
 
 function escapeHtml(text) {
     if (!text) return '';
@@ -42,9 +43,23 @@ async function run() {
         process.exit(1);
     }
 
-    // Load articles data
+    // Load articles data and the SEO helpers shared with the React pages
     const articlesModule = await import('../src/features/blog/articles/articlesData.ts');
     const articles = articlesModule.BLOG_ARTICLES;
+    const {
+        SITE_ORIGIN: BASE_URL,
+        SITE_ROOT_URL,
+        BLOG_URL,
+        CATEGORY_LABELS,
+        articleUrl,
+        articleJsonLd,
+        blogIndexJsonLd,
+    } = await import('../src/features/blog/seo.ts');
+    // Stable date for non-article URLs: the most recent article update, not the build time.
+    const latestUpdate = articles
+        .map(a => a.updatedAt || a.publishedAt)
+        .sort()
+        .at(-1);
 
     console.log(`📄 [SEO Generator] Loaded ${articles.length} articles from articlesData.ts`);
 
@@ -151,33 +166,7 @@ async function run() {
     const blogIndexDir = path.resolve(DIST_DIR, 'blog');
     fs.mkdirSync(blogIndexDir, { recursive: true });
 
-    const blogIndexJsonLd = {
-        '@context': 'https://schema.org',
-        '@type': 'CollectionPage',
-        name: 'Le carnet BananINT',
-        description: 'Vie étudiante à Télécom SudParis, repères sur le campus et coulisses de BananINT.',
-        url: `${BASE_URL}/blog`,
-        publisher: {
-            '@type': 'Organization',
-            name: 'BananINT Syndicate',
-            logo: {
-                '@type': 'ImageObject',
-                url: `${BASE_URL}/blog-og.png`
-            }
-        },
-        hasPart: articles.map(a => ({
-            '@type': 'Article',
-            headline: a.title,
-            description: a.subtitle,
-            url: `${BASE_URL}/blog/${a.slug}`,
-            datePublished: a.publishedAt,
-            dateModified: a.updatedAt,
-            author: {
-                '@type': 'Person',
-                name: a.author.name
-            }
-        }))
-    };
+    const blogIndexStructuredData = blogIndexJsonLd(articles);
 
     const blogIndexFallback = `
         <header style="padding: 2rem clamp(20px, 4vw, 48px); max-width: 1280px; margin: 0 auto; box-sizing: border-box; color: white; font-family: sans-serif;">
@@ -202,7 +191,7 @@ async function run() {
     const blogIndexHtml = createPrerenderedHtml({
         title: 'Le carnet — campus, idées et BananINT | BananINT',
         description: 'Vie étudiante à Télécom SudParis, MAISEL, assos et coulisses du projet : le carnet BananINT, à lire entre deux cours.',
-        canonicalUrl: `${BASE_URL}/blog`,
+        canonicalUrl: BLOG_URL,
         keywords: [
             'BananINT blog',
             'BananINT guides',
@@ -213,7 +202,7 @@ async function run() {
             'campus Télécom SudParis'
         ],
         ogType: 'website',
-        jsonLd: blogIndexJsonLd,
+        jsonLd: blogIndexStructuredData,
         bodyFallbackHtml: blogIndexFallback
     });
 
@@ -225,65 +214,10 @@ async function run() {
         const articleDir = path.resolve(blogIndexDir, article.slug);
         fs.mkdirSync(articleDir, { recursive: true });
 
-        const articleJsonLd = [
-            {
-                '@context': 'https://schema.org',
-                '@type': article.category === 'architecture' ? 'TechArticle' : 'BlogPosting',
-                headline: article.title,
-                alternativeHeadline: article.subtitle,
-                description: article.metaDescription,
-                image: `${BASE_URL}/blog-og.png`,
-                datePublished: article.publishedAt,
-                dateModified: article.updatedAt,
-                inLanguage: 'fr-FR',
-                mainEntityOfPage: {
-                    '@type': 'WebPage',
-                    '@id': `${BASE_URL}/blog/${article.slug}`
-                },
-                author: {
-                    '@type': 'Person',
-                    name: article.author.name,
-                    jobTitle: article.author.role
-                },
-                publisher: {
-                    '@type': 'Organization',
-                    name: 'BananINT Syndicate',
-                    logo: {
-                        '@type': 'ImageObject',
-                        url: `${BASE_URL}/blog-og.png`
-                    }
-                },
-                keywords: article.keywords.join(', '),
-                articleSection: article.category
-            },
-            {
-                '@context': 'https://schema.org',
-                '@type': 'BreadcrumbList',
-                itemListElement: [
-                    {
-                        '@type': 'ListItem',
-                        position: 1,
-                        name: 'Accueil',
-                        item: BASE_URL
-                    },
-                    {
-                        '@type': 'ListItem',
-                        position: 2,
-                        name: 'Le carnet',
-                        item: `${BASE_URL}/blog`
-                    },
-                    {
-                        '@type': 'ListItem',
-                        position: 3,
-                        name: article.title,
-                        item: `${BASE_URL}/blog/${article.slug}`
-                    }
-                ]
-            }
-        ];
+        const structuredData = articleJsonLd(article);
 
         if (article.faqs && article.faqs.length > 0) {
-            articleJsonLd.push({
+            structuredData.push({
                 '@context': 'https://schema.org',
                 '@type': 'FAQPage',
                 mainEntity: article.faqs.map(faq => ({
@@ -306,7 +240,7 @@ async function run() {
                 </nav>
                 <header style="padding: 1.5rem 0; background: radial-gradient(circle at 85% 15%, rgba(250,255,0,0.1), transparent 40%);">
                     <span style="display: inline-block; padding: 0.35rem 0.8rem; font-family: monospace; font-size: 0.75rem; text-transform: uppercase; background: rgba(250,255,0,0.1); color: #FAFF00; border: 1px solid rgba(250,255,0,0.3); border-radius: 999px;">
-                        ${escapeHtml(article.category)}
+                        ${escapeHtml(CATEGORY_LABELS[article.category])}
                     </span>
                     ${article.tags.map(tag => `<a href="/blog?tag=${encodeURIComponent(tag)}" style="display: inline-block; margin-left: 0.4rem; padding: 0.35rem 0.8rem; font-family: monospace; font-size: 0.75rem; text-decoration: none; background: rgba(250,255,0,0.08); color: #FAFF00; border: 1px solid rgba(250,255,0,0.25); border-radius: 999px;">#${escapeHtml(tag)}</a>`).join('')}
                     <h1 style="font-size: 2.2rem; text-transform: uppercase; margin-top: 1rem;">${escapeHtml(article.title)}</h1>
@@ -328,14 +262,14 @@ async function run() {
         const articleHtml = createPrerenderedHtml({
             title: `${article.metaTitle} | BananINT`,
             description: article.metaDescription,
-            canonicalUrl: `${BASE_URL}/blog/${article.slug}`,
+            canonicalUrl: articleUrl(article),
             keywords: article.keywords,
             ogType: 'article',
             publishedTime: article.publishedAt,
             modifiedTime: article.updatedAt,
             author: article.author.name,
-            section: article.category,
-            jsonLd: articleJsonLd,
+            section: CATEGORY_LABELS[article.category],
+            jsonLd: structuredData,
             bodyFallbackHtml: articleFallback
         });
 
@@ -344,23 +278,18 @@ async function run() {
     }
 
     // --- C. Generate sitemap.xml ---
-    const now = new Date().toISOString();
+    // Only prerendered pages with their own canonical URL belong here; the game
+    // routes are client-rendered and share the root page's canonical.
     const staticRoutes = [
-        { loc: `${BASE_URL}/`, priority: '1.0', changefreq: 'daily', lastmod: now },
-        { loc: `${BASE_URL}/blog`, priority: '0.9', changefreq: 'daily', lastmod: now },
-        { loc: `${BASE_URL}/clicker`, priority: '0.8', changefreq: 'weekly', lastmod: now },
-        { loc: `${BASE_URL}/casino`, priority: '0.7', changefreq: 'weekly', lastmod: now },
-        { loc: `${BASE_URL}/clan`, priority: '0.7', changefreq: 'weekly', lastmod: now },
-        { loc: `${BASE_URL}/lab`, priority: '0.7', changefreq: 'weekly', lastmod: now },
-        { loc: `${BASE_URL}/timeline`, priority: '0.6', changefreq: 'weekly', lastmod: now },
-        { loc: `${BASE_URL}/bananee`, priority: '0.5', changefreq: 'monthly', lastmod: now },
+        { loc: SITE_ROOT_URL, priority: '1.0', changefreq: 'weekly', lastmod: latestUpdate },
+        { loc: BLOG_URL, priority: '0.9', changefreq: 'weekly', lastmod: latestUpdate },
     ];
 
     const articleRoutes = articles.map(a => ({
-        loc: `${BASE_URL}/blog/${a.slug}`,
+        loc: articleUrl(a),
         priority: '0.85',
-        changefreq: 'weekly',
-        lastmod: a.updatedAt || a.publishedAt || now
+        changefreq: 'monthly',
+        lastmod: a.updatedAt || a.publishedAt
     }));
 
     const allSitemapUrls = [...staticRoutes, ...articleRoutes];
@@ -377,7 +306,6 @@ ${allSitemapUrls.map(u => `  <url>
 `;
 
     fs.writeFileSync(path.resolve(DIST_DIR, 'sitemap.xml'), sitemapXml, 'utf8');
-    fs.writeFileSync(path.resolve(ROOT_DIR, 'public', 'sitemap.xml'), sitemapXml, 'utf8');
     console.log(`  ✅ [Sitemap] Generated dist/sitemap.xml with ${allSitemapUrls.length} indexed URLs`);
 
     // --- D. Generate robots.txt ---
@@ -390,35 +318,33 @@ Disallow: /api/
 Sitemap: ${BASE_URL}/sitemap.xml
 `;
     fs.writeFileSync(path.resolve(DIST_DIR, 'robots.txt'), robotsTxt, 'utf8');
-    fs.writeFileSync(path.resolve(ROOT_DIR, 'public', 'robots.txt'), robotsTxt, 'utf8');
-    console.log('  ✅ [Robots] Generated dist/robots.txt and public/robots.txt');
+    console.log('  ✅ [Robots] Generated dist/robots.txt');
 
     // --- E. Generate RSS Feed (feed.xml) ---
     const feedXml = `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>BananINT - Le carnet</title>
-    <link>${BASE_URL}/blog</link>
+    <link>${BLOG_URL}</link>
     <description>Vie étudiante à Télécom SudParis, repères sur le campus et coulisses de BananINT.</description>
     <language>fr-FR</language>
-    <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>
+    <lastBuildDate>${new Date(latestUpdate).toUTCString()}</lastBuildDate>
     <atom:link href="${BASE_URL}/feed.xml" rel="self" type="application/rss+xml"/>
     ${articles.map(a => `
     <item>
       <title>${escapeHtml(a.title)}</title>
-      <link>${BASE_URL}/blog/${a.slug}</link>
-      <guid isPermaLink="true">${BASE_URL}/blog/${a.slug}</guid>
+      <link>${articleUrl(a)}</link>
+      <guid isPermaLink="true">${articleUrl(a)}</guid>
       <pubDate>${new Date(a.publishedAt).toUTCString()}</pubDate>
       <description>${escapeHtml(a.metaDescription || a.subtitle)}</description>
-      <category>${escapeHtml(a.category)}</category>
+      <category>${escapeHtml(CATEGORY_LABELS[a.category])}</category>
     </item>`).join('')}
   </channel>
 </rss>
 `;
 
     fs.writeFileSync(path.resolve(DIST_DIR, 'feed.xml'), feedXml, 'utf8');
-    fs.writeFileSync(path.resolve(ROOT_DIR, 'public', 'feed.xml'), feedXml, 'utf8');
-    console.log(`  ✅ [RSS] Generated dist/feed.xml and public/feed.xml`);
+    console.log('  ✅ [RSS] Generated dist/feed.xml');
 
     console.log('✨ [SEO Generator] All static files, meta tags, and structured schemas successfully generated!');
 }

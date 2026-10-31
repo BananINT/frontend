@@ -90,9 +90,9 @@ export default function Footer() {
                 {/* Bottom Bar */}
                 <div className="pt-8 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-4 text-[10px] uppercase font-bold tracking-widest text-white/40">
                     <div className="flex items-center gap-4">
-                        <Link to="/legacy" className="hover:text-white/40 transition-colors">
+                        <span className="hover:text-white/40 transition-colors">
                             {new Date().getFullYear()} BananINT©
-                        </Link>
+                        </span>
                         <span className="hidden md:inline text-white/20">|</span>
                         <span>Fait avec <Heart className="w-3 h-3 inline text-banan-red mx-1 align-sub" /> et des <Banana className="w-3 h-3 inline align-sub text-banan-primary" /> à Evry(-Courcouronnes)</span>
                     </div>

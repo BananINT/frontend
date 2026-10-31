@@ -2,21 +2,22 @@ import type { BlogArticle } from '../types';
 
 const author = { name: 'BananINT', role: 'Équipe du jeu', avatar: '🍌' };
 const date = '2026-09-29T08:00:00Z';
+const correctedAt = '2026-10-31T08:00:00Z';
 
 export const GAME_ARTICLES: BlogArticle[] = [
     {
         id: 'guide-debutant',
         slug: 'guide-debutant-clicker-bananint',
         title: 'Bien commencer sur le clicker BananINT : guide & mécaniques',
-        subtitle: 'Métriques clés, formules BPC/BPS, arbre d’améliorations, synergies et système d’Ascension.',
-        metaTitle: 'Guide débutant BananINT : BPC, BPS, améliorations et ascension',
-        metaDescription: 'Le guide complet pour maîtriser le clicker BananINT : calcul du BPC et BPS, synergies de production, gestion AFK et rituel d’Ascension.',
-        keywords: ['BananINT', 'clicker', 'guide débutant', 'BPC', 'BPS', 'améliorations', 'ascension'],
+        subtitle: 'Métriques clés, formules BPC/BPS, arbre d’améliorations, synergies et production hors ligne.',
+        metaTitle: 'Guide débutant BananINT : BPC, BPS et améliorations',
+        metaDescription: 'Bien démarrer sur le clicker BananINT : BPC et BPS, améliorations de clic et automatiques, synergies de production et gains hors ligne.',
+        keywords: ['BananINT', 'clicker', 'guide débutant', 'BPC', 'BPS', 'améliorations'],
         category: 'tutoriel',
         tags: ['BananINT', 'Clicker', 'Débutant'],
         author,
         publishedAt: date,
-        updatedAt: date,
+        updatedAt: correctedAt,
         readingTime: '5 min',
         content: `Le clicker de [BananINT](/clicker) repose sur un système économique incrémental calibré pour équilibrer investissement actif et génération passive de bananes. Ce guide détaille les formules fondamentales et les paliers d'optimisation.
 
@@ -79,16 +80,9 @@ Disponibles en milieu de partie, ces améliorations créent des effets croisés 
 - **Recursive Banana Cloning** (1 000 000 000 000 🍌) : Double l'intégralité de la production automatique de base.
 - **Hive-Mind Apes** (100 000 000 000 000 🍌) : Double l'intégralité de la production de clic de base.
 
-## Le Rituel d'Ascension (Prestige)
+## Et après ?
 
-Lorsque la progression ralentit, le système d'Ascension permet de réinitialiser votre solde de bananes et vos améliorations standard en échange de points de transcendance cosmique.
-
-Ces points débloquent un arbre d'améliorations permanentes de prestige :
-- **Genome Amplifier** : +10% à l'ensemble de la production globale.
-- **Quantum Banana Matrix** : +25% de production globale.
-- **Genetic Overclocking** : +50% de puissance de clic.
-- **Evolutionary Boost** : +100% de production automatique.
-- Paliers finaux : jusqu'à **+25 000%** de production totale avec *The Final Banana*.
+Quand la progression finit par ralentir, une autre étape s'ouvre à qui va assez loin. On vous laisse la découvrir en jeu.
 
 ## La production AFK
 
@@ -98,17 +92,17 @@ Le backend de BananINT intègre un calcul d'absence : à chaque reconnexion, le 
     {
         id: 'guide-marche',
         slug: 'guide-bourse-trading-dividendes',
-        title: 'Guide de la bourse BananINT : cours, ordres limites et dividendes',
-        subtitle: 'Comprendre les trois tiers d’actifs, le carnet d’ordres et les stratégies de rente passive.',
-        metaTitle: 'Bourse de BananINT : trading, actions, dividendes et ordres limites',
-        metaDescription: 'Maîtriser le marché boursier de BananINT : analyse des actions (BNDAQ, OGM, FED), ordres à cours limité et stratégie de dividendes réguliers.',
-        keywords: ['BananINT', 'bourse', 'trading', 'dividendes', 'marché', 'actions', 'Trading'],
+        title: 'Guide de la bourse BananINT : cours, actifs et volatilité',
+        subtitle: 'Comprendre les trois tiers d’actifs, leur volatilité et le fonctionnement des achats et ventes.',
+        metaTitle: 'Bourse de BananINT : trading, actions et volatilité',
+        metaDescription: 'Le marché boursier de BananINT : les six actions réparties en trois tiers (BNDAQ, BG, OGM, CYBR, FED, QNTM), leur volatilité et l’achat ou la vente au cours affiché.',
+        keywords: ['BananINT', 'bourse', 'trading', 'marché', 'actions', 'volatilité'],
         category: 'guide',
         tags: ['BananINT', 'Trading', 'Guide'],
         author,
         publishedAt: date,
-        updatedAt: date,
-        readingTime: '5 min',
+        updatedAt: correctedAt,
+        readingTime: '4 min',
         content: `Accessible depuis l'onglet marché du [clicker](/clicker), la bourse de BananINT est une simulation économique en temps réel. Les cours oscillent sous l'influence combinée d'un algorithme de retour à la moyenne (*mean reversion*) et des transactions massives opérées par les joueurs.
 
 ## Les trois Tiers d'actifs financiers
@@ -119,50 +113,35 @@ Le marché est structuré en trois paliers de capitalisation pour correspondre a
 - **BNDAQ (BanaNASDAQ)** :
   - *Type* : Actif stable.
   - *Prix de base* : 15 🍌 | *Volatilité* : Faible (5%).
-  - *Rendement de dividende* : **3% régulier**.
   - *Profil* : La valeur refuge de départ pour sécuriser ses premiers profits.
 - **BG (BanaGone)** :
   - *Type* : Actif spéculatif (meme coin).
   - *Prix de base* : 150 🍌 | *Volatilité* : Très élevée (40%).
-  - *Rendement de dividende* : 0%.
   - *Profil* : Idéal pour des opérations d'achat/revente rapides sur de fortes amplitudes.
 
 ### Tier 2 : Institutional Tech Market (Milieu de partie : 10M à 10B 🍌)
 - **OGM (OGM BioTech)** :
   - *Type* : Actif de croissance stable.
   - *Prix de base* : 50 000 🍌 | *Volatilité* : Modérée (20%).
-  - *Rendement de dividende* : **2% régulier**.
-  - *Profil* : Laboratoire de recherche génétique garantissant des rentes substantielles.
+  - *Profil* : Laboratoire de recherche bananière, valeur de croissance plus calme que ses voisines.
 - **CYBR (TorBanana Cybernetics)** :
   - *Type* : Actif technologique volatile.
   - *Prix de base* : 250 000 🍌 | *Volatilité* : Élevée (35%).
-  - *Rendement de dividende* : 0%.
   - *Profil* : Valeur technologique réagissant fortement aux cycles de marché.
 
 ### Tier 3 : Sovereign Whales Market (Fin de partie : 10B à 50T+ 🍌)
 - **FED (Banque Fédérale du Potassium)** :
   - *Type* : Actif institutionnel ultra-stable.
   - *Prix de base* : 10 000 000 🍌 | *Volatilité* : Très faible (8%).
-  - *Rendement de dividende* : **4% régulier**.
-  - *Profil* : Le placement ultime pour transformer des dizaines de milliards en flux passif permanent.
+  - *Profil* : Le placement le plus stable de la fin de partie, pour garer des dizaines de milliards.
 - **QNTM (Quantum Singularity Corp)** :
   - *Type* : Actif spéculatif pour baleines.
   - *Prix de base* : 100 000 000 🍌 | *Volatilité* : Maximale (50%).
-  - *Rendement de dividende* : 0%.
   - *Profil* : Conçu pour les portefeuilles massifs cherchant des swings spectaculaires.
 
-## Ordres au marché vs Ordres à cours limité (Limit Orders)
+## Acheter et vendre
 
-L'interface de trading propose deux modes d'exécution :
-
-1. **Ordre au marché** : Vous achetez ou vendez instantanément au cours affiché sur la bougie actuelle. Vous subissez le spread immédiat.
-2. **Ordre à cours limité** : Vous définissez à l'avance un prix cible et un volume. L'ordre est enregistré dans le carnet d'ordres du moteur backend. Dès que le cours fluctue et touche votre seuil, la transaction s'exécute automatiquement, même si vous êtes hors ligne.
-
-## La stratégie de rente passive
-
-Contrairement à la production de clics qui requiert des achats constants de bâtiments, détenir des actions distributrices de dividendes (\`BNDAQ\`, \`OGM\`, \`FED\`) verse un pourcentage régulier de la valeur totale de votre ligne.
-
-En réinvestissant systématiquement ces dividendes dans de nouveaux titres, vous créez un effet d'intérêts composés indépendant de votre BPS classique.
+Les ordres s'exécutent au marché : vous achetez ou vendez instantanément au cours affiché. Pas de carnet d'ordres à remplir, il faut être là au bon moment.
 `,
     },
     {
@@ -177,7 +156,7 @@ En réinvestissant systématiquement ces dividendes dans de nouveaux titres, vou
         tags: ['BananINT', 'Clans', 'Guide'],
         author,
         publishedAt: date,
-        updatedAt: date,
+        updatedAt: correctedAt,
         readingTime: '5 min',
         content: `Les [clans](/clan) introduisent une dimension sociale et coopérative à l'économie de BananINT. Rejoindre une faction permet de mutualiser des fonds, de financer de nouveaux joueurs, de développer des atouts collectifs et de mener des opérations offensives de renseignement (OSINT).
 
@@ -229,7 +208,7 @@ Pour les amateurs de prise de risque collective, l'Ape Roulette propose un jeu d
 - **Mécanique** : Un barillet de 6 chambres contenant **5 chambres saines (\`SAFE\`)** et **1 chambre piégée (\`DUD\`)**.
 - **Coût par tirage** : 10 000 000 🍌 (10M). 10% de chaque mise alimente le Jackpot Mondial.
 - **Tirage réussi** : Paiement immédiat de **30 000 000 🍌** (multiplicateur x3), avec 1% de chance de déclencher un *Potassium Surge* empochant 5% de la cagnotte mondiale.
-- **Tirage piégé (1 chance sur 6)** : Explosion du pistolet à banane ! Le joueur subit le statut **« Couvert de suie »** pendant **5 minutes (300 secondes)**, lui interdisant tout accès aux jeux de hasard du casino pendant la durée du malus.
+- **Tirage piégé** : Les chambres sont tirées l'une après l'autre et le barillet n'est rechargé qu'après l'explosion. Celui qui tombe sur la chambre piégée se retrouve **« Couvert de suie »** pendant **5 minutes (300 secondes)** : ses clics ne rapportent plus rien et le casino lui est fermé jusqu'à la fin du malus.
 `,
     },
 ];

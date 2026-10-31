@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { SITE_ORIGIN } from '../seo';
 import type { SeoProps } from '../types';
 
 export function SeoHead({
@@ -63,9 +64,7 @@ export function SeoHead({
         setMetaTag('property', 'og:site_name', 'BananINT');
         setMetaTag('property', 'og:locale', 'fr_FR');
 
-        const absoluteImage = ogImage.startsWith('http') 
-            ? ogImage 
-            : `${typeof window !== 'undefined' ? window.location.origin : ''}${ogImage}`;
+        const absoluteImage = ogImage.startsWith('http') ? ogImage : `${SITE_ORIGIN}${ogImage}`;
         setMetaTag('property', 'og:image', absoluteImage);
 
         document.querySelectorAll('meta[property^="article:"]').forEach(el => el.remove());

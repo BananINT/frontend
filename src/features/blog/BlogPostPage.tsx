@@ -7,6 +7,7 @@ import { TableOfContents } from './components/TableOfContents';
 import { FaqSection } from './components/FaqSection';
 import { ArticleCard } from './components/ArticleCard';
 import { SeoHead } from './components/SeoHead';
+import { articleJsonLd, articleUrl } from './seo';
 import type { BlogCategory } from './types';
 import { cn } from '@app/lib/utils';
 
@@ -53,7 +54,7 @@ export default function BlogPostPage() {
 
     const category = CATEGORY_MAP[article.category];
     const CategoryIcon = category.icon;
-    const canonicalUrl = 'https://bananint.fr/blog/' + article.slug;
+    const canonicalUrl = articleUrl(article);
     const shareUrl = typeof window === 'undefined' ? canonicalUrl : window.location.href;
     const date = new Date(article.publishedAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
 
@@ -77,32 +78,7 @@ export default function BlogPostPage() {
         window.setTimeout(() => URL.revokeObjectURL(url), 1000);
     };
 
-    const jsonLd = [
-        {
-            '@context': 'https://schema.org',
-            '@type': 'BlogPosting',
-            headline: article.title,
-            description: article.metaDescription,
-            image: 'https://bananint.fr/blog-og.png',
-            datePublished: article.publishedAt,
-            dateModified: article.updatedAt,
-            inLanguage: 'fr-FR',
-            mainEntityOfPage: { '@type': 'WebPage', '@id': canonicalUrl },
-            author: { '@type': 'Person', name: article.author.name },
-            publisher: { '@type': 'Organization', name: 'BananINT', logo: { '@type': 'ImageObject', url: 'https://bananint.fr/blog-og.png' } },
-            keywords: article.keywords.join(', '),
-            articleSection: category.label,
-        },
-        {
-            '@context': 'https://schema.org',
-            '@type': 'BreadcrumbList',
-            itemListElement: [
-                { '@type': 'ListItem', position: 1, name: 'Accueil', item: 'https://bananint.fr' },
-                { '@type': 'ListItem', position: 2, name: 'Le carnet', item: 'https://bananint.fr/blog' },
-                { '@type': 'ListItem', position: 3, name: article.title, item: canonicalUrl },
-            ],
-        },
-    ];
+    const jsonLd = articleJsonLd(article);
 
     return (
         <div className="blog-print-article min-h-screen overflow-x-clip bg-[#0c0d09] text-white selection:bg-banan-primary selection:text-black">

@@ -9,6 +9,30 @@ import {
 } from './articles/articlesData';
 import { slugify } from './utils';
 
+const PRESTIGE_UPGRADE_NAMES = [
+    'DNA Amplifier', 'Genome Amplifier', 'Quantum Banana Matrix', 'Genetic Overclocking',
+    'Evolutionary Boost', 'Transcendent Peel', 'Cosmic DNA Infusion', 'Dimensional Peel Split',
+    'Time-Traveling Banana', 'Omniscience of the Ape', 'The Final Banana',
+];
+
+const SPOILER_PATTERNS: RegExp[] = [
+    // Origin of the project and the earlier version
+    /Beyond Notting Hill|cours d.anglais|extraits? de films?|\/legacy/i,
+    // Hidden progression
+    /\bADN\b|\bDNA\b|ascension|transcendance/i,
+    new RegExp(PRESTIGE_UPGRADE_NAMES.map(name => name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|'), 'i'),
+    // Start-of-year surprise: INTv stays a friendly video club
+    /\blisteux\b|\bGR\b|Grand reportage|débusqu|cache-cache/i,
+    /INTv[^.\n]{0,80}officiel|officiel[^.\n]{0,80}INTv|captation|Offrandes?|Livrables?/i,
+];
+
+// Every app source file under src/, read as text.
+const SOURCE_FILES = import.meta.glob(['../../**/*.{ts,tsx,js,jsx}', '!../../**/*.test.*'], {
+    query: '?raw',
+    import: 'default',
+    eager: true,
+}) as Record<string, string>;
+
 describe('Blog Feature Unit Tests', () => {
     it('guarantees all article IDs and slugs are strictly unique', () => {
         const articles = getAllArticles();
@@ -66,11 +90,27 @@ describe('Blog Feature Unit Tests', () => {
         expect(articles.some(a => a.slug === 'pourquoi-un-carnet-bananint')).toBe(false);
         expect(articles.some(a => a.slug === 'listes-bde-intv-gr-campus')).toBe(false);
         for (const article of articles) {
-            const publicText = [article.title, article.subtitle, article.metaTitle, article.metaDescription, article.content, ...article.tags].join(' ');
-            expect(publicText).not.toMatch(/Beyond Notting Hill|cours d.anglais|\/legacy|\bADN\b|\bDNA\b/i);
-            expect(publicText).not.toMatch(/\blisteux\b|\bGR\b|Grand reportage|débusqu|cache-cache/i);
+            // Every field that can reach a page, snippet, feed or structured data.
+            const publicText = [
+                article.title, article.subtitle, article.metaTitle, article.metaDescription,
+                article.slug, article.readingTime, article.author.name, article.author.role,
+                article.content, ...article.tags, ...article.keywords,
+                ...(article.faqs ?? []).flatMap(faq => [faq.question, faq.answer]),
+            ].join(' ');
+            for (const pattern of SPOILER_PATTERNS) {
+                expect(publicText, `${article.slug} matches ${pattern}`).not.toMatch(pattern);
+            }
             expect(article.downloads ?? []).toHaveLength(0);
         }
+    });
+
+    it('keeps the earlier version a discovery: no component links to /legacy', () => {
+        const linkToLegacy = /(?:to|href)\s*=\s*\{?\s*['"`]\/legacy\b|navigate\(\s*['"`]\/legacy\b/;
+        expect(Object.keys(SOURCE_FILES).length).toBeGreaterThan(20);
+        const offenders = Object.entries(SOURCE_FILES)
+            .filter(([, source]) => linkToLegacy.test(source))
+            .map(([file]) => file);
+        expect(offenders).toEqual([]);
     });
 
     it('slugifies heading text correctly', () => {

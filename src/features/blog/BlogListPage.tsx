@@ -20,6 +20,7 @@ import {
 } from './articles/articlesData';
 import { ArticleCard } from './components/ArticleCard';
 import { SeoHead } from './components/SeoHead';
+import { BLOG_URL, blogIndexJsonLd } from './seo';
 import type { BlogCategory } from './types';
 import { cn } from '@app/lib/utils';
 
@@ -124,41 +125,14 @@ export default function BlogListPage() {
     }, [allArticles]);
 
     // JSON-LD structured data for the Blog Hub
-    const jsonLd = useMemo(() => ({
-        '@context': 'https://schema.org',
-        '@type': 'CollectionPage',
-        name: 'Le carnet BananINT',
-        description: 'Vie étudiante à Télécom SudParis, repères sur le campus et coulisses de BananINT.',
-        url: 'https://bananint.fr/blog',
-        publisher: {
-            '@type': 'Organization',
-            name: 'BananINT Syndicate',
-            logo: {
-                '@type': 'ImageObject',
-                url: 'https://bananint.fr/blog-og.png'
-            }
-        },
-        hasPart: allArticles.map(article => ({
-            '@type': 'Article',
-            name: article.title,
-            headline: article.title,
-            description: article.subtitle,
-            url: `https://bananint.fr/blog/${article.slug}`,
-            datePublished: article.publishedAt,
-            dateModified: article.updatedAt,
-            author: {
-                '@type': 'Person',
-                name: article.author.name
-            }
-        }))
-    }), [allArticles]);
+    const jsonLd = useMemo(() => blogIndexJsonLd(allArticles), [allArticles]);
 
     return (
         <div className="min-h-screen overflow-x-clip bg-[#0c0d09] text-white selection:bg-banan-primary selection:text-black">
             <SeoHead
                 title="Le carnet — campus, idées et BananINT"
                 description="Vie étudiante à Télécom SudParis, MAISEL, assos et coulisses du projet : le carnet BananINT, à lire entre deux cours."
-                canonicalUrl="https://bananint.fr/blog"
+                canonicalUrl={BLOG_URL}
                 keywords={[
                     'BananINT blog',
                     'BananINT guides',

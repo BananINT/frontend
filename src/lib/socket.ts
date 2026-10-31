@@ -1,9 +1,11 @@
-type WebSocketMessage<T = unknown> = {
+export type WebSocketMessage<T = unknown> = {
     type: string;
     data: T;
     /** Error frames carry their text here: {type: 'error', message}. */
     message?: string;
 };
+
+export type SocketListener = (message: WebSocketMessage) => void;
 
 /** Messages that are only meaningful live and must never be replayed later. */
 const UNQUEUED_TYPES = new Set(['sync']);
@@ -12,7 +14,7 @@ const MAX_QUEUE = 50;
 class WebSocketManager {
     private socket: WebSocket | null = null;
     private url: string;
-    private listeners = new Set<(message: WebSocketMessage) => void>();
+    private listeners = new Set<SocketListener>();
     private reconnectInterval = 3000;
     private connectResolvers: (() => void)[] = [];
     private currentToken: string | null = null;
@@ -156,12 +158,12 @@ class WebSocketManager {
         return false;
     }
 
-    subscribe(listener: (message: WebSocketMessage) => void) {
+    subscribe(listener: SocketListener) {
         this.listeners.add(listener);
         return () => this.listeners.delete(listener);
     }
 
-    unsubscribe(listener: (message: WebSocketMessage) => void) {
+    unsubscribe(listener: SocketListener) {
         this.listeners.delete(listener);
     }
 }

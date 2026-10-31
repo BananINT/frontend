@@ -1,9 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  AlertTriangle,
-  Activity,
-} from 'lucide-react';
 import { useAuth } from '@app/context/AuthContext';
 import { useGame } from '@app/context/GameContext';
 import { api } from '@app/lib/api';
@@ -17,40 +13,19 @@ import type {
   HtmlAppPreview,
   ToolCallDetail,
 } from './types';
-import { MarkdownMessage } from './components/MarkdownMessage';
 import { SandboxPreviewDrawer } from './components/SandboxPreviewDrawer';
 import { CyberLabSidebar } from './components/CyberLabSidebar';
 import { CyberLabHeader } from './components/CyberLabHeader';
 import { PromptComposer } from './components/PromptComposer';
 import { EmptyStateSuggestions } from './components/EmptyStateSuggestions';
 import { ChatMessageItem } from './components/ChatMessageItem';
-import { ToolCallInspector } from './components/ToolCallInspector';
-import { PersonaIcon } from './components/PersonaIcon';
+import { StreamingMessageCard } from './components/StreamingMessageCard';
+import { LabStatusBar } from './components/LabStatusBar';
 import { getPersonaTheme } from './components/personaTheme';
 import { CyberLabWarningModal, CYBERLAB_PRIVACY_KEY } from './components/CyberLabWarningModal';
-
-const PERSONA_PRESETS: Record<string, string[]> = {
-  bananabot: [
-    "Analyse ma télémétrie de compte et donne-moi les upgrades prioritaires au meilleur ROI",
-    "Est-ce que je suis prêt pour l'Ascension cosmique ? Combien d'ADN Banane vais-je gagner ?",
-    "Affiche le classement du Panthéon des meilleurs joueurs et des clans les plus riches",
-  ],
-  cyberarchitect: [
-    "Génère un snippet Web Audio de glissade comique et un moteur de saut de plateforme pour mini-jeu",
-    "Crée un jeu Canvas délirant d'esquive où on balance des peaux de bananes avec trajectoire parabolique",
-    "Donne-moi la palette de lore et les instructions de rendu Canvas pour le Singe Cyborg",
-  ],
-  boursebot: [
-    "Scanne toutes les cotations du BNDAQ et audite mes finances et mon PnL d'actionnaire",
-    "Fais une analyse technique OHLC complète avec supports/résistances sur le symbole BNDAQ",
-    "Filtre les meilleures actions à dividendes passifs et vérifie mes positions futures à levier",
-  ],
-  palantint: [
-    "Sonde les vulnérabilités du clan rival et estime le butin de leur coffre-fort",
-    "Simule les probabilités de succès et les risques d'un braquage de 500,000,000 de bananes",
-    "Inspecte ma matrice de cyberdéfense et détecte les contrats clandestins disponibles",
-  ],
-};
+import { PERSONA_PRESETS } from './personaPresets';
+import { INITIAL_RATE_LIMITS, useLabRateLimitTicks } from './hooks/useLabRateLimits';
+import { takeSseEvents } from './lib/sseEvents';
 
 export default function CyberLabPage() {
   const { authenticated } = useAuth();
@@ -76,18 +51,7 @@ export default function CyberLabPage() {
 
   const [promptCost, setPromptCost] = useState<number>(10_000_000);
   const [palantintCost, setPalantintCost] = useState<number>(250_000_000);
-  const [rateLimits, setRateLimits] = useState<RateLimitStatus>({
-    cooldown_remaining_seconds: 0,
-    is_in_flight: false,
-    energy: {
-      current: 100,
-      max: 100,
-      cost_normal: 10,
-      cost_palantint: 100,
-      recharge_rate_per_sec: 100 / 43200,
-      recharge_seconds_total: 43200,
-    },
-  });
+  const [rateLimits, setRateLimits] = useState<RateLimitStatus>(INITIAL_RATE_LIMITS);
   const [isInferenceOnline, setIsInferenceOnline] = useState<boolean>(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -135,37 +99,7 @@ export default function CyberLabPage() {
     }
   }, []);
 
-  // Periodic Energy recharge simulation (12h recharge)
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setRateLimits((prev) => {
-        if (!prev.energy) return prev;
-        const rate = prev.energy.recharge_rate_per_sec || (100 / 43200);
-        const nextVal = Math.min(prev.energy.max, prev.energy.current + rate * 0.5);
-        if (nextVal === prev.energy.current) return prev;
-        return {
-          ...prev,
-          energy: {
-            ...prev.energy,
-            current: nextVal,
-          },
-        };
-      });
-    }, 500);
-    return () => clearInterval(timer);
-  }, []);
-
-  // Handle Cooldown countdown
-  useEffect(() => {
-    if (rateLimits.cooldown_remaining_seconds <= 0) return;
-    const timer = setInterval(() => {
-      setRateLimits((prev) => ({
-        ...prev,
-        cooldown_remaining_seconds: Math.max(0, prev.cooldown_remaining_seconds - 0.5),
-      }));
-    }, 500);
-    return () => clearInterval(timer);
-  }, [rateLimits.cooldown_remaining_seconds]);
+  useLabRateLimitTicks(rateLimits.cooldown_remaining_seconds, setRateLimits);
 
   const refreshConfig = async () => {
     try {
@@ -257,26 +191,10 @@ export default function CyberLabPage() {
         if (done) break;
 
         buffer += decoder.decode(value, { stream: true });
-        const events = buffer.split('\n\n');
-        buffer = events.pop() || '';
+        const { events, rest } = takeSseEvents(buffer);
+        buffer = rest;
 
-        for (const evt of events) {
-          if (!evt.trim()) continue;
-
-          const lines = evt.split('\n');
-          let eventType = 'message';
-          let dataStr = '';
-
-          for (const line of lines) {
-            if (line.startsWith('event: ')) {
-              eventType = line.replace('event: ', '').trim();
-            } else if (line.startsWith('data: ')) {
-              dataStr = line.replace('data: ', '').trim();
-            }
-          }
-
-          if (!dataStr) continue;
-
+        for (const { event: eventType, data: dataStr } of events) {
           try {
             const parsed = JSON.parse(dataStr);
 
@@ -588,7 +506,7 @@ export default function CyberLabPage() {
       {/* ========================================================================= */}
       {/* MAIN TERMINAL CONSOLE                                                     */}
       {/* ========================================================================= */}
-      <main className="flex-1 flex flex-col bg-black overflow-hidden relative transition-all duration-300 w-full min-w-0">
+      <section className="flex-1 flex flex-col bg-black overflow-hidden relative transition-all duration-300 w-full min-w-0">
         {/* Terminal Header with Dynamic Colors & Zero Clutter */}
         <CyberLabHeader
           activePersona={activePersona}
@@ -627,111 +545,30 @@ export default function CyberLabPage() {
 
           {/* Real-time Streaming Message (Cyber-Ops Smooth Stream - strictly scoped to this session) */}
           {isStreamingActiveSession && (
-            <motion.div
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="flex items-start gap-3 mr-auto max-w-3xl w-full"
-            >
-              {/* Persona Avatar on Left */}
-              <div
-                className={`p-2 rounded-xl border flex-shrink-0 transition-all mt-0.5 ${
-                  isPalantint
-                    ? 'border-white/[0.08] bg-black/90 text-white/40'
-                    : `${theme.headerBorder} ${theme.cardBgSelected} ${theme.headerText} ${theme.headerGlow}`
-                }`}
-              >
-                <PersonaIcon
-                  name={isPalantint ? 'EyeOff' : activePersona?.icon || activePersona?.avatar || selectedPersonaId}
-                  className="w-4 h-4 sm:w-5 sm:h-5"
-                />
-              </div>
-
-              {/* Streaming Content Card */}
-              <div
-                className={`flex-1 p-4 rounded-2xl border backdrop-blur-md transition-all shadow-xl overflow-hidden select-text ${
-                  isPalantint
-                    ? 'border-white/[0.08] bg-black/90 text-white/90 shadow-2xl'
-                    : `${theme.headerBorder} bg-white/[0.025] text-white/90 ${theme.headerGlow}`
-                }`}
-              >
-                {/* Header */}
-                <div className="flex items-center justify-between gap-2 mb-2.5 pb-2 border-b border-white/10 text-[10px] font-mono">
-                  <div className="flex items-center gap-2">
-                    <span
-                      className={`font-black uppercase tracking-wider text-xs ${
-                        isPalantint ? 'font-mono text-white/40 tracking-[0.25em]' : 'text-white'
-                      }`}
-                    >
-                      {isPalantint ? 'p̷a̸l̶a̸n̷t̶i̸n̷t̶' : activePersona?.name || 'IA'}
-                    </span>
-
-                    {!isPalantint && (
-                      <span className={`px-1.5 py-0.5 rounded border font-mono font-bold text-[9px] ${theme.badgeClass}`}>
-                        {theme.roleBadge}
-                      </span>
-                    )}
-
-                    <span
-                      className={`px-1.5 py-0.5 rounded text-[9px] font-mono flex items-center gap-1 ${
-                        isPalantint
-                          ? 'text-red-400/80 bg-red-950/30 border border-red-900/30'
-                          : `${theme.headerText} ${theme.headerBg} border ${theme.headerBorder} font-bold`
-                      }`}
-                    >
-                      <Activity className="w-2.5 h-2.5 animate-spin" />
-                      <span>{isPalantint ? '· · ·' : 'GÉNÉRATION'}</span>
-                    </span>
-                  </div>
-                </div>
-
-                {/* Live Tool Calls Inspector */}
-                {liveToolCalls.length > 0 && (
-                  <ToolCallInspector toolCalls={liveToolCalls} isLive={true} />
-                )}
-
-                {/* Streamed Text */}
-                {streamedText ? (
-                  <MarkdownMessage content={streamedText} onPreview={handleOpenPreview} />
-                ) : null}
-              </div>
-            </motion.div>
+            <StreamingMessageCard
+              isPalantint={isPalantint}
+              theme={theme}
+              activePersona={activePersona}
+              selectedPersonaId={selectedPersonaId}
+              liveToolCalls={liveToolCalls}
+              streamedText={streamedText}
+              onPreview={handleOpenPreview}
+            />
           )}
         </div>
 
         {/* Insufficient Balance / Error Warning Bar */}
-        <AnimatePresence>
-          {(!canAfford || !hasEnoughEnergy || !isInferenceOnline || errorMessage) && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 10 }}
-              className={`px-4 py-2 text-xs flex items-center gap-2 border-t font-mono ${
-                errorMessage || !isInferenceOnline
-                  ? 'bg-red-500/15 border-red-500/30 text-red-300'
-                  : 'bg-amber-500/15 border-amber-500/30 text-amber-300'
-              }`}
-            >
-              <AlertTriangle className="w-4 h-4 flex-shrink-0" />
-              <span className="flex-1 truncate">
-                {errorMessage ||
-                  (!isInferenceOnline
-                    ? "SERVEUR D'INFÉRENCE HORS LIGNE : L'infrastructure IA n'est pas connectée."
-                    : !canAfford
-                    ? `Réserves insuffisantes : ${formatNumber(userBananas)} / ${formatNumber(currentCost)} Bananes requises.`
-                    : `Énergie insuffisante : ${Math.floor(currentEnergy)}% disponible (${promptEnergyCost}% requis). Recharge en cours (8.3% par heure).`)}
-              </span>
-              {errorMessage && (
-                <button
-                  type="button"
-                  onClick={() => setErrorMessage(null)}
-                  className="text-white/60 hover:text-white text-[10px] uppercase underline cursor-pointer"
-                >
-                  Fermer
-                </button>
-              )}
-            </motion.div>
-          )}
-        </AnimatePresence>
+        <LabStatusBar
+          canAfford={canAfford}
+          hasEnoughEnergy={hasEnoughEnergy}
+          isInferenceOnline={isInferenceOnline}
+          errorMessage={errorMessage}
+          onDismissError={() => setErrorMessage(null)}
+          userBananas={userBananas}
+          currentCost={currentCost}
+          currentEnergy={currentEnergy}
+          promptEnergyCost={promptEnergyCost}
+        />
 
         {/* Modular Prompt Input Composer */}
         <PromptComposer
@@ -749,7 +586,7 @@ export default function CyberLabPage() {
           cooldownSeconds={rateLimits.cooldown_remaining_seconds}
           onOpenWarningModal={() => setIsWarningModalOpen(true)}
         />
-      </main>
+      </section>
 
       {/* ========================================================================= */}
       {/* RIGHT DRAWER: SPLIT VIEW SANDBOX PREVIEW                                  */}

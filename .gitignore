@@ -24,3 +24,8 @@ __pycache__/
 *.njsproj
 *.sln
 *.sw?
+
+# SEO files are generated into the build output (scripts/generate-seo.js); never commit copies in public/
+public/sitemap.xml
+public/feed.xml
+public/robots.txt

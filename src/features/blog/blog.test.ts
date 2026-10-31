@@ -5,7 +5,9 @@ import {
     getArticlesByCategory, 
     getFeaturedArticle, 
     getRelatedArticles, 
-    getAllTags 
+    getAllTags,
+    getRenamedSlug,
+    RENAMED_SLUGS,
 } from './articles/articlesData';
 import { slugify } from './utils';
 
@@ -111,6 +113,17 @@ describe('Blog Feature Unit Tests', () => {
             .filter(([, source]) => linkToLegacy.test(source))
             .map(([file]) => file);
         expect(offenders).toEqual([]);
+    });
+
+    it('redirects renamed slugs to a published article, never to a retired one', () => {
+        expect(getRenamedSlug('guide-bourse-trading-dividendes')).toBe('guide-bourse-trading');
+        expect(getArticleBySlug('guide-bourse-trading')?.id).toBe('guide-marche');
+        expect(getRenamedSlug('listes-bde-intv-gr-campus')).toBeUndefined();
+        expect(getRenamedSlug('toString')).toBeUndefined();
+        for (const [oldSlug, newSlug] of Object.entries(RENAMED_SLUGS)) {
+            expect(getArticleBySlug(oldSlug)).toBeUndefined();
+            expect(getArticleBySlug(newSlug)).toBeDefined();
+        }
     });
 
     it('slugifies heading text correctly', () => {

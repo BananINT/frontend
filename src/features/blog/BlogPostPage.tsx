@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, Navigate, useParams } from 'react-router';
 import { ArrowLeft, CalendarDays, Check, Clock3, Copy, Download, BookOpen, Cpu, Shield, TrendingUp } from 'lucide-react';
-import { getArticleBySlug, getRelatedArticles } from './articles/articlesData';
+import { getArticleBySlug, getRelatedArticles, getRenamedSlug } from './articles/articlesData';
 import { MarkdownArticleRenderer } from './components/MarkdownArticleRenderer';
 import { TableOfContents } from './components/TableOfContents';
 import { FaqSection } from './components/FaqSection';
@@ -50,7 +50,10 @@ export default function BlogPostPage() {
 
     useEffect(() => { window.scrollTo(0, 0); }, [slug]);
 
-    if (!article) return <Navigate to="/blog" replace />;
+    if (!article) {
+        const renamed = slug ? getRenamedSlug(slug) : undefined;
+        return <Navigate to={renamed ? '/blog/' + renamed : '/blog'} replace />;
+    }
 
     const category = CATEGORY_MAP[article.category];
     const CategoryIcon = category.icon;

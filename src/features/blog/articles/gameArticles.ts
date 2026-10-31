@@ -91,7 +91,7 @@ Le backend de BananINT intègre un calcul d'absence : à chaque reconnexion, le 
     },
     {
         id: 'guide-marche',
-        slug: 'guide-bourse-trading-dividendes',
+        slug: 'guide-bourse-trading',
         title: 'Guide de la bourse BananINT : cours, actifs et volatilité',
         subtitle: 'Comprendre les trois tiers d’actifs, leur volatilité et le fonctionnement des achats et ventes.',
         metaTitle: 'Bourse de BananINT : trading, actions et volatilité',
@@ -174,11 +174,11 @@ Le coffre-fort de clan constitue la réserve financière collective de votre fac
 
 ### La Taxe Potassium volontaire
 Chaque joueur peut régler individuellement son curseur de **Taxe Potassium de 0% à 50%** :
-- Lors de chaque cycle de clics ou synchronisation, le pourcentage spécifié est automatiquement prélevé de vos gains et crédité sur la trésorerie du clan.
-- La taxe permet au clan de grimper au classement général des factions.
+- À chaque synchronisation avec le serveur, le pourcentage choisi est automatiquement prélevé sur vos gains (clics et production automatique) et crédité sur la trésorerie du clan.
+- Les bananes prélevées comptent comme vos dons au coffre-fort, au même titre qu'un dépôt manuel.
 
 ### Le Bonus de Loyauté
-Le don de bananes n'est pas un sacrifice à perte : chaque tranche cumulée de **100 Millions 🍌** versée au coffre-fort octroie au joueur un bonus multiplicateur permanent de **+1% BPC et +1% BPS**, plafonné à un total de **+25%**.
+Le don de bananes n'est pas un sacrifice à perte : vos dons cumulés au coffre-fort vous octroient un bonus multiplicateur de production (BPC et BPS) qui progresse de **+1% par 100 Millions 🍌** versés, plafonné à **+25%**. Le bonus s'applique tant que vous restez membre du clan.
 
 ## Le Pack Nouveau (Starter Pack)
 
@@ -199,15 +199,15 @@ La trésorerie commune finance des améliorations collectives permanentes qui pr
 Le terminal d'opérations permet de lancer des offensives coordonnées sur le réseau :
 - **Scan réseau** : Un scan coûte **100 000 000 🍌** prélevés de la trésorerie pour découvrir 3 cibles potentielles de difficulté 1 à 6.
 - **Entraide coordonnée** : Chaque membre connecté qui clique sur *Aider* réduit instantanément le compte à rebours de **15% de la durée totale** de l'opération.
-- **Le vol de coffre inter-clans (Difficulté ≥ 4)** : À haut niveau de difficulté, le système peut identifier comme cible la trésorerie d'un clan rival actif. Une infiltration réussie permet alors de **dérober jusqu'à 10% du coffre-fort du clan ciblé** et de transférer ce butin directement dans votre propre trésorerie !
-- **Contrats d'Élite** : Des missions temporaires de clan (dépôts de capital massifs, séries d'opérations OSINT) débloquant des primes de plusieurs milliards de bananes.
+- **Le vol de coffre inter-clans (Difficulté ≥ 4)** : À haut niveau de difficulté, le système peut identifier comme cible la trésorerie d'un clan rival parmi les plus riches. Une infiltration réussie permet alors de **dérober jusqu'à 10% du coffre-fort du clan ciblé** et de transférer ce butin directement dans votre propre trésorerie !
+- **Contrats d'Élite** : Des missions temporaires de clan (dépôts de capital massifs, séries d'opérations OSINT) à remplir avant une échéance, avec des primes versées au coffre allant de quelques dizaines de millions à plusieurs milliards de bananes. Un seul contrat peut être actif à la fois.
 
 ## L'Ape Roulette (Le barillet partagé)
 
 Pour les amateurs de prise de risque collective, l'Ape Roulette propose un jeu de barillet mécanique partagé entre les membres du clan :
 - **Mécanique** : Un barillet de 6 chambres contenant **5 chambres saines (\`SAFE\`)** et **1 chambre piégée (\`DUD\`)**.
 - **Coût par tirage** : 10 000 000 🍌 (10M). 10% de chaque mise alimente le Jackpot Mondial.
-- **Tirage réussi** : Paiement immédiat de **30 000 000 🍌** (multiplicateur x3), avec 1% de chance de déclencher un *Potassium Surge* empochant 5% de la cagnotte mondiale.
+- **Tirage réussi** : Paiement immédiat de **30 000 000 🍌** (multiplicateur x3), avec 1% de chance de déclencher un *Potassium Surge* qui ajoute une part de la cagnotte mondiale au gain.
 - **Tirage piégé** : Les chambres sont tirées l'une après l'autre et le barillet n'est rechargé qu'après l'explosion. Celui qui tombe sur la chambre piégée se retrouve **« Couvert de suie »** pendant **5 minutes (300 secondes)** : ses clics ne rapportent plus rien et le casino lui est fermé jusqu'à la fin du malus.
 `,
     },

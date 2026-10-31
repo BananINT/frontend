@@ -7,6 +7,20 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     ...GAME_ARTICLES,
 ];
 
+/**
+ * Old slugs of articles that were renamed, mapped to their current slug.
+ * Retired articles are not listed here: their URLs fall back to /blog.
+ * Keep in sync with the 301 redirects in nginx.conf.
+ */
+export const RENAMED_SLUGS: Readonly<Record<string, string>> = {
+    'guide-bourse-trading-dividendes': 'guide-bourse-trading',
+};
+
+/** Current slug for a renamed article, or undefined if the slug was never renamed. */
+export function getRenamedSlug(slug: string): string | undefined {
+    return Object.hasOwn(RENAMED_SLUGS, slug) ? RENAMED_SLUGS[slug] : undefined;
+}
+
 export function getAllArticles(): BlogArticle[] {
     return BLOG_ARTICLES;
 }

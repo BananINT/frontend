@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef, type CSSProperties } from 're
 import { Ticket, Trophy, Hash, Clock, Sparkles, Banana } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { socketManager } from '@app/lib/socket';
+import { useSocketMessage } from '@app/hooks/useSocketMessage';
 import { formatNumber } from '@app/utils/format';
 import { useGame } from '@app/context/GameContext';
 import { fireWinConfetti } from '@app/utils/confetti';
@@ -65,27 +66,20 @@ export default function LotteryPage() {
         socketManager.send('get_lottery_state', {});
     }, []);
 
-    useEffect(() => {
-        const handleMessage = (message: { type: string; data: unknown }) => {
-            if (message.type === 'lottery_state') {
-                setLotteryState(message.data as LotteryState);
-            } else if (message.type === 'lottery_ticket_success') {
-                socketManager.send('get_lottery_state', {});
-                setSelectedNumber(null);
-            } else if (message.type === 'lottery_draw_result') {
-                setIsSpinning(true);
-                hasFiredConfetti.current = false;
-                setTimeout(() => {
-                    setShowResult(message.data as DrawResult);
-                    setIsSpinning(false);
-                    socketManager.send('get_lottery_state', {});
-                }, 2000);
-            }
-        };
-
-        socketManager.subscribe(handleMessage);
-        return () => socketManager.unsubscribe(handleMessage);
-    }, []);
+    useSocketMessage<LotteryState>('lottery_state', data => setLotteryState(data));
+    useSocketMessage('lottery_ticket_success', () => {
+        socketManager.send('get_lottery_state', {});
+        setSelectedNumber(null);
+    });
+    useSocketMessage<DrawResult>('lottery_draw_result', data => {
+        setIsSpinning(true);
+        hasFiredConfetti.current = false;
+        setTimeout(() => {
+            setShowResult(data);
+            setIsSpinning(false);
+            socketManager.send('get_lottery_state', {});
+        }, 2000);
+    });
 
     useEffect(() => {
         if (!lotteryState) return;

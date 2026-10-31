@@ -3,6 +3,7 @@ import { TrendingUp, TrendingDown, AlertTriangle, Activity, Banana, Skull } from
 import { motion, AnimatePresence } from 'framer-motion';
 import Modal from '@app/components/shared/Modal';
 import { socketManager } from '@app/lib/socket';
+import { useSocketMessage } from '@app/hooks/useSocketMessage';
 import { formatNumber } from '@app/utils/format';
 import { useGame } from '@app/context/GameContext';
 
@@ -66,22 +67,15 @@ export default function FuturesModal({ isOpen, onClose, stocks }: FuturesModalPr
         }
     }, [isOpen, firstSymbol, selectedSymbol]);
 
-    useEffect(() => {
-        const handleMessage = (message: { type: string; data: unknown }) => {
-            if (message.type === 'futures_positions') {
-                setFuturesState(message.data as FuturesState);
-            } else if (message.type === 'futures_opened' || message.type === 'futures_closed') {
-                socketManager.send('get_futures_positions', {});
-            } else if (message.type === 'futures_liquidated') {
-                setLiquidationAlert(message.data as { symbol: string; margin_lost: number });
-                socketManager.send('get_futures_positions', {});
-                setTimeout(() => setLiquidationAlert(null), 8000);
-            }
-        };
-
-        socketManager.subscribe(handleMessage);
-        return () => socketManager.unsubscribe(handleMessage);
-    }, []);
+    useSocketMessage<FuturesState>('futures_positions', data => setFuturesState(data));
+    useSocketMessage(['futures_opened', 'futures_closed'], () => {
+        socketManager.send('get_futures_positions', {});
+    });
+    useSocketMessage<{ symbol: string; margin_lost: number }>('futures_liquidated', data => {
+        setLiquidationAlert(data);
+        socketManager.send('get_futures_positions', {});
+        setTimeout(() => setLiquidationAlert(null), 8000);
+    });
 
     // Auto-refresh open positions every 10s for PnL updates
     useEffect(() => {

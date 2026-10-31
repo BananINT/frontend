@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Banana } from 'lucide-react';
 import { socketManager } from '@app/lib/socket';
+import { useSocketMessage } from '@app/hooks/useSocketMessage';
 import { fireWinConfetti } from '@app/utils/confetti';
 import { formatNumber } from '@app/utils/format';
 
@@ -38,18 +39,11 @@ export default function GoldenBanana() {
         };
     }, []);
 
-    useEffect(() => {
-        const handleMessage = (msg: { type: string; data: unknown }) => {
-            if (msg.type === 'golden_banana_success') {
-                const data = msg.data as { bonus: number };
-                fireWinConfetti();
-                setPopup({ id: Date.now(), bonus: data.bonus });
-                setTimeout(() => setPopup(null), 1800);
-            }
-        };
-        socketManager.subscribe(handleMessage);
-        return () => socketManager.unsubscribe(handleMessage);
-    }, []);
+    useSocketMessage<{ bonus: number }>('golden_banana_success', data => {
+        fireWinConfetti();
+        setPopup({ id: Date.now(), bonus: data.bonus });
+        setTimeout(() => setPopup(null), 1800);
+    });
 
     const handleClick = () => {
         if (hideTimerRef.current) clearTimeout(hideTimerRef.current);

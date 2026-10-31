@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Radio, AlertCircle, Zap, Skull } from 'lucide-react';
 import { socketManager } from '@app/lib/socket';
+import { useSocketMessage } from '@app/hooks/useSocketMessage';
 import type { CyberCombatLog } from '@app/types/game';
 import GameSection from '@app/components/shared/GameSection';
 
@@ -12,15 +13,7 @@ export default function CyberCombatFeedCard() {
         socketManager.send('get_cyber_combat_feed', {});
     }, []);
 
-    useEffect(() => {
-        const handleMessage = (msg: { type: string; data: unknown }) => {
-            if (msg.type === 'cyber_combat_feed') {
-                setFeed(msg.data as CyberCombatLog[]);
-            }
-        };
-        socketManager.subscribe(handleMessage);
-        return () => socketManager.unsubscribe(handleMessage);
-    }, []);
+    useSocketMessage<CyberCombatLog[]>('cyber_combat_feed', data => setFeed(data));
 
     useEffect(() => {
         if (feedRef.current) {

@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, type CSSProperties } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Skull, Dices, Banana } from 'lucide-react';
 import { socketManager } from '@app/lib/socket';
+import { useSocketMessage } from '@app/hooks/useSocketMessage';
 import { useGame } from '@app/context/GameContext';
 import { formatNumber } from '@app/utils/format';
 import { fireWinConfetti, fireJackpotConfetti } from '@app/utils/confetti';
@@ -27,35 +28,30 @@ export default function RoulettePage() {
         if (gameState.clan_id) {
             socketManager.send('get_ape_roulette_state', {});
         }
-
-        const handleMessage = (msg: { type: string; data: unknown }) => {
-            if (msg.type === 'ape_roulette_state') {
-                setRouletteState(msg.data as { remaining_chambers: number, dud_chance: number });
-            } else if (msg.type === 'ape_roulette_member_pulled') {
-                const data = msg.data as { username: string, outcome: string };
-                setRecentPulls(prev => [
-                    `${data.username} a tiré : ${data.outcome === 'SAFE' ? 'SAIN 🍌' : 'BOOM 💥 !'}`,
-                    ...prev.slice(0, 4)
-                ]);
-            } else if (msg.type === 'ape_roulette_result') {
-                const result = msg.data as { outcome: string, payout: number, global_jackpot_won?: number };
-                setRouletteSpinning(true);
-                setRouletteOutcome(null);
-                hasFiredConfetti.current = false;
-                setTimeout(() => {
-                    setRouletteSpinning(false);
-                    setRouletteOutcome(result);
-                    setRecentPulls(prev => [
-                        `Vous avez tiré : ${result.outcome === 'SAFE' ? 'SAIN 🍌' : 'BOOM 💥 !'}`,
-                        ...prev.slice(0, 4)
-                    ]);
-                }, 1500);
-            }
-        };
-
-        socketManager.subscribe(handleMessage);
-        return () => socketManager.unsubscribe(handleMessage);
     }, [gameState.clan_id]);
+
+    useSocketMessage<{ remaining_chambers: number, dud_chance: number }>('ape_roulette_state', data => {
+        setRouletteState(data);
+    });
+    useSocketMessage<{ username: string, outcome: string }>('ape_roulette_member_pulled', data => {
+        setRecentPulls(prev => [
+            `${data.username} a tiré : ${data.outcome === 'SAFE' ? 'SAIN 🍌' : 'BOOM 💥 !'}`,
+            ...prev.slice(0, 4)
+        ]);
+    });
+    useSocketMessage<{ outcome: string, payout: number, global_jackpot_won?: number }>('ape_roulette_result', result => {
+        setRouletteSpinning(true);
+        setRouletteOutcome(null);
+        hasFiredConfetti.current = false;
+        setTimeout(() => {
+            setRouletteSpinning(false);
+            setRouletteOutcome(result);
+            setRecentPulls(prev => [
+                `Vous avez tiré : ${result.outcome === 'SAFE' ? 'SAIN 🍌' : 'BOOM 💥 !'}`,
+                ...prev.slice(0, 4)
+            ]);
+        }, 1500);
+    });
 
     const hasWon = rouletteOutcome && rouletteOutcome.outcome === 'SAFE';
     const hitDud = rouletteOutcome && rouletteOutcome.outcome === 'DUD';

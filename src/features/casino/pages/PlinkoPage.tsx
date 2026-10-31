@@ -1,7 +1,7 @@
 import { useEffect, useReducer, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Banana, CircleDot } from 'lucide-react';
-import { socketManager } from '@app/lib/socket';
+import { useSocketMessage } from '@app/hooks/useSocketMessage';
 import { formatNumber } from '@app/utils/format';
 import { fireJackpotConfetti, fireWinConfetti } from '@app/utils/confetti';
 import GameLayout from '../components/GameLayout';
@@ -120,77 +120,72 @@ export default function PlinkoPage() {
      * four balls in the air at once.
      */
     const timers = useRef<number[]>([]);
-    useEffect(() => {
-        const handle = (msg: { type: string; data?: unknown }) => {
-            if (msg.type !== 'casino_result') return;
-            const data = msg.data as CasinoResult<PlinkoDetail>;
+    useSocketMessage<CasinoResult<PlinkoDetail>>('casino_result', data => {
+        const gambleKeyOf = (g: unknown) =>
+            g ? `${(g as GambleState).amount}:${(g as GambleState).chain}` : null;
 
-            const gambleKeyOf = (g: unknown) =>
-                g ? `${(g as GambleState).amount}:${(g as GambleState).chain}` : null;
+        // Double ou Rien is an instant coin flip with nothing to animate,
+        // so it still reveals the moment the server replies.
+        if (data?.game === 'gamble') {
+            lastGambleKey.current = gambleKeyOf(data.gamble);
+            const payout = Number(data.payout ?? 0);
+            if (payout > 0) {
+                setFlashKey((k) => k + 1);
+                if (Number(data.global_jackpot_won ?? 0) > 0) fireJackpotConfetti();
+                else fireWinConfetti();
+            }
+            return;
+        }
 
-            // Double ou Rien is an instant coin flip with nothing to animate,
-            // so it still reveals the moment the server replies.
-            if (data?.game === 'gamble') {
-                lastGambleKey.current = gambleKeyOf(data.gamble);
-                const payout = Number(data.payout ?? 0);
-                if (payout > 0) {
+        if (data?.game !== 'plinko' || !data.detail) return;
+
+        const detail = data.detail;
+        const id = `${detail.bucket}-${data.proof?.nonce ?? 0}-${Math.random().toString(36).slice(2, 7)}`;
+
+        setTable(detail.table ?? []);
+        setBalls((b) => [...b, { id, path: detail.path, bucket: detail.bucket, startedAt: performance.now() }].slice(-MAX_BALLS));
+
+        // A gamble offer this ball just won (a key not already known) stays
+        // locked until the ball lands. One this ball merely carries
+        // unchanged (an offer from an earlier win, still pending) was
+        // already revealed and must not be hidden again.
+        const gambleKey = gambleKeyOf(data.gamble);
+        if (gambleKey && gambleKey !== lastGambleKey.current) setGambleLocked(true);
+        lastGambleKey.current = gambleKey;
+
+        // The ball is swapped for its popup the moment it hits the bucket;
+        // the popup then expires on the board clock. The win reveal (flash
+        // + confetti + gamble offer) waits for this same moment, not the
+        // server reply.
+        const payout = Number(data.payout ?? 0);
+        const bet = Number(data.bet ?? 0);
+        timers.current.push(
+            window.setTimeout(() => {
+                setBalls((b) => b.filter((x) => x.id !== id));
+                setPops((p) => [
+                    ...p,
+                    {
+                        id,
+                        bucket: detail.bucket,
+                        payout,
+                        bet,
+                        multiplier: detail.multiplier,
+                        landedAt: performance.now(),
+                    },
+                ]);
+                setGambleLocked(false);
+
+                if (payout > 0 && payout > bet) {
                     setFlashKey((k) => k + 1);
                     if (Number(data.global_jackpot_won ?? 0) > 0) fireJackpotConfetti();
                     else fireWinConfetti();
                 }
-                return;
-            }
-
-            if (data?.game !== 'plinko' || !data.detail) return;
-
-            const detail = data.detail;
-            const id = `${detail.bucket}-${data.proof?.nonce ?? 0}-${Math.random().toString(36).slice(2, 7)}`;
-
-            setTable(detail.table ?? []);
-            setBalls((b) => [...b, { id, path: detail.path, bucket: detail.bucket, startedAt: performance.now() }].slice(-MAX_BALLS));
-
-            // A gamble offer this ball just won (a key not already known) stays
-            // locked until the ball lands. One this ball merely carries
-            // unchanged (an offer from an earlier win, still pending) was
-            // already revealed and must not be hidden again.
-            const gambleKey = gambleKeyOf(data.gamble);
-            if (gambleKey && gambleKey !== lastGambleKey.current) setGambleLocked(true);
-            lastGambleKey.current = gambleKey;
-
-            // The ball is swapped for its popup the moment it hits the bucket;
-            // the popup then expires on the board clock. The win reveal (flash
-            // + confetti + gamble offer) waits for this same moment, not the
-            // server reply.
-            const payout = Number(data.payout ?? 0);
-            const bet = Number(data.bet ?? 0);
-            timers.current.push(
-                window.setTimeout(() => {
-                    setBalls((b) => b.filter((x) => x.id !== id));
-                    setPops((p) => [
-                        ...p,
-                        {
-                            id,
-                            bucket: detail.bucket,
-                            payout,
-                            bet,
-                            multiplier: detail.multiplier,
-                            landedAt: performance.now(),
-                        },
-                    ]);
-                    setGambleLocked(false);
-
-                    if (payout > 0 && payout > bet) {
-                        setFlashKey((k) => k + 1);
-                        if (Number(data.global_jackpot_won ?? 0) > 0) fireJackpotConfetti();
-                        else fireWinConfetti();
-                    }
-                }, ROWS * STEP_MS)
-            );
-        };
-
-        socketManager.subscribe(handle);
+            }, ROWS * STEP_MS)
+        );
+    });
+    // Landing timers still pending when the page unmounts are dropped.
+    useEffect(() => {
         return () => {
-            socketManager.unsubscribe(handle);
             timers.current.forEach(clearTimeout);
             timers.current = [];
         };

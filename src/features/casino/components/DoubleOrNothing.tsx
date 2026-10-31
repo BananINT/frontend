@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Coins, Skull } from 'lucide-react';
 import { formatNumber } from '@app/utils/format';
-import { socketManager } from '@app/lib/socket';
+import { useSocketMessage } from '@app/hooks/useSocketMessage';
 import { useResettable } from '../lib/animation';
 import type { GambleResult, GambleState } from '../lib/types';
 
@@ -43,16 +43,10 @@ export default function DoubleOrNothing({ gamble, onGamble, onDecline, busy }: D
     // place, so it has to be caught here, straight off the socket, or the
     // panel would simply vanish without the player ever seeing what happened.
     const [lossFlash, setLossFlash] = useState<{ amount: number } | null>(null);
-    useEffect(() => {
-        const handle = (msg: { type: string; data?: unknown }) => {
-            if (msg.type !== 'casino_result') return;
-            const data = msg.data as GambleResult;
-            if (data?.game !== 'gamble' || data.won !== false) return;
-            setLossFlash({ amount: Number(data.staked ?? 0) });
-        };
-        socketManager.subscribe(handle);
-        return () => socketManager.unsubscribe(handle);
-    }, []);
+    useSocketMessage<GambleResult>('casino_result', data => {
+        if (data?.game !== 'gamble' || data.won !== false) return;
+        setLossFlash({ amount: Number(data.staked ?? 0) });
+    });
 
     useEffect(() => {
         if (!lossFlash) return;

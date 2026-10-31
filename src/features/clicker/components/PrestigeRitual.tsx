@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Dna, X, Lock } from 'lucide-react';
 import { socketManager } from '@app/lib/socket';
+import { useSocketMessage } from '@app/hooks/useSocketMessage';
 import { useGame } from '@app/context/GameContext';
 import { fireJackpotConfetti } from '@app/utils/confetti';
 import { PRESTIGE_REQUIREMENT } from '@app/config/gameConstants';
@@ -30,25 +31,18 @@ export default function PrestigeRitual({ isOpen, onClose }: PrestigeRitualProps)
         onClose();
     };
 
-    useEffect(() => {
+    // Only a ritual this modal started may complete it.
+    useSocketMessage<{ dnaGained: number; prestigeCount?: number }>('prestige_success', data => {
         if (stage !== 'ascending') return;
-
-        const handleMessage = (msg: { type: string; data: unknown }) => {
-            if (msg.type === 'prestige_success') {
-                const data = msg.data as { dnaGained: number; prestigeCount?: number };
-                setDnaGained(data.dnaGained);
-                if (data.prestigeCount !== undefined) {
-                    setTargetPrestige(data.prestigeCount);
-                } else {
-                    setTargetPrestige(gameState.prestigeCount + 1);
-                }
-                fireJackpotConfetti();
-                setStage('complete');
-            }
-        };
-        socketManager.subscribe(handleMessage);
-        return () => socketManager.unsubscribe(handleMessage);
-    }, [stage, gameState.prestigeCount]);
+        setDnaGained(data.dnaGained);
+        if (data.prestigeCount !== undefined) {
+            setTargetPrestige(data.prestigeCount);
+        } else {
+            setTargetPrestige(gameState.prestigeCount + 1);
+        }
+        fireJackpotConfetti();
+        setStage('complete');
+    });
 
     const handleConfirm = () => {
         if (!canAscend) return;

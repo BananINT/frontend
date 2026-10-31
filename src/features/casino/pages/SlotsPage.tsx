@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, type CSSProperties } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Banana, Dices, Skull, Bell, Cherry, Gem, Bug, type LucideIcon } from 'lucide-react';
 import { socketManager } from '@app/lib/socket';
+import { useSocketMessage } from '@app/hooks/useSocketMessage';
 import { useGame } from '@app/context/GameContext';
 import { formatNumber } from '@app/utils/format';
 import { fireWinConfetti, fireJackpotConfetti } from '@app/utils/confetti';
@@ -46,26 +47,17 @@ export default function SlotsPage() {
     const [flashKey, setFlashKey] = useState(0);
     const hasFiredConfetti = useRef(false);
 
-    useEffect(() => {
-        const handleSlotsResult = (msg: { type: string; data: unknown }) => {
-            if (msg.type === 'slots_machine_result') {
-                const data = msg.data as SlotsResult;
-                setGrid(data.grid);
-                setResultData(data);
-                hasFiredConfetti.current = false;
+    useSocketMessage<SlotsResult>('slots_machine_result', data => {
+        setGrid(data.grid);
+        setResultData(data);
+        hasFiredConfetti.current = false;
 
-                setTimeout(() => {
-                    setIsSpinning(false);
-                    setShowResult(true);
-                }, 1500);
-            } else if (msg.type === 'slots_machine_error') {
-                setIsSpinning(false);
-            }
-        };
-
-        socketManager.subscribe(handleSlotsResult);
-        return () => socketManager.unsubscribe(handleSlotsResult);
-    }, []);
+        setTimeout(() => {
+            setIsSpinning(false);
+            setShowResult(true);
+        }, 1500);
+    });
+    useSocketMessage('slots_machine_error', () => setIsSpinning(false));
 
     const hasWon = resultData && resultData.payout > 0;
     const hitSkull = resultData && resultData.skulls_hit > 0;

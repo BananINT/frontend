@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { socketManager } from '@app/lib/socket';
+import { useSocketMessage } from '@app/hooks/useSocketMessage';
 import { useGame } from '@app/context/GameContext';
 import { fireWinConfetti, fireJackpotConfetti } from '@app/utils/confetti';
 import type { CasinoResult, CasinoResultBase, GambleState } from './types';
@@ -56,49 +57,45 @@ export function useCasinoGame<R extends CasinoResultBase = CasinoResult>(
         [game, alsoKey]
     );
 
-    useEffect(() => {
-        const handle = (msg: { type: string; data?: unknown; game?: string; message?: string }) => {
-            if (msg.type === 'casino_result') {
-                const data = msg.data as R;
-                if (!accepted.includes(data.game)) return;
+    useSocketMessage<R>('casino_result', data => {
+        if (!accepted.includes(data.game)) return;
 
-                markSettled();
-                setBusy(false);
-                setError(null);
-                setGamble((data.gamble as GambleState | null) ?? null);
+        markSettled();
+        setBusy(false);
+        setError(null);
+        setGamble((data.gamble as GambleState | null) ?? null);
 
-                // The gamble bolt-on reports its own outcome; it must not
-                // overwrite the table result the player is still looking at.
-                if (data.game !== 'gamble' || game === 'gamble') setResult(data);
+        // The gamble bolt-on reports its own outcome; it must not
+        // overwrite the table result the player is still looking at.
+        if (data.game !== 'gamble' || game === 'gamble') setResult(data);
 
-                const payout = Number(data.payout ?? 0);
-                if (confetti && payout > 0 && payout > Number(data.bet ?? 0)) {
-                    setFlashKey((k) => k + 1);
-                    if (Number(data.global_jackpot_won ?? 0) > 0) fireJackpotConfetti();
-                    else fireWinConfetti();
-                }
-            } else if (msg.type === 'casino_error') {
-                if (msg.game && !accepted.includes(msg.game)) return;
-                markSettled();
-                setBusy(false);
-                setError(msg.message ?? 'Erreur inconnue');
-            } else if (msg.type === 'error') {
-                // The socket's catch-all. Without this the table would sit on
-                // "..." forever whenever a handler failed before it could reply.
-                // Errors from unrelated actions elsewhere in the app are ignored.
-                // A claimed frame keeps the global ERROR modal from showing it
-                // a second time (see casinoErrorClaims).
-                if (pendingRef.current === 0) return;
-                claimCasinoError(msg);
-                markSettled();
-                setBusy(false);
-                setError(msg.message ?? 'Erreur inconnue');
-            }
-        };
-
-        socketManager.subscribe(handle);
-        return () => socketManager.unsubscribe(handle);
-    }, [game, confetti, accepted, markSettled]);
+        const payout = Number(data.payout ?? 0);
+        if (confetti && payout > 0 && payout > Number(data.bet ?? 0)) {
+            setFlashKey((k) => k + 1);
+            if (Number(data.global_jackpot_won ?? 0) > 0) fireJackpotConfetti();
+            else fireWinConfetti();
+        }
+    });
+    useSocketMessage('casino_error', (_data, msg) => {
+        // Casino errors name their table outside `data`.
+        const errorGame = (msg as { game?: string }).game;
+        if (errorGame && !accepted.includes(errorGame)) return;
+        markSettled();
+        setBusy(false);
+        setError(msg.message ?? 'Erreur inconnue');
+    });
+    useSocketMessage('error', (_data, msg) => {
+        // The socket's catch-all. Without this the table would sit on
+        // "..." forever whenever a handler failed before it could reply.
+        // Errors from unrelated actions elsewhere in the app are ignored.
+        // A claimed frame keeps the global ERROR modal from showing it
+        // a second time (see casinoErrorClaims).
+        if (pendingRef.current === 0) return;
+        claimCasinoError(msg);
+        markSettled();
+        setBusy(false);
+        setError(msg.message ?? 'Erreur inconnue');
+    });
 
     // A table that unmounts mid-request will never hear back; release its
     // share so the global modal is not muted afterwards.
@@ -181,16 +178,12 @@ export function useCasinoGame<R extends CasinoResultBase = CasinoResult>(
 export function useCasinoTopic<T extends { topic: string }>(topic: string, deps: unknown[] = []) {
     const [state, setState] = useState<T | null>(null);
 
-    useEffect(() => {
-        const handle = (msg: { type: string; data?: unknown }) => {
-            if (msg.type !== 'casino_result') return;
-            const data = msg.data as T;
-            if (data?.topic === topic) setState(data);
-        };
+    useSocketMessage<T>('casino_result', data => {
+        if (data?.topic === topic) setState(data);
+    });
 
-        socketManager.subscribe(handle);
+    useEffect(() => {
         socketManager.send('casino_state', { topic });
-        return () => socketManager.unsubscribe(handle);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [topic, ...deps]);
 

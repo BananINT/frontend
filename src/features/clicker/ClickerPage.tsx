@@ -10,8 +10,9 @@ import SystemTelemetryCard from './components/SystemTelemetryCard';
 import CyberCombatFeedCard from './components/CyberCombatFeedCard';
 import ThemeShopModal from './components/ThemeShopModal';
 import { Palette, Eye, AlertTriangle } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { socketManager } from '@app/lib/socket';
+import { useSocketMessage } from '@app/hooks/useSocketMessage';
 import { AnimatePresence, motion } from 'framer-motion';
 import GameSection from '@app/components/shared/GameSection';
 import { formatNumber } from '@app/utils/format';
@@ -41,30 +42,26 @@ export default function ClickerPage() {
     const [retaliationTarget, setRetaliationTarget] = useState<{ id: string; name: string } | null>(null);
     const leaderboard = gameState.leaderboard || [];
 
+    const alertTimers = useRef(new Set<ReturnType<typeof setTimeout>>());
+    useSocketMessage<AlgoCultState>('algo_cult_state', data => setAlgoState(data));
+    useSocketMessage<CyberState>('cyber_state', data => setCyberState(data));
+    useSocketMessage<CyberAttack>('cyber_attacked', data => {
+        setCyberAttacks(prev => [...prev, data]);
+        const timer = setTimeout(() => {
+            alertTimers.current.delete(timer);
+            setCyberAttacks(prev => prev.slice(1));
+        }, 10000);
+        alertTimers.current.add(timer);
+    });
+
     useEffect(() => {
-        const alertTimers = new Set<ReturnType<typeof setTimeout>>();
-        const handleMessage = (msg: { type: string; data: unknown }) => {
-            if (msg.type === 'algo_cult_state') {
-                setAlgoState(msg.data as AlgoCultState);
-            } else if (msg.type === 'cyber_state') {
-                setCyberState(msg.data as CyberState);
-            } else if (msg.type === 'cyber_attacked') {
-                setCyberAttacks(prev => [...prev, msg.data as CyberAttack]);
-                const timer = setTimeout(() => {
-                    alertTimers.delete(timer);
-                    setCyberAttacks(prev => prev.slice(1));
-                }, 10000);
-                alertTimers.add(timer);
-            }
-        };
-        socketManager.subscribe(handleMessage);
         socketManager.send('get_algo_cult_state', {});
         socketManager.send('get_cyber_state', {});
 
+        const timers = alertTimers.current;
         return () => {
-            socketManager.unsubscribe(handleMessage);
-            alertTimers.forEach(clearTimeout);
-            alertTimers.clear();
+            timers.forEach(clearTimeout);
+            timers.clear();
         };
     }, []);
 

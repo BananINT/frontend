@@ -135,7 +135,7 @@ const UniversalConnections = () => {
 
 export default function HardwareStack() {
     return (
-        <ShowcaseSection title="Souveraineté technologique" icon={Cpu} maxWidth="max-w-6xl">
+        <ShowcaseSection title={"Souveraineté techno\u00ADlogique"} icon={Cpu} maxWidth="max-w-6xl">
             <div className="mb-12 -mt-8 flex flex-col gap-2 max-w-2xl">
                 <p className="text-banan-primary font-mono text-sm tracking-[0.2em] uppercase font-bold">
                     // PROTOCOLE D'INDÉPENDANCE

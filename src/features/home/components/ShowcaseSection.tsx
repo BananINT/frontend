@@ -36,7 +36,7 @@ export default function ShowcaseSection({
         >
             <div className={`flex items-center gap-3 md:gap-4 ${centered ? 'justify-center mb-6 text-center flex-col md:flex-row' : 'mb-8 sm:mb-12 text-left'}`}>
                 {Icon && <Icon className={`text-banan-primary shrink-0 ${centered ? 'w-10 h-10 md:w-12 md:h-12' : 'w-8 h-8 md:w-10 md:h-10'}`} />}
-                <h2 className={`${centered ? 'text-[clamp(1.75rem,8vw,3rem)] md:text-5xl' : 'text-[clamp(1.75rem,7vw,2.25rem)] md:text-4xl'} font-black uppercase text-white tracking-tight`}>
+                <h2 className={`${centered ? 'text-[clamp(1.75rem,8vw,3rem)] md:text-5xl' : 'text-[clamp(1.75rem,7vw,2.25rem)] md:text-4xl'} font-black uppercase text-white tracking-tight min-w-0 [overflow-wrap:break-word]`}>
                     {title}
                 </h2>
                 {!centered && <div className="h-1 flex-1 bg-gradient-to-r from-banan-primary to-transparent ml-4" />}

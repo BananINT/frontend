@@ -4,7 +4,7 @@ import ShowcaseSection from '@app/features/home/components/ShowcaseSection';
 
 export default function WikINTAd() {
     return (
-        <ShowcaseSection title="Partenariats" icon={Handshake} centered>
+        <ShowcaseSection title={"Parte\u00ADnariats"} icon={Handshake} centered>
             <div className="mt-12 grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch">
                 {/* Intellect Card */}
                 <motion.div

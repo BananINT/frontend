@@ -3,8 +3,13 @@ import { Play, Pause, SkipBack, SkipForward, Music, AlertCircle, List, Search, C
 import Modal from '@app/components/shared/Modal';
 import { motion, useAnimation, AnimatePresence } from 'framer-motion';
 
-// Use Vite's import.meta.glob to automatically map the public/audio folder
-const rawAudioFiles = import.meta.glob('../../../public/audio/*.{mp3,wav,ogg,flac,m4a,aac}', { eager: true, query: '?url', import: 'default' }) as Record<string, string>;
+// The audio-manifest Vite plugin serves /audio/manifest.json (live in dev,
+// emitted at build time), so the tracks stay in public/audio instead of being
+// copied into the bundle.
+interface AudioManifestEntry {
+    filename: string;
+    url: string;
+}
 
 export default function RadioOverlay() {
     const [isPlaying, setIsPlaying] = useState(false);
@@ -40,22 +45,33 @@ export default function RadioOverlay() {
         structure: 'rgba(255,255,255,0.1)'
     };
 
-    const audioManifest = useMemo(() => {
-        return Object.entries(rawAudioFiles).map(([path, url]) => {
-            let cleanUrl = url as string;
-            if (cleanUrl.startsWith('/public/')) {
-                cleanUrl = cleanUrl.replace(/^\/public/, '');
-            }
-            return {
-                filename: path.split('/').pop()!,
-                url: cleanUrl
-            };
-        }).sort((a, b) => a.filename.localeCompare(b.filename));
+    const [audioManifest, setAudioManifest] = useState<AudioManifestEntry[]>([]);
+
+    useEffect(() => {
+        let cancelled = false;
+        fetch('/audio/manifest.json')
+            .then(res => (res.ok ? res.json() : Promise.reject(new Error(`HTTP ${res.status}`))))
+            .then((data: { tracks?: AudioManifestEntry[] }) => {
+                if (cancelled || !Array.isArray(data?.tracks)) return;
+                setAudioManifest(
+                    data.tracks
+                        .map(({ filename, url }) => ({ filename, url }))
+                        .sort((a, b) => a.filename.localeCompare(b.filename))
+                );
+            })
+            .catch(err => console.error('RadioOverlay: manifest load failed', err));
+        return () => { cancelled = true; };
     }, []);
 
     const tracks = useMemo(() => audioManifest.map(item => item.url), [audioManifest]);
 
+    // Read at Audio creation without re-creating the element on volume changes.
+    const volumeRef = useRef(volume);
+    const isMutedRef = useRef(isMuted);
+
     useEffect(() => {
+        volumeRef.current = volume;
+        isMutedRef.current = isMuted;
         if (audioRef.current) {
             audioRef.current.volume = isMuted ? 0 : volume;
         }
@@ -73,7 +89,7 @@ export default function RadioOverlay() {
         if (tracks.length > 0) {
             const audio = new Audio();
             audio.crossOrigin = "anonymous";
-            audio.volume = volume;
+            audio.volume = isMutedRef.current ? 0 : volumeRef.current;
             audioRef.current = audio;
 
             const onEnded = () => handleNext();
@@ -82,12 +98,14 @@ export default function RadioOverlay() {
                 setIsPlaying(false);
             };
             const onCanPlay = () => setError(null);
+            const onTimeUpdate = () => setCurrentTime(audio.currentTime);
+            const onLoadedMetadata = () => setDuration(audio.duration);
 
             audio.addEventListener('ended', onEnded);
             audio.addEventListener('error', onErr);
             audio.addEventListener('canplay', onCanPlay);
-            audio.addEventListener('timeupdate', () => setCurrentTime(audio.currentTime));
-            audio.addEventListener('loadedmetadata', () => setDuration(audio.duration));
+            audio.addEventListener('timeupdate', onTimeUpdate);
+            audio.addEventListener('loadedmetadata', onLoadedMetadata);
 
             audio.src = tracks[currentTrackIndex];
 
@@ -96,10 +114,12 @@ export default function RadioOverlay() {
                 audio.removeEventListener('ended', onEnded);
                 audio.removeEventListener('error', onErr);
                 audio.removeEventListener('canplay', onCanPlay);
+                audio.removeEventListener('timeupdate', onTimeUpdate);
+                audio.removeEventListener('loadedmetadata', onLoadedMetadata);
                 audioRef.current = null;
             };
         }
-    }, [audioManifest, currentTrackIndex, handleNext, tracks, volume]);
+    }, [audioManifest, currentTrackIndex, handleNext, tracks]);
 
     useEffect(() => {
         if (audioRef.current && tracks.length > 0) {
@@ -169,18 +189,20 @@ export default function RadioOverlay() {
 
     const executeSnap = React.useCallback((targetCorner: 'TL' | 'TR' | 'BL' | 'BR', instant = false) => {
         if (typeof window === 'undefined') return;
-        const width = 320;
+        const width = containerRef.current?.offsetWidth || Math.min(320, window.innerWidth);
         const height = containerRef.current?.offsetHeight || 150;
+        // On screens narrower than the overlay plus margins, pin it to the edge.
+        const margin = Math.max(0, Math.min(24, (window.innerWidth - width) / 2));
         
-        let targetX = 24; // left-6 -> 6 * 4 = 24px
+        let targetX = margin; // left-6 -> 6 * 4 = 24px
         let targetY = 64; // top-16 -> 16 * 4 = 64px
         
         if (targetCorner === 'TR') {
-            targetX = window.innerWidth - width - 24;
+            targetX = window.innerWidth - width - margin;
         } else if (targetCorner === 'BL') {
             targetY = window.innerHeight - height - 24;
         } else if (targetCorner === 'BR') {
-            targetX = window.innerWidth - width - 24;
+            targetX = window.innerWidth - width - margin;
             targetY = window.innerHeight - height - 24;
         }
         
@@ -345,7 +367,7 @@ export default function RadioOverlay() {
                 dragMomentum={false}
                 onDragEnd={handleDragEnd}
                 animate={controls}
-                className={`fixed top-0 left-0 z-[9999] border-t border-l border-white/10 shadow-2xl flex flex-col w-[320px] overflow-hidden select-none cursor-move`}
+                className={`fixed top-0 left-0 z-[9999] border-t border-l border-white/10 shadow-2xl flex flex-col w-[min(320px,100vw)] overflow-hidden select-none cursor-move`}
                 style={{ backgroundColor: COLORS.black, fontFamily: "'Space Mono', monospace" }}
             >
                 {/* Top Brand Bar (always visible) */}
@@ -390,14 +412,19 @@ export default function RadioOverlay() {
                             <div className="p-4 flex flex-col gap-4">
                                 {/* Track Info & Visualizer */}
                                 <div className="flex items-center justify-between gap-4 h-12">
-                                    <div className="flex-1 overflow-hidden" onClick={() => setIsListOpen(true)} onPointerDownCapture={(e) => e.stopPropagation()}>
-                                        <div className="text-[9px] text-white/40 uppercase mb-1 cursor-pointer hover:text-banan-primary transition-colors">
+                                    <button
+                                        type="button"
+                                        className="block flex-1 min-w-0 overflow-hidden text-left bg-transparent p-0 border-0 font-[inherit] focus:outline-none focus-visible:ring-1 focus-visible:ring-banan-primary"
+                                        onClick={() => setIsListOpen(true)}
+                                        onPointerDownCapture={(e) => e.stopPropagation()}
+                                    >
+                                        <span className="block text-[9px] text-white/40 uppercase mb-1 cursor-pointer hover:text-banan-primary transition-colors">
                                             {error ? <span className="text-banan-red font-bold">SYSTEM ERROR</span> : "RUNNING / CLICK TO SWITCH"}
-                                        </div>
-                                        <div className="text-xs font-bold truncate w-full tracking-wider cursor-pointer transition-all" style={{ color: error ? 'var(--color-banan-red)' : COLORS.primary }}>
+                                        </span>
+                                        <span className="block text-xs font-bold truncate w-full tracking-wider cursor-pointer transition-all" style={{ color: error ? 'var(--color-banan-red)' : COLORS.primary }}>
                                             {error ? "RE-INITIALIZATION REQUIRED" : currentTrackName}
-                                        </div>
-                                    </div>
+                                        </span>
+                                    </button>
                                     {/* Visualizer animation */}
                                     <div className="flex items-end gap-[2px] h-6 w-8 bg-white/5 p-1 border border-white/5">
                                         {visualizerData.map((data, i) => (

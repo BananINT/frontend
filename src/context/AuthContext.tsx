@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import keycloak from '@app/lib/keycloak';
 import { setTheme } from '@app/lib/theme';
 
@@ -106,14 +106,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, []);
 
-  const login = () => keycloak.login();
-  const logout = () => {
+  const login = useCallback(() => { keycloak.login(); }, []);
+  const logout = useCallback(() => {
     setTheme('default');
     keycloak.logout();
-  };
+  }, []);
+
+  const value = useMemo(
+    () => ({ authenticated, username, userId, token, login, logout, loading }),
+    [authenticated, username, userId, token, login, logout, loading]
+  );
 
   return (
-    <AuthContext.Provider value={{ authenticated, username, userId, token, login, logout, loading }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );

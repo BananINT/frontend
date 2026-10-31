@@ -9,6 +9,8 @@ interface AnimatedCounterProps {
 
 export default function AnimatedCounter({ value, duration = 900, className = '' }: AnimatedCounterProps) {
     const [display, setDisplay] = useState(0);
+    // The value currently on screen, so a target change mid-animation
+    // continues from there instead of jumping back to the last target.
     const fromRef = useRef(0);
 
     useEffect(() => {
@@ -19,11 +21,11 @@ export default function AnimatedCounter({ value, duration = 900, className = '' 
         const tick = (now: number) => {
             const progress = Math.min(1, (now - start) / duration);
             const eased = 1 - Math.pow(1 - progress, 3);
-            setDisplay(Math.round(from + (value - from) * eased));
+            const current = Math.round(from + (value - from) * eased);
+            fromRef.current = current;
+            setDisplay(current);
             if (progress < 1) {
                 frame = requestAnimationFrame(tick);
-            } else {
-                fromRef.current = value;
             }
         };
         frame = requestAnimationFrame(tick);

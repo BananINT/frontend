@@ -11,6 +11,7 @@ import CyberCombatFeedCard from './components/CyberCombatFeedCard';
 import ThemeShopModal from './components/ThemeShopModal';
 import { Palette, Eye, AlertTriangle } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { socketManager } from '@app/lib/socket';
 import { AnimatePresence, motion } from 'framer-motion';
 import GameSection from '@app/components/shared/GameSection';
 import { formatNumber } from '@app/utils/format';
@@ -41,6 +42,7 @@ export default function ClickerPage() {
     const leaderboard = gameState.leaderboard || [];
 
     useEffect(() => {
+        const alertTimers = new Set<ReturnType<typeof setTimeout>>();
         const handleMessage = (msg: { type: string; data: unknown }) => {
             if (msg.type === 'algo_cult_state') {
                 setAlgoState(msg.data as AlgoCultState);
@@ -48,21 +50,21 @@ export default function ClickerPage() {
                 setCyberState(msg.data as CyberState);
             } else if (msg.type === 'cyber_attacked') {
                 setCyberAttacks(prev => [...prev, msg.data as CyberAttack]);
-                setTimeout(() => {
+                const timer = setTimeout(() => {
+                    alertTimers.delete(timer);
                     setCyberAttacks(prev => prev.slice(1));
                 }, 10000);
+                alertTimers.add(timer);
             }
         };
-        import('@app/lib/socket').then(({ socketManager }) => {
-            socketManager.subscribe(handleMessage);
-            socketManager.send('get_algo_cult_state', {});
-            socketManager.send('get_cyber_state', {});
-        });
-        
+        socketManager.subscribe(handleMessage);
+        socketManager.send('get_algo_cult_state', {});
+        socketManager.send('get_cyber_state', {});
+
         return () => {
-            import('@app/lib/socket').then(({ socketManager }) => {
-                socketManager.unsubscribe(handleMessage);
-            });
+            socketManager.unsubscribe(handleMessage);
+            alertTimers.forEach(clearTimeout);
+            alertTimers.clear();
         };
     }, []);
 
@@ -117,7 +119,7 @@ export default function ClickerPage() {
                 </AnimatePresence>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-4 h-auto lg:h-[calc(100vh-6rem)] overflow-hidden">
+            <div className="grid grid-cols-1 lg:grid-cols-4 h-auto lg:h-[calc(100dvh-6rem)] overflow-hidden">
                 {/* Column 1: ARMORY (Upgrades) */}
                 <div className="order-2 lg:order-1 lg:col-span-1 border-r border-white/10 flex flex-col h-[500px] lg:h-full overflow-hidden">
                     <GameSection
@@ -240,7 +242,7 @@ export default function ClickerPage() {
                             <GoldenBanana />
 
                             <div className="mb-12 text-center">
-                                <div className="text-8xl md:text-9xl font-black font-sans text-banan-primary tracking-tighter leading-none select-none">
+                                <div className="text-[clamp(3rem,16vw,6rem)] md:text-9xl font-black font-sans text-banan-primary tracking-tighter leading-none select-none">
                                     {formatNumber(gameState.bananas)}
                                 </div>
                                 <div className="text-[10px] font-mono text-white/40 uppercase tracking-[1em] mt-4 border-t border-white/10 pt-2 inline-block">
@@ -251,10 +253,12 @@ export default function ClickerPage() {
                             {/* The Big Banana Button */}
                             <div className="relative mb-8">
                                 <button
+                                    type="button"
                                     onClick={clickBanana}
-                                    className="group relative focus:outline-none"
+                                    aria-label="Cliquer la banane"
+                                    className="group relative focus:outline-none focus-visible:ring-2 focus-visible:ring-banan-primary focus-visible:ring-offset-4 focus-visible:ring-offset-black"
                                 >
-                                    <div className="w-[280px] h-[280px] border border-banan-primary bg-banan-primary/5 flex items-center justify-center cursor-pointer hover:bg-banan-primary hover:text-black transition-all duration-75 active:scale-95">
+                                    <div className="w-[min(280px,80vw)] aspect-square border border-banan-primary bg-banan-primary/5 flex items-center justify-center cursor-pointer hover:bg-banan-primary hover:text-black transition-all duration-75 active:scale-95">
                                         <Banana strokeWidth={1.5} className="w-32 h-32 text-banan-primary group-hover:text-black transition-colors duration-75" />
                                     </div>
                                     {/* Corner accents */}

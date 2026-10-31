@@ -9,6 +9,8 @@ export default function MissionsAchievementsSection() {
     const { gameState, claimMission, getMissions } = useGame();
     const [missionTab, setMissionTab] = useState<'personal' | 'clan'>('personal');
 
+    // getMissions is a stable callback, so this fetches once on mount;
+    // game_update triggers a refetch when missions complete.
     useEffect(() => {
         getMissions();
     }, [getMissions]);
@@ -105,6 +107,12 @@ export default function MissionsAchievementsSection() {
                                 const completed = mission.completed;
                                 const percent = Math.min(100, Math.floor((progress / Math.max(1, mission.target)) * 100));
                                 const isClaimed = mission.claimed;
+                                const hasPersonal = typeof mission.personalTarget === 'number' && mission.personalTarget > 0;
+                                const personalProgress = mission.personalProgress || 0;
+                                const personalTarget = mission.personalTarget || 0;
+                                const personalPercent = hasPersonal
+                                    ? Math.min(100, Math.floor((personalProgress / personalTarget) * 100))
+                                    : 0;
 
                                 return (
                                     <div
@@ -128,7 +136,7 @@ export default function MissionsAchievementsSection() {
 
                                         <div className="mt-2">
                                             <div className="flex justify-between text-[9px] font-mono text-white/60 mb-1">
-                                                <span>PROGRESSION</span>
+                                                <span>{hasPersonal ? 'PROGRESSION CLAN' : 'PROGRESSION'}</span>
                                                 <span>{formatNumber(progress)} / {formatNumber(mission.target)} ({percent}%)</span>
                                             </div>
                                             <div className="h-1.5 w-full bg-black border border-white/10 overflow-hidden">
@@ -137,6 +145,20 @@ export default function MissionsAchievementsSection() {
                                                     style={{ width: `${percent}%` }}
                                                 />
                                             </div>
+                                            {hasPersonal && (
+                                                <>
+                                                    <div className="flex justify-between text-[9px] font-mono text-white/60 mt-2 mb-1">
+                                                        <span>VOTRE CONTRIBUTION</span>
+                                                        <span>{formatNumber(personalProgress)} / {formatNumber(personalTarget)} ({personalPercent}%)</span>
+                                                    </div>
+                                                    <div className="h-1 w-full bg-black border border-white/10 overflow-hidden">
+                                                        <div
+                                                            className="h-full bg-banan-primary/60 transition-all duration-500"
+                                                            style={{ width: `${personalPercent}%` }}
+                                                        />
+                                                    </div>
+                                                </>
+                                            )}
                                         </div>
 
                                         {completed && !isClaimed && (

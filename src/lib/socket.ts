@@ -1,7 +1,13 @@
 type WebSocketMessage<T = unknown> = {
     type: string;
     data: T;
+    /** Error frames carry their text here: {type: 'error', message}. */
+    message?: string;
 };
+
+/** Messages that are only meaningful live and must never be replayed later. */
+const UNQUEUED_TYPES = new Set(['sync']);
+const MAX_QUEUE = 50;
 
 class WebSocketManager {
     private socket: WebSocket | null = null;
@@ -106,6 +112,7 @@ class WebSocketManager {
         }
         if (!internal) {
             this.connectResolvers = [];
+            this.messageQueue = [];
             this.currentUserId = null;
             console.log('[WS] Disconnected by caller.');
         }
@@ -124,19 +131,29 @@ class WebSocketManager {
         }
     }
 
+    isConnected(): boolean {
+        return this.socket?.readyState === WebSocket.OPEN;
+    }
+
     waitForConnection(): Promise<void> {
         if (this.socket?.readyState === WebSocket.OPEN) return Promise.resolve();
         return new Promise(resolve => this.connectResolvers.push(resolve));
     }
 
-    send(type: string, data: Record<string, unknown>) {
+    /** Returns true when the message went out on an open socket. */
+    send(type: string, data: Record<string, unknown>): boolean {
         if (this.socket?.readyState === WebSocket.OPEN) {
             this.sequenceIdx++;
             this.socket.send(JSON.stringify({ type, seq: this.sequenceIdx, ...data }));
-        } else {
-            console.log('[WS] Socket not open, queuing message:', type);
-            this.messageQueue.push({ type, data });
+            return true;
         }
+        if (UNQUEUED_TYPES.has(type)) return false;
+        if (this.messageQueue.length >= MAX_QUEUE) {
+            // Drop the oldest so a long outage can't flood the server on reconnect.
+            this.messageQueue.shift();
+        }
+        this.messageQueue.push({ type, data });
+        return false;
     }
 
     subscribe(listener: (message: WebSocketMessage) => void) {

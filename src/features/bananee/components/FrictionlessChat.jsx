@@ -94,7 +94,13 @@ export default function FrictionlessChat({ ws, isFolded, onToggleFold, username,
           Télépathie Bananique {isCoolingDown && "(COOLDOWN)"}
         </div>
         
-        <button className="lg:hidden focus:outline-none">
+        {/* Keyboard users reach the fold toggle here; its click bubbles to the bar. */}
+        <button
+          type="button"
+          className="lg:hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-banan-background"
+          aria-label={isFolded ? 'Déplier la télépathie' : 'Replier la télépathie'}
+          aria-expanded={!isFolded}
+        >
           {isFolded ? <ChevronUp size={16}/> : <ChevronDown size={16}/>}
         </button>
       </div>

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { socketManager } from '@app/lib/socket';
 import { useGame } from '@app/context/GameContext';
 import { fireWinConfetti, fireJackpotConfetti } from '@app/utils/confetti';
@@ -33,6 +33,10 @@ export function useCasinoGame<R extends CasinoResultBase = CasinoResult>(
     const [busy, setBusy] = useState(false);
     const [gamble, setGamble] = useState<GambleState | null>(null);
     const [flashKey, setFlashKey] = useState(0);
+    // Requests this table has sent and not yet heard back about. The socket's
+    // catch-all 'error' carries no game key, so it only lands on the table
+    // while one of its own requests is outstanding.
+    const pendingRef = useRef(0);
 
     // Which game keys this page will render. `gamble` is always accepted since
     // the Double ou Rien bolt-on hangs off every table.
@@ -48,6 +52,7 @@ export function useCasinoGame<R extends CasinoResultBase = CasinoResult>(
                 const data = msg.data as R;
                 if (!accepted.includes(data.game)) return;
 
+                pendingRef.current = Math.max(0, pendingRef.current - 1);
                 setBusy(false);
                 setError(null);
                 setGamble((data.gamble as GambleState | null) ?? null);
@@ -64,11 +69,15 @@ export function useCasinoGame<R extends CasinoResultBase = CasinoResult>(
                 }
             } else if (msg.type === 'casino_error') {
                 if (msg.game && !accepted.includes(msg.game)) return;
+                pendingRef.current = Math.max(0, pendingRef.current - 1);
                 setBusy(false);
                 setError(msg.message ?? 'Erreur inconnue');
             } else if (msg.type === 'error') {
                 // The socket's catch-all. Without this the table would sit on
                 // "..." forever whenever a handler failed before it could reply.
+                // Errors from unrelated actions elsewhere in the app are ignored.
+                if (pendingRef.current === 0) return;
+                pendingRef.current -= 1;
                 setBusy(false);
                 setError(msg.message ?? 'Erreur inconnue');
             }
@@ -83,6 +92,7 @@ export function useCasinoGame<R extends CasinoResultBase = CasinoResult>(
             if (!concurrent && busy) return;
             if (!concurrent) setBusy(true);
             setError(null);
+            pendingRef.current += 1;
             socketManager.send('casino_play', { game, bet, params });
         },
         [game, busy, concurrent]
@@ -92,6 +102,7 @@ export function useCasinoGame<R extends CasinoResultBase = CasinoResult>(
         (action: string, params: Record<string, unknown> = {}, targetGame = game) => {
             setBusy(true);
             setError(null);
+            pendingRef.current += 1;
             socketManager.send('casino_action', { game: targetGame, action, params });
         },
         [game]
@@ -107,6 +118,7 @@ export function useCasinoGame<R extends CasinoResultBase = CasinoResult>(
 
     const playGamble = useCallback(() => {
         setBusy(true);
+        pendingRef.current += 1;
         socketManager.send('casino_action', { game: 'gamble', action: 'play', params: {} });
     }, []);
 

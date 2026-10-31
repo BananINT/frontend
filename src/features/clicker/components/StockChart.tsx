@@ -96,9 +96,12 @@ export default function StockChart() {
             const upColor = getCssVar('--color-stock-up', '#26a69a');
             const downColor = getCssVar('--color-stock-down', '#ef5350');
             
-            const response = await api.get(`/market/history/${activeStock.symbol}`, {
+            const symbol = activeStock.symbol;
+            const response = await api.get(`/market/history/${symbol}`, {
                 params: { timeframe: tf }
             });
+            // The player may have switched stocks while this was in flight.
+            if (activeStockRef.current?.symbol !== symbol) return;
             const data = response.data;
             const stockHistory = data.candles;
             const candles = stockHistory.map((c: { time: number, open: number, high: number, low: number, close: number, volume?: number }) => ({
@@ -121,6 +124,7 @@ export default function StockChart() {
                 setError(null);
             }
         } catch (e: unknown) {
+            if (activeStockRef.current?.symbol !== activeStock.symbol) return;
             console.error("Failed to fetch market history:", e);
             setError("Market Offline");
         }
@@ -430,10 +434,12 @@ export default function StockChart() {
                         : 0;
                     const isPositive = change >= 0;
                     return (
-                        <div 
-                            key={`ticker-${s.symbol}`} 
+                        <button
+                            type="button"
+                            key={`ticker-${s.symbol}`}
                             onClick={() => { setActiveStock(s); setCurrentPrice(s.current_price); }}
-                            className={`flex items-center gap-2 px-2.5 py-1 bg-black/60 border cursor-pointer transition-colors shrink-0 ${
+                            aria-pressed={activeStock?.symbol === s.symbol}
+                            className={`flex items-center gap-2 px-2.5 py-1 bg-black/60 border cursor-pointer transition-colors shrink-0 text-left font-[inherit] focus:outline-none focus-visible:ring-1 focus-visible:ring-banan-primary ${
                                 activeStock?.symbol === s.symbol ? 'border-banan-primary' : 'border-white/10 hover:border-white/30'
                             }`}
                         >
@@ -443,7 +449,7 @@ export default function StockChart() {
                                 {isPositive ? '+' : ''}{change.toFixed(2)}%
                             </span>
                             <span className="text-[9px] text-white/30">Vol:{s.volatility}</span>
-                        </div>
+                        </button>
                     );
                 })}
             </div>

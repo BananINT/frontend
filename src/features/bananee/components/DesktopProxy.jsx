@@ -111,8 +111,16 @@ export default function DesktopProxy({ url }) {
       {/* --- INTERACTION OVERLAY --- */}
       {needsInteraction && (
         <div 
+          role="button"
+          tabIndex={0}
           onClick={enterFullscreenAndPlay}
-          className="absolute inset-0 z-[10000] bg-black/90 flex flex-col items-center justify-center cursor-pointer animate-in fade-in duration-500 backdrop-blur-sm"
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault()
+              enterFullscreenAndPlay()
+            }
+          }}
+          className="absolute inset-0 z-[10000] focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-banan-primary bg-black/90 flex flex-col items-center justify-center cursor-pointer animate-in fade-in duration-500 backdrop-blur-sm"
         >
           <div className="text-banan-primary border-2 border-banan-primary p-6 text-center animate-pulse hover:bg-banan-primary/10 transition-colors">
             <h2 className="text-2xl font-black uppercase mb-2">MODE IMMERSIF</h2>

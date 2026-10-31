@@ -36,8 +36,19 @@ export function SessionList({
           return (
             <div
               key={sess.id}
+              role="button"
+              tabIndex={0}
+              aria-current={isActive ? 'true' : undefined}
               onClick={() => onSelectSession(sess)}
-              className={`group px-2.5 py-2 rounded text-xs flex items-center justify-between cursor-pointer border transition-colors ${
+              onKeyDown={(e) => {
+                // Ignore keys aimed at the nested delete button.
+                if (e.target !== e.currentTarget) return;
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  onSelectSession(sess);
+                }
+              }}
+              className={`group px-2.5 focus:outline-none focus-visible:ring-1 focus-visible:ring-banan-primary py-2 rounded text-xs flex items-center justify-between cursor-pointer border transition-colors ${
                 isActive
                   ? 'border-banan-primary/50 bg-banan-primary/10 text-white font-bold'
                   : 'border-white/5 hover:border-white/20 text-white/60 hover:text-white'

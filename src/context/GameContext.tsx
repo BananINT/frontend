@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useRef } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useAuth } from './AuthContext';
 import type { ReactNode } from 'react';
 import { socketManager } from '@app/lib/socket';
@@ -33,6 +33,26 @@ interface BackendUpgrade {
   owned: number;
 }
 
+const mapUpgrade = (u: BackendUpgrade): Upgrade => ({
+  id: u.upgrade_id,
+  name: u.name,
+  cost: u.base_cost,
+  value: u.multiplier,
+  type: u.upgrade_type,
+  desc: u.description,
+  owned: u.owned
+});
+
+/** A sync sent to the server whose game_update has not come back yet. */
+interface InFlightSync {
+  clicks: number;
+  sentAt: number;
+}
+
+// A sync the server dropped (error, replay guard) never gets a game_update,
+// so stop counting its clicks after this long rather than inflating forever.
+const IN_FLIGHT_TTL_MS = 5000;
+
 interface BackendAchievement {
   achievement_id: string;
   name: string;
@@ -53,7 +73,6 @@ interface GameContextType {
   isLoading: boolean;
   clickBanana: () => void;
   buyUpgrade: (upgradeId: string) => Promise<boolean>;
-  setUserId: (id: string) => void;
   changeName: (name: string) => void;
   claimMission: (missionId: string) => void;
   buyStock: (symbol: string, quantity: number, maxPrice?: number) => Promise<boolean>;
@@ -93,9 +112,11 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
   const [gameState, setGameState] = useState<GameState>(defaultState);
   const [availableUpgrades, setAvailableUpgrades] = useState<Upgrade[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [notice, setNotice] = useState<{ title: string; message: string } | null>(null);
+  // Clicks not yet sent, and syncs sent but not yet answered. Their sum is
+  // what the server's banana count does not include yet.
   const pendingClicks = useRef(0);
-  const lastServerState = useRef<Partial<GameState>>({});
+  const inFlightSyncs = useRef<InFlightSync[]>([]);
   const notifiedMissions = useRef<Set<string>>(new Set());
 
   const { authenticated, token, userId, loading: authLoading } = useAuth();
@@ -111,6 +132,14 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
   //    Strict-Mode's dev double-invoke and would tear down a healthy socket.
   const connectedRef = useRef(false);
 
+  // Keep the manager's token current (initial login and Keycloak silent
+  // refresh). Declared before the init effect so the token is set before the
+  // first connect() in the same commit.
+  useEffect(() => {
+    if (!authLoading) socketManager.setToken(token);
+  }, [token, authLoading]);
+
+  // Token rotation alone must not re-init the game, so token is not a dep.
   useEffect(() => {
     if (authLoading) return;
     if (!authenticated || !userId) {
@@ -118,8 +147,6 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
       setTimeout(() => setIsLoading(false), 0); // Let the UI decide what to show (e.g., login prompt)
       return;
     }
-
-    socketManager.setToken(token);
 
     // Guard against Strict-Mode's deliberate double-fire.
     if (!connectedRef.current) {
@@ -135,13 +162,16 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
     return () => {
       connectedRef.current = false;
     };
-  }, [authLoading, authenticated, userId, token]);
+  }, [authLoading, authenticated, userId]);
 
-  // When the token rotates (Keycloak silent refresh), keep the manager in sync
-  // so that the next reconnect uses the fresh token.
-  useEffect(() => {
-    if (!authLoading) socketManager.setToken(token);
-  }, [token, authLoading]);
+  /** Sends a sync carrying the unsent clicks; they stay pending if the socket is down. */
+  const sendSync = useCallback(() => {
+    const clicks = pendingClicks.current;
+    if (socketManager.send('sync', { pendingClicks: clicks })) {
+      pendingClicks.current = 0;
+      inFlightSyncs.current.push({ clicks, sentAt: Date.now() });
+    }
+  }, []);
 
   // Socket Listeners
   useEffect(() => {
@@ -170,23 +200,15 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
         totalBananasEarned: serverState.total_bananas_earned || 0
       };
 
-      lastServerState.current = mappedState;
+      // A fresh snapshot supersedes any sync still in flight.
+      inFlightSyncs.current = [];
       setGameState(mappedState);
 
       // Process Upgrades
-      const mappedUpgrades = upgrades.map((u: BackendUpgrade) => ({
-        id: u.upgrade_id,
-        name: u.name,
-        cost: u.base_cost,
-        value: u.multiplier,
-        type: u.upgrade_type,
-        desc: u.description,
-        owned: u.owned
-      }));
-      setAvailableUpgrades(mappedUpgrades);
+      setAvailableUpgrades(upgrades.map(mapUpgrade));
 
       // Also trigger an immediate sync to get latest portfolio/passive/etc
-      socketManager.send('sync', { pendingClicks: 0 });
+      sendSync();
 
       // Fetch initial market data via REST API as requested
       api.get('/market/stocks').then(res => {
@@ -216,17 +238,38 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
       taxRate?: number;
       totalDonated?: number;
     }) => {
+      // Every game_update answers the oldest sync still in flight.
+      const now = Date.now();
+      inFlightSyncs.current = inFlightSyncs.current
+        .slice(1)
+        .filter(s => now - s.sentAt < IN_FLIGHT_TTL_MS);
+
       if (!data || Object.keys(data).length === 0) return;
 
+      // Clicks the server has not counted yet are re-applied on top of its
+      // value, so the counter doesn't roll back while a sync is in flight.
+      const unacked = pendingClicks.current
+        + inFlightSyncs.current.reduce((sum, s) => sum + s.clicks, 0);
+
+      if (data.newlyCompletedMissions && data.newlyCompletedMissions.length > 0) {
+        const newMissions = data.newlyCompletedMissions.filter(id => !notifiedMissions.current.has(id));
+        if (newMissions.length > 0) {
+          newMissions.forEach(id => notifiedMissions.current.add(id));
+          // Trigger an immediate fetch of missions state to update the UI
+          socketManager.send('get_missions', {});
+        }
+      }
+
       setGameState(prev => {
-        const newState = {
+        const clickValue = data.bananasPerClick ?? prev.clickValue;
+        return {
           ...prev,
-          bananas: data.bananas,
-          clickValue: data.bananasPerClick,
+          bananas: data.bananas + unacked * clickValue,
+          clickValue,
           autoClickers: data.bananasPerSecond,
           stocks: data.stocks,
           ownedThemes: (typeof data.ownedThemes === 'string' ? data.ownedThemes.split(',') : data.ownedThemes) || prev.ownedThemes,
-          clickCount: data.totalClicks || prev.clickCount,
+          clickCount: data.totalClicks !== undefined ? data.totalClicks + unacked : prev.clickCount,
           clan_id: data.clan_id !== undefined ? data.clan_id : prev.clan_id,
           totalBananasEarned: data.totalBananasEarned !== undefined ? data.totalBananasEarned : prev.totalBananasEarned,
           prestigeCount: data.prestigeCount !== undefined ? data.prestigeCount : prev.prestigeCount,
@@ -238,19 +281,6 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
           taxRate: data.taxRate !== undefined ? data.taxRate : prev.taxRate,
           totalDonated: data.totalDonated !== undefined ? data.totalDonated : prev.totalDonated
         };
-        
-        if (data.newlyCompletedMissions && data.newlyCompletedMissions.length > 0) {
-          const newMissions = data.newlyCompletedMissions.filter(id => !notifiedMissions.current.has(id));
-          if (newMissions.length > 0) {
-            console.log("Missions completed!", newMissions);
-            newMissions.forEach(id => notifiedMissions.current.add(id));
-            // Trigger an immediate fetch of missions state to update the UI
-            socketManager.send('get_missions', {});
-          }
-        }
-
-        lastServerState.current = newState;
-        return newState;
       });
     };
 
@@ -303,14 +333,6 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
 
     const handleAuthSuccess = (response: { gameState: InitResponse }) => {
       const { gameState } = response;
-      if (gameState && gameState.userId) {
-        setGameState(prev => ({
-          ...prev,
-          userId: gameState.userId
-        }));
-        localStorage.setItem('userId', gameState.userId);
-      }
-      
       if (gameState) {
         handleInitSuccess(gameState);
       }
@@ -341,17 +363,13 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
 
       const stats = payload.data;
       if (stats) {
-        setGameState(prev => {
-          const newState = {
-            ...prev,
-            bananas: stats.bananas,
-            clickValue: stats.bananasPerClick,
-            autoClickers: stats.bananasPerSecond,
-            banana_dna: stats.bananaDNA !== undefined ? stats.bananaDNA : prev.banana_dna
-          };
-          lastServerState.current = newState;
-          return newState;
-        });
+        setGameState(prev => ({
+          ...prev,
+          bananas: stats.bananas,
+          clickValue: stats.bananasPerClick,
+          autoClickers: stats.bananasPerSecond,
+          banana_dna: stats.bananaDNA !== undefined ? stats.bananaDNA : prev.banana_dna
+        }));
       }
     };
 
@@ -367,23 +385,14 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
       if (!response) return;
 
       if (response.upgrades && Array.isArray(response.upgrades)) {
-        setAvailableUpgrades(response.upgrades.map((u: BackendUpgrade) => ({
-          id: u.upgrade_id,
-          name: u.name,
-          cost: u.base_cost,
-          value: u.multiplier,
-          type: u.upgrade_type,
-          desc: u.description,
-          owned: u.owned
-        })));
+        setAvailableUpgrades(response.upgrades.map(mapUpgrade));
       } else {
         setAvailableUpgrades(prev => prev.map(u => 
           u.type !== 'prestige' ? { ...u, owned: 0 } : u
         ));
       }
 
-      setGameState(prev => {
-        const newState: GameState = {
+      setGameState(prev => ({
           ...prev,
           bananas: 0,
           clickCount: 0,
@@ -392,10 +401,7 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
           banana_dna: response.bananaDNA !== undefined ? response.bananaDNA : prev.banana_dna + (response.dnaGained || 0),
           clickValue: response.bananasPerClick !== undefined ? response.bananasPerClick : prev.clickValue,
           autoClickers: response.bananasPerSecond !== undefined ? response.bananasPerSecond : 0,
-        };
-        lastServerState.current = newState;
-        return newState;
-      });
+      }));
     };
 
     const handleTradeSuccess = (response: { success: boolean; new_balance?: number }) => {
@@ -432,20 +438,20 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
       }
     };
 
-    const handleError = (data: { message: string }) => {
-      if (data && data.message) {
+    const handleError = (text: string | undefined) => {
+      if (text) {
         // If it's an auth error, don't show the modal, try to refresh instead
-        if (data.message.toLowerCase().includes('auth failed') || data.message.toLowerCase().includes('token expired')) {
+        if (text.toLowerCase().includes('auth failed') || text.toLowerCase().includes('token expired')) {
           console.log("Auth error detected in WebSocket, attempting refresh...");
           // AuthContext handles renewal via periodic sync and token change listeners,
           // so we just log it here.
           return;
         }
-        setErrorMessage(data.message);
+        setNotice({ title: 'ERROR', message: text });
       }
     };
 
-    const handleMessage = (message: { type: string; data?: unknown }) => {
+    const handleMessage = (message: { type: string; data?: unknown; message?: string }) => {
       if (!message || !message.type) return;
       const data = message.data;
 
@@ -484,10 +490,14 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
           setGameState(prev => ({ ...prev, missions: (data as Mission[]) || [] }));
           break;
         case 'mission_claimed':
-          setErrorMessage(`MISSION RÉUSSIE ! +${(data as { reward?: number })?.reward || 0} 🍌`);
+          setNotice({
+            title: 'MISSION RÉUSSIE',
+            message: `MISSION RÉUSSIE ! +${(data as { reward?: number })?.reward || 0} 🍌`
+          });
           break;
         case 'error':
-          handleError(data as { message: string });
+          // The backend sends {type: 'error', message}; older frames nested it in data.
+          handleError(message.message ?? (data as { message?: string } | undefined)?.message);
           break;
       }
     };
@@ -497,102 +507,94 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
     return () => {
       socketManager.unsubscribe(handleMessage);
     };
-  }, [authLoading]);
+  }, [authLoading, sendSync]);
 
-  // Sync Interval
+  // Sync Interval: every tick carries the unsent clicks (or none, to pick up
+  // passive income). Only runs for a loaded, signed-in player on a live socket.
   useInterval(() => {
-    if (pendingClicks.current > 0) {
-      socketManager.send('sync', { pendingClicks: pendingClicks.current });
-      pendingClicks.current = 0;
-    } else {
-      // Send empty sync to get server time/passive income updates
-      socketManager.send('sync', { pendingClicks: 0 });
-    }
-  }, 1000);
+    if (socketManager.isConnected()) sendSync();
+  }, authenticated && !isLoading ? 1000 : null);
 
-  const clickBanana = () => {
+  const clickBanana = useCallback(() => {
     pendingClicks.current += 1;
     setGameState(prev => ({
       ...prev,
       bananas: prev.bananas + prev.clickValue,
       clickCount: prev.clickCount + 1
     }));
-  };
+  }, []);
 
-  const buyUpgrade = async (upgradeId: string): Promise<boolean> => {
-    if (!gameState.userId) return false;
+  const hasUserId = !!gameState.userId;
+  const buyUpgrade = useCallback(async (upgradeId: string): Promise<boolean> => {
+    if (!hasUserId) return false;
     socketManager.send('buy_upgrade', { upgradeId });
     return true;
-  };
+  }, [hasUserId]);
 
-  const setUserId = (newId: string) => {
-    // Reload to re-init with new ID
-    localStorage.setItem('userId', newId);
-    window.location.reload();
-  };
-
-  const changeName = (name: string) => {
+  const changeName = useCallback((name: string) => {
     socketManager.send('change_name', { name });
-  };
+  }, []);
 
-
-  const claimMission = (missionId: string) => {
+  const claimMission = useCallback((missionId: string) => {
     socketManager.send('claim_mission', { missionId });
-  };
+  }, []);
 
-  const getMissions = () => {
+  const getMissions = useCallback(() => {
     socketManager.send('get_missions', {});
-  };
+  }, []);
 
   // The clan tax lives on the clan_members row but drives every sync, so the
   // context owns it: the new rate lands in gameState before the next tick.
-  const setClanTaxRate = async (rate: number) => {
+  const setClanTaxRate = useCallback(async (rate: number) => {
     const res = await api.post('/clan/tax/set', { tax_rate: rate });
     const applied = typeof res.data?.tax_rate === 'number' ? res.data.tax_rate : rate;
     setGameState(prev => ({ ...prev, taxRate: applied }));
-    socketManager.send('sync', { pendingClicks: 0 });
-  };
+    sendSync();
+  }, [sendSync]);
 
-  const buyStock = async (symbol: string, quantity: number, maxPrice?: number): Promise<boolean> => {
+  const buyStock = useCallback(async (symbol: string, quantity: number, maxPrice?: number): Promise<boolean> => {
     socketManager.send('buy_stock', { symbol, shares: quantity, maxPrice });
     return true;
-  };
+  }, []);
 
-  const sellStock = async (symbol: string, quantity: number, minPrice?: number): Promise<boolean> => {
+  const sellStock = useCallback(async (symbol: string, quantity: number, minPrice?: number): Promise<boolean> => {
     socketManager.send('sell_stock', { symbol, shares: quantity, minPrice });
     return true;
-  };
+  }, []);
+
+  const buyTheme = useCallback(async (themeId: string) => {
+    socketManager.send('buy_theme', { themeId });
+    return true;
+  }, []);
+
+  const value = useMemo<GameContextType>(() => ({
+    gameState,
+    availableUpgrades,
+    isLoading,
+    clickBanana,
+    buyUpgrade,
+    changeName,
+    claimMission,
+    buyStock,
+    sellStock,
+    buyTheme,
+    getMissions,
+    setClanTaxRate
+  }), [gameState, availableUpgrades, isLoading, clickBanana, buyUpgrade, changeName, claimMission, buyStock, sellStock, buyTheme, getMissions, setClanTaxRate]);
 
   return (
-    <GameContext.Provider value={{
-      gameState,
-      availableUpgrades,
-      isLoading,
-      clickBanana,
-      buyUpgrade,
-      setUserId,
-      changeName,
-      claimMission,
-      buyStock,
-      sellStock,
-      buyTheme: async (themeId: string) => {
-        socketManager.send('buy_theme', { themeId });
-        return true;
-      },
-      getMissions,
-      setClanTaxRate
-    }}>
+    <GameContext.Provider value={value}>
       {isLoading ? (
         <BananLoader message="IMPORTING_GAME..." />
       ) : (
         children
       )}
       <Modal
-        isOpen={!!errorMessage}
-        onClose={() => setErrorMessage(null)}
-        title="ERROR"
+        isOpen={!!notice}
+        onClose={() => setNotice(null)}
+        title={notice?.title ?? 'ERROR'}
       >
-        <p className="text-white text-lg font-mono">{errorMessage}</p>
+        <p className="text-white text-lg font-mono">{notice?.message}</p>
       </Modal>
     </GameContext.Provider>
   );

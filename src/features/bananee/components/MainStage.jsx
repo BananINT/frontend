@@ -39,6 +39,9 @@ export default function MainStage() {
   const [visualScale, setVisualScale] = useState(1)
   const bgMusicRef = useRef(null)
   const bgTimerRef = useRef(null)
+  // Midnight phase/redirect timers and the autoplay-unlock listener, cleared on unmount.
+  const midnightTimersRef = useRef([])
+  const enableAudioRef = useRef(null)
   const midnightAudioRef = useRef(null)
   const sequenceTriggeredRef = useRef(false)
   const audioContextReadyRef = useRef(false)
@@ -123,13 +126,19 @@ export default function MainStage() {
       if (playPromise !== undefined) {
         playPromise.catch(error => {
           if (error.name === 'NotAllowedError') {
+            if (enableAudioRef.current) {
+              window.removeEventListener('click', enableAudioRef.current)
+              window.removeEventListener('keydown', enableAudioRef.current)
+            }
             const enableAudio = () => {
+              window.removeEventListener('click', enableAudio)
+              window.removeEventListener('keydown', enableAudio)
+              enableAudioRef.current = null
               if (audioContextReadyRef.current) return
               audioContextReadyRef.current = true
               playRandomBgMusic()
-              window.removeEventListener('click', enableAudio)
-              window.removeEventListener('keydown', enableAudio)
             }
+            enableAudioRef.current = enableAudio
             window.addEventListener('click', enableAudio)
             window.addEventListener('keydown', enableAudio)
           } else if (error.name !== 'AbortError') {
@@ -161,6 +170,13 @@ export default function MainStage() {
         bgMusicRef.current.pause()
       }
       if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current)
+      if (enableAudioRef.current) {
+        window.removeEventListener('click', enableAudioRef.current)
+        window.removeEventListener('keydown', enableAudioRef.current)
+        enableAudioRef.current = null
+      }
+      midnightTimersRef.current.forEach(clearTimeout)
+      midnightTimersRef.current = []
       if (socket) socket.close()
     }
   }, [])
@@ -177,6 +193,13 @@ export default function MainStage() {
     const P2_END = 63;
     const P3_END = 74;
 
+    // A forced resync reschedules everything, so drop the previous timers.
+    midnightTimersRef.current.forEach(clearTimeout);
+    midnightTimersRef.current = [];
+    const schedule = (fn, ms) => {
+      midnightTimersRef.current.push(setTimeout(fn, ms));
+    };
+
     const nowSec = Date.now() / 1000;
     const elapsed = payload.started_at ? (nowSec - payload.started_at) : 0;
 
@@ -192,18 +215,18 @@ export default function MainStage() {
 
     if (elapsed < P1_END) {
       setMidnightPhase(1);
-      setTimeout(() => setMidnightPhase(2), (P1_END - elapsed) * 1000);
-      setTimeout(() => setMidnightPhase(3), (P2_END - elapsed) * 1000);
-      setTimeout(() => doRedirect(payload.game_url), (P3_END - elapsed) * 1000);
+      schedule(() => setMidnightPhase(2), (P1_END - elapsed) * 1000);
+      schedule(() => setMidnightPhase(3), (P2_END - elapsed) * 1000);
+      schedule(() => doRedirect(payload.game_url), (P3_END - elapsed) * 1000);
     } 
     else if (elapsed < P2_END) {
       setMidnightPhase(2);
-      setTimeout(() => setMidnightPhase(3), (P2_END - elapsed) * 1000);
-      setTimeout(() => doRedirect(payload.game_url), (P3_END - elapsed) * 1000);
+      schedule(() => setMidnightPhase(3), (P2_END - elapsed) * 1000);
+      schedule(() => doRedirect(payload.game_url), (P3_END - elapsed) * 1000);
     } 
     else if (elapsed < P3_END) {
       setMidnightPhase(3);
-      setTimeout(() => doRedirect(payload.game_url), (P3_END - elapsed) * 1000);
+      schedule(() => doRedirect(payload.game_url), (P3_END - elapsed) * 1000);
     } 
     else {
       // EVENT ALREADY FINISHED

@@ -1,3 +1,4 @@
+import type React from 'react';
 import { motion } from 'framer-motion';
 
 interface PlayingCardProps {
@@ -27,7 +28,19 @@ export default function PlayingCard({ card, index = 0, held, onClick, size = 'md
             animate={{ rotateY: 0, opacity: 1, y: 0 }}
             transition={{ type: 'spring', damping: 14, stiffness: 140, delay: index * 0.08 }}
             onClick={onClick}
-            className={`${SIZES[size]} rounded-lg border flex flex-col items-center justify-center font-black shrink-0 select-none ${
+            {...(onClick && {
+                role: 'button',
+                tabIndex: 0,
+                'aria-label': card ? `Carte ${rank}${suit}` : 'Carte face cachée',
+                'aria-pressed': !!held,
+                onKeyDown: (e: React.KeyboardEvent) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        onClick();
+                    }
+                },
+            })}
+            className={`${SIZES[size]} rounded-lg border focus:outline-none focus-visible:ring-2 focus-visible:ring-banan-primary flex flex-col items-center justify-center font-black shrink-0 select-none ${
                 onClick ? 'cursor-pointer' : ''
             } ${
                 card

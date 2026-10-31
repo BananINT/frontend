@@ -52,15 +52,19 @@ export default function FuturesModal({ isOpen, onClose, stocks }: FuturesModalPr
     const [liquidationAlert, setLiquidationAlert] = useState<{ symbol: string; margin_lost: number } | null>(null);
     const [tab, setTab] = useState<'open' | 'trade' | 'history' | 'hacks'>('trade');
 
+    // `stocks` changes on every market tick; only the first symbol matters here.
+    const firstSymbol = stocks[0]?.symbol ?? '';
+
     useEffect(() => {
-        if (isOpen) {
-            socketManager.send('get_futures_positions', {});
-            if (stocks.length > 0 && !selectedSymbol) {
-                const initialSymbol = stocks[0].symbol;
-                setTimeout(() => setSelectedSymbol(initialSymbol), 0);
-            }
+        if (isOpen) socketManager.send('get_futures_positions', {});
+    }, [isOpen]);
+
+    useEffect(() => {
+        if (isOpen && firstSymbol && !selectedSymbol) {
+            const timer = setTimeout(() => setSelectedSymbol(firstSymbol), 0);
+            return () => clearTimeout(timer);
         }
-    }, [isOpen, stocks, selectedSymbol]);
+    }, [isOpen, firstSymbol, selectedSymbol]);
 
     useEffect(() => {
         const handleMessage = (message: { type: string; data: unknown }) => {

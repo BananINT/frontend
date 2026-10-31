@@ -34,6 +34,9 @@ export interface Mission {
   completed: boolean;
   claimed: boolean;
   type: 'personal' | 'clan';
+  /** Team missions only: the player's own contribution, which must also reach personalTarget. */
+  personalProgress?: number;
+  personalTarget?: number;
 }
 
 export interface GameState {

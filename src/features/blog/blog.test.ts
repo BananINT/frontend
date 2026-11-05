@@ -88,7 +88,7 @@ describe('Blog Feature Unit Tests', () => {
 
     it('publishes only the curated articles with no hidden-game or origin spoilers', () => {
         const articles = getAllArticles();
-        expect(articles).toHaveLength(8);
+        expect(articles).toHaveLength(10);
         expect(articles.some(a => a.slug === 'pourquoi-un-carnet-bananint')).toBe(false);
         expect(articles.some(a => a.slug === 'listes-bde-intv-gr-campus')).toBe(false);
         for (const article of articles) {
@@ -104,6 +104,13 @@ describe('Blog Feature Unit Tests', () => {
             }
             expect(article.downloads ?? []).toHaveLength(0);
         }
+    });
+
+    it('only links to published articles from article bodies', () => {
+        const links = getAllArticles().flatMap(article =>
+            [...article.content.matchAll(/\]\(\/blog\/([^)#]+)/g)].map(match => match[1]));
+        expect(links.length).toBeGreaterThan(5);
+        expect(links.filter(slug => !getArticleBySlug(slug))).toEqual([]);
     });
 
     it('keeps the earlier version a discovery: no component links to /legacy', () => {

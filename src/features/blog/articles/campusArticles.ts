@@ -3,8 +3,91 @@ import type { BlogArticle } from '../types';
 const author = { name: 'BananINT', role: 'Le carnet du campus', avatar: '🍌' };
 const date = '2026-09-29T08:00:00Z';
 const correctedAt = '2026-10-31T08:00:00Z';
+const guideDate = '2026-11-06T08:00:00Z';
 
 export const CAMPUS_ARTICLES: BlogArticle[] = [
+    {
+        id: 'campus-guide',
+        slug: 'vie-etudiante-telecom-sudparis',
+        title: 'Vie étudiante à Télécom SudParis (TSP) : par où commencer',
+        subtitle: 'Se loger, se repérer, trouver une association et comprendre le vocabulaire du campus d’Évry.',
+        metaTitle: 'Vie étudiante à Télécom SudParis (TSP) : repères du campus',
+        metaDescription: 'Se loger à la MAISEL, se repérer sur le campus d’Évry, trouver une association, comprendre le vocabulaire : des repères d’étudiants sur la vie à Télécom SudParis.',
+        keywords: ['Télécom SudParis', 'TSP', 'vie étudiante', 'campus Évry', 'MAISEL', 'associations', 'IMT-BS'],
+        category: 'campus',
+        tags: ['Campus', 'TSP', 'Assos', 'MAISEL'],
+        author,
+        publishedAt: guideDate,
+        updatedAt: guideDate,
+        readingTime: '2 min',
+        content: `**Télécom SudParis**, souvent abrégée **TSP**, est une école d’ingénieurs installée à Évry-Courcouronnes. Elle partage son campus et sa vie associative avec une école de management, **Institut Mines-Télécom Business School (IMT-BS)**.
+
+Cette page rassemble ce que le carnet a déjà écrit sur le sujet. BananINT est un projet étudiant, pas un site de l’école : pour les démarches et les informations officielles, le [site de Télécom SudParis](https://www.telecom-sudparis.eu/campus/vie-associative/) fait foi.
+
+## Se loger
+
+La **MAISEL** est l’association d’hébergement du campus. Son [site](https://maisel.imtbs-tsp.eu/) présente sept bâtiments, de U1 à U7. Pour ce qu’un étudiant en retient, du bruit près du foyer au U6 hors du campus : [les résidences MAISEL vues par un étudiant](/blog/maisel-u1-u7-logements-telecom-sudparis).
+
+## Se repérer
+
+Le foyer pour les associations, NOVA pour travailler et imprimer, le Ritz pour déjeuner : [trois lieux qu’on fréquente vite](/blog/nova-ritz-quotidien-campus-evry). Pour les courses, les laveries et les repas, voir aussi le [guide du quotidien de Welcom’](https://welcom-int.fr/fr/guides/daily-life).
+
+## Trouver une association
+
+L’école annonce plus de 60 associations et clubs. Pour démêler le BDE, le BDA, l’ASINT, MiNET et les autres : [le guide des associations du campus](/blog/tsp-maisel-assos-premiers-reperes). L’annuaire complet est sur [INT Portal](https://portal.bananint.fr/clubs).
+
+## Comprendre le vocabulaire
+
+Pourquoi tout le monde parle d’INT alors que l’école s’appelle autrement ? [L’histoire des noms de l’école](/blog/int-telecom-int-tsp-noms-ecole) répond à ça. Pour XRTC, SEI, WEI et le reste : [le lexique du campus](/blog/expressions-associations-int-xrtc).
+
+## Si tu arrives de l’étranger
+
+L’association **Welcom’** accueille les étudiants internationaux et publie [des guides pratiques](https://welcom-int.fr/fr).
+`,
+    },
+    {
+        id: 'campus-noms',
+        slug: 'int-telecom-int-tsp-noms-ecole',
+        title: 'INT, Télécom INT, TSP : pourquoi l’école a plusieurs noms',
+        subtitle: 'Télécom SudParis, TSP, INT, IMT-BS : qui est qui sur le campus d’Évry, et d’où vient chaque nom.',
+        metaTitle: 'Télécom SudParis, TSP, INT : les noms de l’école expliqués',
+        metaDescription: 'TSP, c’est Télécom SudParis, l’école d’ingénieurs d’Évry longtemps appelée INT. D’où viennent ces noms, quel lien avec IMT-BS et pourquoi INT revient partout sur le campus.',
+        keywords: ['Télécom SudParis', 'TSP', 'INT', 'Télécom INT', 'Institut national des télécommunications', 'IMT-BS', 'Évry'],
+        category: 'campus',
+        tags: ['Campus', 'TSP'],
+        author,
+        publishedAt: guideDate,
+        updatedAt: guideDate,
+        readingTime: '2 min',
+        content: `En arrivant à Évry, on peut entendre parler de TSP, de l’INT et de Télécom SudParis dans la même phrase. Il s’agit pourtant de la même école, à des époques différentes.
+
+## Qui est qui
+
+- **Télécom SudParis** : le nom actuel de l’école d’ingénieurs.
+- **TSP** : son abréviation courante.
+- **INT** : l’Institut national des télécommunications, le nom historique, qu’on entend encore sur le campus.
+- **IMT-BS** : Institut Mines-Télécom Business School, l’école de management qui partage le campus.
+- **IMT** : l’Institut Mines-Télécom, le groupe auquel appartiennent les deux écoles.
+
+## D’INT à Télécom SudParis
+
+- **1979** : création de l’Institut national des télécommunications à Évry, par un décret du 17 octobre. Il réunit alors une école d’ingénieurs et une école de gestion.
+- **Ensuite** : l’école d’ingénieurs est aussi connue sous le nom de Télécom INT.
+- **2008-2009** : l’INT devient Télécom & Management SudParis, puis l’école prend le nom de Télécom SudParis. Les deux versions de Wikipédia que nous avons consultées donnent ces étapes différemment : l’anglaise parle du nouveau nom en 2008, la française de Télécom SudParis en 2009.
+- **2012** : l’école rejoint l’Institut Mines-Télécom.
+- **2019** : elle devient membre fondateur de l’Institut Polytechnique de Paris.
+
+## Et l’école de management ?
+
+Elle a suivi son propre chemin : INT Management, puis Télécom École de Management, aujourd’hui Institut Mines-Télécom Business School. Le campus et les associations restent communs aux deux écoles, et de vieux documents mentionnent encore ces noms.
+
+## Pourquoi INT revient partout
+
+Le nom a changé, mais les étudiants l’ont gardé par jeu : HackademINT, Gam’INT, Épicer’INT et, oui, BananINT. Le [lexique du campus](/blog/expressions-associations-int-xrtc) en donne d’autres exemples, et le [guide de la vie étudiante](/blog/vie-etudiante-telecom-sudparis) rassemble le reste.
+
+Sources, consultées le 6 novembre 2026 : Wikipédia, [en français](https://fr.wikipedia.org/wiki/T%C3%A9l%C3%A9com_SudParis) et [en anglais](https://en.wikipedia.org/wiki/T%C3%A9l%C3%A9com_%26_Management_SudParis). Si vous avez une source de l’école pour ces dates, elle passera devant.
+`,
+    },
     {
         id: 'coulisses-origines',
         slug: 'comment-bananint-a-commence',
@@ -22,7 +105,7 @@ export const CAMPUS_ARTICLES: BlogArticle[] = [
         featured: true,
         content: `BananINT commence comme une blague entre amis : imaginer un club consacré aux bananes. Les premières créations sont des expériences rapides et absurdes faites avec l’IA, dont un site, à une époque où les résultats étaient encore, selon le créateur, assez ratés.
 
-Il décrit aujourd’hui BananINT comme un **club pour rire, qui existe un peu et n’existe pas vraiment**. Le but était surtout de faire circuler le nom.
+Il décrit aujourd’hui BananINT comme un **club pour rire, qui existe un peu et n’existe pas vraiment**. Le but était surtout de faire circuler le nom, avec le [« INT » qu’on met partout sur le campus](/blog/expressions-associations-int-xrtc).
 
 ## Le premier clicker
 
@@ -61,7 +144,7 @@ Depuis le deuxième semestre, il travaille sur le projet. Il le décrit comme un
         publishedAt: date,
         updatedAt: correctedAt,
         readingTime: '3 min',
-        content: `Le campus d’Évry réunit deux écoles de l’Institut Mines-Télécom : **Télécom SudParis** (école d’ingénieurs) et **Institut Mines-Télécom Business School** (école de management). Elles partagent le campus et la vie associative.
+        content: `Le campus d’Évry réunit deux écoles de l’Institut Mines-Télécom : **Télécom SudParis** (école d’ingénieurs) et **Institut Mines-Télécom Business School** (école de management). Elles partagent le campus et la vie associative. Ce guide fait partie des [repères sur la vie étudiante à TSP](/blog/vie-etudiante-telecom-sudparis).
 
 ## Les trois bureaux
 
@@ -71,7 +154,7 @@ Depuis le deuxième semestre, il travaille sur le projet. Il le décrit comme un
 
 ## Les clubs techniques
 
-- **MiNET** : l’association qui exploite le réseau des résidences depuis 1991. Elle présente aussi une mission de formation et un soutien aux clubs.
+- **MiNET** : l’association qui exploite le réseau des [résidences](/blog/maisel-u1-u7-logements-telecom-sudparis) depuis 1991. Elle présente aussi une mission de formation et un soutien aux clubs.
 - **HackademINT** : le club de cybersécurité, associé au *404 CTF*.
 - **INTech** : le club de robotique.
 - **Gam’INT** : le club de jeu vidéo.
@@ -82,7 +165,7 @@ Depuis le deuxième semestre, il travaille sur le projet. Il le décrit comme un
 - **BPM** : son et lumière ; il organise le Club B avec l’AbsINThe.
 - **Déclic** : le club photo, crédité sur les images de Welcom’.
 - **Welcom’** : l’accueil des étudiants internationaux, avec des guides pratiques et des rencontres comme le Global Village.
-- **AbsINThe** : le bar étudiant du foyer.
+- **AbsINThe** : le bar étudiant du [foyer](/blog/nova-ritz-quotidien-campus-evry).
 - **Épicer’INT** : la solidarité alimentaire.
 
 Pour la liste complète des structures étudiantes, voir le portail associatif [portal.bananint.fr](https://portal.bananint.fr/) et le guide étudiant [welcom-int.fr](https://welcom-int.fr/fr).
@@ -106,7 +189,7 @@ Pour la liste complète des structures étudiantes, voir le portail associatif [
 
 ## « INT » partout
 
-**INT** est l’ancien nom de l’école, l’Institut national des télécommunications. Le nom a changé, mais on aime remettre INT partout, dans les noms d’associations et les jeux de mots :
+**INT** est l’ancien nom de l’école, l’Institut national des télécommunications ([l’histoire de ses noms](/blog/int-telecom-int-tsp-noms-ecole)). Le nom a changé, mais on aime remettre INT partout, dans les noms d’associations et les jeux de mots :
 - **BananINT** (le clicker du campus)
 - **HackademINT** (le club cyber)
 - **Gam’INT** (le club jeu vidéo)
@@ -145,7 +228,7 @@ Le [guide associatif de Welcom’](https://welcom-int.fr/fr/guides/associative) 
         publishedAt: date,
         updatedAt: correctedAt,
         readingTime: '2 min',
-        content: `La **MAISEL** est l’association d’hébergement du campus d’Évry. Son site présente sept bâtiments, de **U1 à U7**.
+        content: `La **MAISEL** est l’association d’hébergement du campus d’Évry. Son [site](https://maisel.imtbs-tsp.eu/) présente sept bâtiments, de **U1 à U7**.
 
 Les repères ci-dessous viennent d’un étudiant de deuxième année du cycle ingénieur, recueillis fin septembre 2026. Ce sont ses impressions, pas des mesures ni un classement : pour lui, chaque bâtiment a ses avantages et ses inconvénients.
 
@@ -164,11 +247,11 @@ Plafonds plutôt bas, petits couloirs ; pour le reste, rien de très particulier
 Entièrement hors du campus, à ne pas confondre avec le U3, qui reste sur le campus.
 
 ### U7 : le plus moderne
-Le plus moderne, selon le témoin. Le site de la MAISEL le situe au 14 rue Charles Fourier, près du restaurant du campus, le Ritz.
+Le plus moderne, selon le témoin. Le site de la MAISEL le situe au 14 rue Charles Fourier, près du restaurant du campus, [le Ritz](/blog/nova-ritz-quotidien-campus-evry).
 
 ## Pour en savoir plus
 
-Le réseau des résidences est exploité par l’association MiNET.
+Le réseau des résidences est exploité par l’association [MiNET](/blog/tsp-maisel-assos-premiers-reperes).
 
 Pour les retours des anciens sur chaque bâtiment, le même étudiant recommande le serveur Discord des admissibles ([lien d’invitation](https://discord.com/invite/Us9QXdwt86)), réutilisé selon lui depuis plusieurs années. Les témoignages y ont donc des dates différentes : un vieux problème ne décrit pas forcément l’état actuel.
 `,
@@ -191,7 +274,7 @@ Pour les retours des anciens sur chaque bâtiment, le même étudiant recommande
 
 ## Le foyer
 
-Proche des résidences U1, U2 et U4, le foyer accueille les locaux des associations et les rencontres :
+Proche des [résidences U1, U2 et U4](/blog/maisel-u1-u7-logements-telecom-sudparis), le foyer accueille les locaux des [associations](/blog/tsp-maisel-assos-premiers-reperes) et les rencontres :
 - **L’AbsINThe** : le bar étudiant du foyer.
 - **La Grande Salle (GS) et l’Espace Triangle** : des lieux qu’on retrouve dans les descriptions de soirées étudiantes.
 
@@ -213,7 +296,9 @@ Le Ritz est le restaurant principal du campus, près du U7. Les étudiants mange
 La nourriture est plutôt bonne. Mais le Ritz est devenu assez cher ces derniers temps, et les étudiants s’en plaignent. La cafétéria a aussi la réputation d’être chère.
 
 ### Le double sens du mot « Ritz »
-Dans les associations, « le Ritz » désigne aussi la personne qui fait à manger.
+Dans les associations, « le Ritz » désigne aussi la personne qui fait à manger. D’autres mots du campus sont dans le [lexique](/blog/expressions-associations-int-xrtc).
+
+Pour les courses, les laveries et les autres repas, voir le [guide du quotidien de Welcom’](https://welcom-int.fr/fr/guides/daily-life).
 `,
     },
 ];

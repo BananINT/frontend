@@ -54,6 +54,7 @@ async function run() {
         articleUrl,
         articleJsonLd,
         blogIndexJsonLd,
+        homeJsonLd,
     } = await import('../src/features/blog/seo.ts');
     // Stable date for non-article URLs: the most recent article update, not the build time.
     const latestUpdate = articles
@@ -162,6 +163,45 @@ async function run() {
         return html;
     }
 
+    // --- A0. Generate _home.html (homepage), served at / by nginx. index.html stays
+    // the empty shell of the app routes, which must not show the homepage content.
+    const homeDescription = templateHtml.match(/<meta name="description" content="(.*?)"/)[1];
+    const homeArticles = [
+        ['TSP, MAISEL, INT : les premiers repères du campus', 'tsp-maisel-assos-premiers-reperes'],
+        ['Pourquoi il y a « INT » partout sur le campus', 'expressions-associations-int-xrtc'],
+        ['NOVA, le Ritz et les petits détours d’une journée', 'nova-ritz-quotidien-campus-evry'],
+        ['Vie étudiante à Télécom SudParis', 'vie-etudiante-telecom-sudparis'],
+    ];
+    const homeFallback = `
+        <main style="padding: 3rem 16px; max-width: 1280px; margin: 0 auto; box-sizing: border-box; color: white; font-family: sans-serif; text-align: center;">
+            <p style="color: #FAFF00; font-size: 0.85rem; font-family: monospace; letter-spacing: 0.3em; text-transform: uppercase;">Un club de Télécom SudParis</p>
+            <h1 style="font-size: clamp(3rem, 11.5vw, 12rem); line-height: 0.85; text-transform: uppercase; letter-spacing: -0.04em; margin: 1.5rem 0;">BananINT</h1>
+            <p style="color: #ddd; font-size: 1.2rem;">Fournisseur de potassium numérique</p>
+            <h2 style="margin-top: 4rem;">Un clicker qui a mal tourné</h2>
+            <p style="color: #bbb; max-width: 42rem; margin: 1rem auto; line-height: 1.6;">Le premier classement a lancé une course aux clics et aux bots sur le campus. Depuis, le jeu a grandi : améliore ta production, surveille le marché et essaie de grimper à ton tour.</p>
+            <a href="/clicker" style="color: #FAFF00;">Jouer Maintenant</a>
+            <h2 style="margin-top: 4rem;">Le campus en vrai</h2>
+            <p style="color: #bbb; max-width: 42rem; margin: 1rem auto; line-height: 1.6;">Entre deux parties, il y a les lieux, les assos et les mots du campus. On a commencé à les raconter dans le carnet.</p>
+            <nav>
+                <ul style="list-style: none; padding: 0;">
+                    ${homeArticles.map(([label, slug]) => `<li style="margin: 0.75rem 0;"><a href="/blog/${slug}" style="color: #FAFF00;">${escapeHtml(label)}</a></li>`).join('')}
+                    <li style="margin: 0.75rem 0;"><a href="/blog" style="color: #FAFF00;">Tout le carnet</a></li>
+                </ul>
+            </nav>
+        </main>
+    `;
+
+    const homeHtml = createPrerenderedHtml({
+        title: templateHtml.match(/<title>(.*?)<\/title>/)[1],
+        description: homeDescription,
+        canonicalUrl: SITE_ROOT_URL,
+        jsonLd: homeJsonLd(homeDescription),
+        bodyFallbackHtml: homeFallback,
+    });
+
+    fs.writeFileSync(path.resolve(DIST_DIR, '_home.html'), homeHtml, 'utf8');
+    console.log('  ✅ [SSG] Generated dist/_home.html');
+
     // --- A. Generate /blog/index.html (Blog Index) ---
     const blogIndexDir = path.resolve(DIST_DIR, 'blog');
     fs.mkdirSync(blogIndexDir, { recursive: true });
@@ -189,7 +229,7 @@ async function run() {
     `;
 
     const blogIndexHtml = createPrerenderedHtml({
-        title: 'Le carnet — campus, idées et BananINT | BananINT',
+        title: 'Le carnet : vie étudiante à Télécom SudParis (TSP) | BananINT',
         description: 'Vie étudiante à Télécom SudParis, MAISEL, assos et coulisses du projet : le carnet BananINT, à lire entre deux cours.',
         canonicalUrl: BLOG_URL,
         keywords: [
@@ -256,6 +296,12 @@ async function run() {
                         children: prepareStaticArticleMarkdown(article.content)
                     }))}
                 </div>
+                <nav style="max-width: 78ch; margin-top: 3rem; border-top: 1px solid rgba(255,255,255,0.15); padding-top: 1.5rem;">
+                    <h2 style="font-size: 1.2rem;">À lire aussi</h2>
+                    <ul style="padding-left: 1.2rem; line-height: 1.8;">
+                        ${articlesModule.getRelatedArticles(article.slug, 3).map(a => `<li><a href="/blog/${a.slug}" style="color: #FAFF00;">${escapeHtml(a.title)}</a></li>`).join('')}
+                    </ul>
+                </nav>
             </article>
         `;
 

@@ -32,6 +32,26 @@ export const AUTHOR = {
     url: SITE_ROOT_URL,
 };
 
+export function homeJsonLd(description: string): Record<string, unknown>[] {
+    return [
+        {
+            '@context': 'https://schema.org',
+            '@type': 'WebSite',
+            name: 'BananINT',
+            url: SITE_ROOT_URL,
+            inLanguage: 'fr-FR',
+            description,
+            publisher: PUBLISHER,
+        },
+        {
+            '@context': 'https://schema.org',
+            ...PUBLISHER,
+            description,
+            sameAs: ['https://www.instagram.com/bananint', 'https://github.com/bananint'],
+        },
+    ];
+}
+
 export function articleUrl(article: Pick<BlogArticle, 'slug'>): string {
     return `${BLOG_URL}/${article.slug}`;
 }

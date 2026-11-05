@@ -130,7 +130,7 @@ export default function BlogListPage() {
     return (
         <div className="min-h-screen overflow-x-clip bg-[#0c0d09] text-white selection:bg-banan-primary selection:text-black">
             <SeoHead
-                title="Le carnet — campus, idées et BananINT"
+                title="Le carnet : vie étudiante à Télécom SudParis (TSP)"
                 description="Vie étudiante à Télécom SudParis, MAISEL, assos et coulisses du projet : le carnet BananINT, à lire entre deux cours."
                 canonicalUrl={BLOG_URL}
                 keywords={[

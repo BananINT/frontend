@@ -289,9 +289,14 @@ export default function HomePage() {
                                 </Link>
                             ))}
                         </div>
-                        <Link to="/blog" className="mt-9 inline-flex items-center gap-2 font-mono text-sm font-bold text-banan-primary underline underline-offset-4 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-banan-primary">
-                            Tout le carnet <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
-                        </Link>
+                        <div className="mt-9 flex flex-wrap gap-x-8 gap-y-4">
+                            <Link to="/blog/vie-etudiante-telecom-sudparis" className="inline-flex items-center gap-2 font-mono text-sm font-bold text-banan-primary underline underline-offset-4 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-banan-primary">
+                                Vie étudiante à Télécom SudParis <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+                            </Link>
+                            <Link to="/blog" className="inline-flex items-center gap-2 font-mono text-sm font-bold text-banan-primary underline underline-offset-4 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-banan-primary">
+                                Tout le carnet <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+                            </Link>
+                        </div>
                     </ShowcaseSection>
   
                     <ShowcaseSection 

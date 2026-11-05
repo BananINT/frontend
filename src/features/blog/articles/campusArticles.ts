@@ -85,7 +85,7 @@ Depuis le deuxième semestre, il travaille sur le projet. Il le décrit comme un
 - **AbsINThe** : le bar étudiant du foyer.
 - **Épicer’INT** : la solidarité alimentaire.
 
-Pour la liste complète des structures étudiantes, voir le portail associatif [portal.bananint.fr](https://portal.bananint.fr/) et le guide étudiant [welcom.theodarvoux.fr](https://welcom.theodarvoux.fr/).
+Pour la liste complète des structures étudiantes, voir le portail associatif [portal.bananint.fr](https://portal.bananint.fr/) et le guide étudiant [welcom-int.fr](https://welcom-int.fr/fr).
 `,
     },
     {
@@ -125,7 +125,7 @@ Selon un étudiant de deuxième année (septembre 2026), on reconnaît souvent q
 
 ## Les sigles de rentrée
 
-Le guide associatif de Welcom’ donne quelques repères, qui ne valent pas calendrier :
+Le [guide associatif de Welcom’](https://welcom-int.fr/fr/guides/associative) donne quelques repères, qui ne valent pas calendrier :
 - **SEI** : la semaine d’intégration, précédée d’une pré-SEI.
 - **WEI** : le week-end d’intégration.
 - **Club B** : une soirée récurrente organisée par BPM et l’AbsINThe, annoncée le mercredi, avec des exceptions.

@@ -1,10 +1,12 @@
 import type { BlogArticle, BlogCategory } from '../types';
 import { CAMPUS_ARTICLES } from './campusArticles.ts';
 import { GAME_ARTICLES } from './gameArticles.ts';
+import { PHOTO_ARTICLES } from './photoArticles.ts';
 
 export const BLOG_ARTICLES: BlogArticle[] = [
     ...CAMPUS_ARTICLES,
     ...GAME_ARTICLES,
+    ...PHOTO_ARTICLES,
 ];
 
 export function getAllArticles(): BlogArticle[] {
